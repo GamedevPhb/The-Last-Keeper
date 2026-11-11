@@ -35,6 +35,10 @@ window/stretch/scale_mode="integer"
 
 project/assembly_name="Novo Projeto de Jogo"
 
+[gui]
+
+theme/custom="res://ui/theme.tres"
+
 [input]
 
 move_forward={

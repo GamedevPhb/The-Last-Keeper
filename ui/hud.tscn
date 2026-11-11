@@ -6,7 +6,7 @@
 bg_color = Color(0, 0, 0, 0.6)
 
 [sub_resource type="StyleBoxFlat" id="bar_fill"]
-bg_color = Color(1, 0.8, 0.4, 1)
+bg_color = Color(0.72, 0.14, 0.1, 1)
 
 [node name="Hud" type="CanvasLayer"]
 layer = 10

@@ -10,6 +10,7 @@ var _camera: Camera3D
 var _angle := 2.2
 var _buttons: VBoxContainer
 var _settings: SettingsPanel
+var _logo: TextureRect
 
 
 func _ready() -> void:
@@ -74,26 +75,29 @@ func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 10
 	add_child(layer)
-	var left := VBoxContainer.new()
-	left.position = Vector2(18, 56)
-	left.custom_minimum_size = Vector2(110, 0)
-	left.add_theme_constant_override("separation", 5)
+	_logo = TextureRect.new()
+	var logo := _logo
+	logo.texture = load("res://ui/logo.png")
+	logo.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	logo.position = Vector2(8, 10)
+	layer.add_child(logo)
+	var left := PanelContainer.new()
+	left.position = Vector2(18, 112)
+	left.custom_minimum_size = Vector2(112, 0)
 	layer.add_child(left)
-	var title := UiKit.label("THE LAST\nKEEPER", 0, Color(0.95, 0.88, 0.7))
-	title.add_theme_font_size_override("font_size", 16)
-	left.add_child(title)
-	left.add_child(UiKit.label("Farol 7", 0, Color(0.6, 0.7, 0.65)))
-	left.add_child(Control.new())
 	_buttons = VBoxContainer.new()
-	_buttons.add_theme_constant_override("separation", 4)
+	_buttons.add_theme_constant_override("separation", 5)
 	left.add_child(_buttons)
 	var start := UiKit.button("Iniciar", _start)
 	_buttons.add_child(start)
 	_buttons.add_child(UiKit.button("Opções", _open_settings))
 	_buttons.add_child(UiKit.button("Sair", func() -> void: get_tree().quit()))
 	start.grab_focus()
+	var footer := UiKit.label("pré-alpha  ·  Farol 7", 0, Color(0.45, 0.55, 0.5))
+	footer.position = Vector2(10, 228)
+	layer.add_child(footer)
 	_settings = SettingsPanel.new()
-	_settings.position = Vector2(14, 40)
+	_settings.position = Vector2(8, 4)
 	_settings.visible = false
 	_settings.closed.connect(_close_settings)
 	layer.add_child(_settings)
@@ -105,10 +109,12 @@ func _start() -> void:
 
 func _open_settings() -> void:
 	_buttons.get_parent().visible = false
+	_logo.visible = false
 	_settings.visible = true
 
 
 func _close_settings() -> void:
 	_settings.visible = false
 	_buttons.get_parent().visible = true
+	_logo.visible = true
 	(_buttons.get_child(0) as Button).grab_focus()

@@ -7,11 +7,10 @@ var _text: Label
 func _ready() -> void:
 	layer = 9
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", UiKit.style(Color(0, 0, 0, 0.5), Color(0.3, 0.45, 0.4)))
-	panel.position = Vector2(196, 26)
-	panel.custom_minimum_size = Vector2(120, 0)
+	panel.position = Vector2(190, 22)
+	panel.custom_minimum_size = Vector2(126, 0)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_text = UiKit.label("", 112, Color(0.8, 0.95, 0.9))
+	_text = UiKit.label("", 108, UiKit.SEA)
 	panel.add_child(_text)
 	add_child(panel)
 

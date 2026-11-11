@@ -128,15 +128,18 @@ func _go_to_menu() -> void:
 func _refresh_inventory() -> void:
 	if not _inventory.visible:
 		return
-	_inventory_text.text = "INVENTÁRIO\n\nLata de óleo: %d\nLata de combustível: %d\nLanterna: %s\nLivro de registros: %s\n\nOBJETIVO\n%s" % [
+	_inventory_text.text = "Lata de óleo: %d\nLata de combustível: %d\nLanterna: %s\nLivro de registros: %s\n\n— OBJETIVO —\n%s" % [
 		GameState.oil_cans, GameState.fuel_cans, "sim" if GameState.has_flashlight else "não",
 		"na mesa da casa" if not GameState.book_read else "lido (J abre)", GameState.objective()]
 
 
 func _build_inventory() -> Control:
 	var root := _screen(false)
+	var box: VBoxContainer = root.get_node("Center/Panel/Box")
+	box.add_child(UiKit.heading("INVENTÁRIO"))
+	box.add_child(HSeparator.new())
 	_inventory_text = UiKit.label("", 170)
-	root.get_node("Center/Panel/Box").add_child(_inventory_text)
+	box.add_child(_inventory_text)
 	return root
 
 
@@ -145,7 +148,8 @@ func _build_inventory() -> Control:
 func _build_pause() -> Control:
 	var root := _screen(true)
 	_pause_box = root.get_node("Center/Panel/Box")
-	_pause_box.add_child(UiKit.label("PAUSADO"))
+	_pause_box.add_child(UiKit.heading("PAUSADO"))
+	_pause_box.add_child(HSeparator.new())
 	_pause_box.add_child(UiKit.button("Continuar", resume))
 	_pause_box.add_child(UiKit.button("Opções", _open_settings))
 	_controls = UiKit.label(CONTROLS, 230)
@@ -176,7 +180,7 @@ func _close_settings() -> void:
 func _build_book() -> Control:
 	var root := _screen(true)
 	var panel: PanelContainer = root.get_node("Center/Panel")
-	panel.add_theme_stylebox_override("panel", UiKit.style(Color(0.2, 0.14, 0.09, 0.97), Color(0.08, 0.05, 0.03)))
+	panel.add_theme_stylebox_override("panel", UiKit.style(Color(0.13, 0.09, 0.06, 0.98), Color(0.45, 0.32, 0.16)))
 	var box: VBoxContainer = panel.get_node("Box")
 	var pages := HBoxContainer.new()
 	pages.add_theme_constant_override("separation", 3)
@@ -234,6 +238,8 @@ func _pages() -> Array[String]:
 func _build_ending() -> Control:
 	var root := _screen(true)
 	var box: VBoxContainer = root.get_node("Center/Panel/Box")
+	box.add_child(UiKit.heading("AMANHECER"))
+	box.add_child(HSeparator.new())
 	_ending_text = UiKit.label("", 180)
 	box.add_child(_ending_text)
 	box.add_child(UiKit.button("Menu principal", _go_to_menu))

@@ -17,17 +17,17 @@ const SWITCHES := [["Tela cheia", "fullscreen"], ["Tremor de vértices (PS1)", "
 
 
 func _ready() -> void:
-	add_theme_stylebox_override("panel", UiKit.style(Color(0.05, 0.06, 0.08, 0.96), Color(0.45, 0.38, 0.26)))
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 3)
+	box.add_theme_constant_override("separation", 1)
 	add_child(box)
-	box.add_child(UiKit.label("OPÇÕES"))
+	box.add_child(UiKit.heading("OPÇÕES"))
+	box.add_child(HSeparator.new())
 	for row: Array in SLIDERS:
 		var line := HBoxContainer.new()
-		var name := UiKit.label(row[0], 90)
+		var name := UiKit.label(row[0], 84)
 		line.add_child(name)
 		var slider := HSlider.new()
-		slider.custom_minimum_size = Vector2(110, 10)
+		slider.custom_minimum_size = Vector2(100, 8)
 		slider.min_value = row[2]
 		slider.max_value = row[3]
 		slider.step = row[4]
