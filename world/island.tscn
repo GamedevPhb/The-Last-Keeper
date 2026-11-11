@@ -1,0 +1,284 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/spiral_ramp.gd" id="1_ramp"]
+[ext_resource type="PackedScene" path="res://world/beacon.tscn" id="2_beacon"]
+[ext_resource type="Material" path="res://materials/m_ground.tres" id="3_ground"]
+[ext_resource type="Material" path="res://materials/m_rock.tres" id="4_rock"]
+[ext_resource type="Material" path="res://materials/m_stone.tres" id="5_stone"]
+[ext_resource type="Material" path="res://materials/m_concrete.tres" id="6_concrete"]
+[ext_resource type="Material" path="res://materials/m_metal.tres" id="7_metal"]
+[ext_resource type="Material" path="res://materials/m_plaster.tres" id="8_plaster"]
+[ext_resource type="Material" path="res://materials/m_wood.tres" id="9_wood"]
+[ext_resource type="Material" path="res://materials/m_water.tres" id="10_water"]
+
+[sub_resource type="PlaneMesh" id="sea_mesh"]
+size = Vector2(300, 300)
+subdivide_width = 60
+subdivide_depth = 60
+
+[node name="Island" type="Node3D"]
+
+[node name="Sea" type="MeshInstance3D" parent="."]
+position = Vector3(0, -1.2, 0)
+mesh = SubResource("sea_mesh")
+surface_material_override/0 = ExtResource("10_water")
+
+[node name="Terrain" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="Ground" type="CSGCylinder3D" parent="Terrain"]
+position = Vector3(0, -3, 0)
+radius = 38.0
+height = 6.0
+sides = 24
+material = ExtResource("3_ground")
+
+[node name="RockA" type="CSGBox3D" parent="Terrain"]
+transform = Transform3D(0.8, 0, -0.6, 0.12, 0.98, 0.16, 0.59, -0.2, 0.78, 35, 0.4, -10)
+size = Vector3(5, 3, 4)
+material = ExtResource("4_rock")
+
+[node name="RockB" type="CSGBox3D" parent="Terrain"]
+transform = Transform3D(0.94, -0.2, 0.28, 0.17, 0.98, 0.1, -0.29, -0.05, 0.96, -30, 0.8, -22)
+size = Vector3(6, 4, 5)
+material = ExtResource("4_rock")
+
+[node name="RockC" type="CSGBox3D" parent="Terrain"]
+transform = Transform3D(0.71, 0, 0.71, 0, 1, 0, -0.71, 0, 0.71, -36, 0, 8)
+size = Vector3(4, 2.5, 4)
+material = ExtResource("4_rock")
+
+[node name="RockD" type="CSGBox3D" parent="Terrain"]
+transform = Transform3D(0.97, 0.24, 0, -0.24, 0.97, 0, 0, 0, 1, 14, 0.2, -36)
+size = Vector3(7, 3, 4)
+material = ExtResource("4_rock")
+
+[node name="RockE" type="CSGBox3D" parent="Terrain"]
+transform = Transform3D(0.5, 0, -0.87, 0, 1, 0, 0.87, 0, 0.5, 30, -0.6, 26)
+size = Vector3(5, 3, 3)
+material = ExtResource("4_rock")
+
+[node name="Lighthouse" type="Node3D" parent="."]
+position = Vector3(0, 0, -12)
+
+[node name="Tower" type="CSGCombiner3D" parent="Lighthouse"]
+use_collision = true
+
+[node name="Wall" type="CSGCylinder3D" parent="Lighthouse/Tower"]
+position = Vector3(0, 8.5, 0)
+radius = 3.2
+height = 17.0
+sides = 12
+material = ExtResource("5_stone")
+
+[node name="InnerCut" type="CSGCylinder3D" parent="Lighthouse/Tower"]
+operation = 2
+position = Vector3(0, 8.5, 0)
+radius = 3.0
+height = 17.4
+sides = 12
+material = ExtResource("5_stone")
+
+[node name="DoorCut" type="CSGBox3D" parent="Lighthouse/Tower"]
+operation = 2
+position = Vector3(2.68, 1.1, -1.55)
+size = Vector3(1.4, 2.2, 1.4)
+material = ExtResource("5_stone")
+
+[node name="Column" type="CSGCylinder3D" parent="Lighthouse/Tower"]
+position = Vector3(0, 8, 0)
+radius = 1.2
+height = 16.0
+sides = 10
+material = ExtResource("6_concrete")
+
+[node name="TopFloor" type="CSGCylinder3D" parent="Lighthouse/Tower"]
+position = Vector3(0, 15.85, 0)
+radius = 3.1
+height = 0.3
+sides = 12
+material = ExtResource("6_concrete")
+
+[node name="StairHole" type="CSGCombiner3D" parent="Lighthouse/Tower/TopFloor"]
+operation = 2
+
+[node name="Disc" type="CSGCylinder3D" parent="Lighthouse/Tower/TopFloor/StairHole"]
+radius = 2.9
+height = 1.0
+sides = 12
+
+[node name="HalfMask" type="CSGBox3D" parent="Lighthouse/Tower/TopFloor/StairHole"]
+operation = 1
+position = Vector3(0, 0, 1.6)
+size = Vector3(6.4, 1, 3.2)
+
+[node name="Railing" type="CSGBox3D" parent="Lighthouse/Tower"]
+position = Vector3(2.05, 16.5, 0)
+size = Vector3(1.6, 1, 0.1)
+material = ExtResource("7_metal")
+
+[node name="Pedestal" type="CSGCylinder3D" parent="Lighthouse/Tower"]
+position = Vector3(0, 16.5, 0)
+radius = 0.5
+height = 1.0
+sides = 8
+material = ExtResource("7_metal")
+
+[node name="PostA" type="CSGBox3D" parent="Lighthouse/Tower"]
+position = Vector3(2.19, 18, 2.19)
+size = Vector3(0.15, 2, 0.15)
+material = ExtResource("7_metal")
+
+[node name="PostB" type="CSGBox3D" parent="Lighthouse/Tower"]
+position = Vector3(-2.19, 18, 2.19)
+size = Vector3(0.15, 2, 0.15)
+material = ExtResource("7_metal")
+
+[node name="PostC" type="CSGBox3D" parent="Lighthouse/Tower"]
+position = Vector3(2.19, 18, -2.19)
+size = Vector3(0.15, 2, 0.15)
+material = ExtResource("7_metal")
+
+[node name="PostD" type="CSGBox3D" parent="Lighthouse/Tower"]
+position = Vector3(-2.19, 18, -2.19)
+size = Vector3(0.15, 2, 0.15)
+material = ExtResource("7_metal")
+
+[node name="Roof" type="CSGCylinder3D" parent="Lighthouse/Tower"]
+position = Vector3(0, 20, 0)
+radius = 3.7
+height = 2.0
+sides = 12
+cone = true
+material = ExtResource("7_metal")
+
+[node name="SpiralRamp" type="Node3D" parent="Lighthouse"]
+script = ExtResource("1_ramp")
+material = ExtResource("6_concrete")
+
+[node name="Beacon" parent="Lighthouse" instance=ExtResource("2_beacon")]
+position = Vector3(0, 17.4, 0)
+
+[node name="KeeperHouse" type="CSGCombiner3D" parent="."]
+position = Vector3(9, 0, -12)
+use_collision = true
+
+[node name="Outer" type="CSGBox3D" parent="KeeperHouse"]
+position = Vector3(0, 1.6, 0)
+size = Vector3(6, 3.2, 5)
+material = ExtResource("8_plaster")
+
+[node name="Inner" type="CSGBox3D" parent="KeeperHouse"]
+operation = 2
+position = Vector3(0, 1.5, 0)
+size = Vector3(5.6, 3.2, 4.6)
+material = ExtResource("8_plaster")
+
+[node name="Door" type="CSGBox3D" parent="KeeperHouse"]
+operation = 2
+position = Vector3(0, 1.1, 2.5)
+size = Vector3(1.2, 2.2, 1)
+material = ExtResource("8_plaster")
+
+[node name="Roof" type="CSGBox3D" parent="KeeperHouse"]
+position = Vector3(0, 3.35, 0)
+size = Vector3(6.6, 0.3, 5.6)
+material = ExtResource("9_wood")
+
+[node name="RadioDesk" type="CSGBox3D" parent="KeeperHouse"]
+position = Vector3(-2, 0.4, -1.8)
+size = Vector3(1.6, 0.8, 0.7)
+material = ExtResource("9_wood")
+
+[node name="Bed" type="CSGBox3D" parent="KeeperHouse"]
+position = Vector3(2.2, 0.25, -1)
+size = Vector3(1, 0.5, 2)
+material = ExtResource("9_wood")
+
+[node name="HouseLight" type="OmniLight3D" parent="KeeperHouse"]
+position = Vector3(0, 2.6, 0)
+light_color = Color(1, 0.8, 0.55, 1)
+light_energy = 0.6
+omni_range = 5.0
+
+[node name="GeneratorShed" type="CSGCombiner3D" parent="."]
+position = Vector3(-10, 0, 10)
+use_collision = true
+
+[node name="Outer" type="CSGBox3D" parent="GeneratorShed"]
+position = Vector3(0, 1.5, 0)
+size = Vector3(4, 3, 4)
+material = ExtResource("9_wood")
+
+[node name="Inner" type="CSGBox3D" parent="GeneratorShed"]
+operation = 2
+position = Vector3(0, 1.4, 0)
+size = Vector3(3.6, 3, 3.6)
+material = ExtResource("9_wood")
+
+[node name="Door" type="CSGBox3D" parent="GeneratorShed"]
+operation = 2
+position = Vector3(2, 1.1, 0)
+size = Vector3(1, 2.2, 1.2)
+material = ExtResource("9_wood")
+
+[node name="Generator" type="CSGBox3D" parent="GeneratorShed"]
+position = Vector3(-0.8, 0.45, 0)
+size = Vector3(1.2, 0.9, 0.8)
+material = ExtResource("7_metal")
+
+[node name="ShedLight" type="OmniLight3D" parent="GeneratorShed"]
+position = Vector3(0, 2.4, 0)
+light_color = Color(0.85, 0.9, 1, 1)
+light_energy = 0.4
+omni_range = 4.0
+
+[node name="Pier" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="Deck" type="CSGBox3D" parent="Pier"]
+position = Vector3(0, -0.1, 44)
+size = Vector3(2.4, 0.2, 16)
+material = ExtResource("9_wood")
+
+[node name="PostA" type="CSGCylinder3D" parent="Pier"]
+position = Vector3(1.1, -1.7, 40)
+radius = 0.15
+height = 3.0
+sides = 6
+material = ExtResource("9_wood")
+
+[node name="PostB" type="CSGCylinder3D" parent="Pier"]
+position = Vector3(-1.1, -1.7, 40)
+radius = 0.15
+height = 3.0
+sides = 6
+material = ExtResource("9_wood")
+
+[node name="PostC" type="CSGCylinder3D" parent="Pier"]
+position = Vector3(1.1, -1.7, 46)
+radius = 0.15
+height = 3.0
+sides = 6
+material = ExtResource("9_wood")
+
+[node name="PostD" type="CSGCylinder3D" parent="Pier"]
+position = Vector3(-1.1, -1.7, 46)
+radius = 0.15
+height = 3.0
+sides = 6
+material = ExtResource("9_wood")
+
+[node name="PostE" type="CSGCylinder3D" parent="Pier"]
+position = Vector3(1.1, -1.7, 51.8)
+radius = 0.15
+height = 3.0
+sides = 6
+material = ExtResource("9_wood")
+
+[node name="PostF" type="CSGCylinder3D" parent="Pier"]
+position = Vector3(-1.1, -1.7, 51.8)
+radius = 0.15
+height = 3.0
+sides = 6
+material = ExtResource("9_wood")

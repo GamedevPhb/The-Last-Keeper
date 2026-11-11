@@ -1,0 +1,49 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://world/island.tscn" id="1_island"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="3_hud"]
+[ext_resource type="Shader" path="res://shaders/psx_post.gdshader" id="4_post"]
+
+[sub_resource type="Environment" id="night"]
+background_mode = 1
+background_color = Color(0.07, 0.1, 0.13, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.25, 0.32, 0.4, 1)
+ambient_light_energy = 0.5
+fog_enabled = true
+fog_light_color = Color(0.07, 0.1, 0.13, 1)
+fog_density = 0.035
+
+[sub_resource type="ShaderMaterial" id="post_mat"]
+shader = ExtResource("4_post")
+
+[node name="Main" type="Node"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("night")
+
+[node name="Moon" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.9, 0.6, 0)
+light_color = Color(0.6, 0.7, 0.9, 1)
+light_energy = 0.25
+
+[node name="Island" parent="." instance=ExtResource("1_island")]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector3(3, 0.05, 30)
+
+[node name="PsxPost" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="Filter" type="ColorRect" parent="PsxPost"]
+material = SubResource("post_mat")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Hud" parent="." node_paths=PackedStringArray("player") instance=ExtResource("3_hud")]
+player = NodePath("../Player")

@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://shaders/psx_lit.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://materials/greybox_noise.tres" id="2_noise"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/albedo = Color(0.45, 0.45, 0.43, 1)
+shader_parameter/albedo_texture = ExtResource("2_noise")
+shader_parameter/uv_scale = Vector2(2, 2)

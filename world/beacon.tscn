@@ -1,0 +1,81 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://world/beacon.gd" id="1_beacon"]
+[ext_resource type="Script" path="res://interaction/interactable.gd" id="2_interactable"]
+[ext_resource type="Material" path="res://materials/m_metal.tres" id="3_metal"]
+
+[sub_resource type="CylinderMesh" id="housing_mesh"]
+top_radius = 0.45
+bottom_radius = 0.45
+height = 0.2
+radial_segments = 8
+rings = 1
+
+[sub_resource type="SphereMesh" id="bulb_mesh"]
+radius = 0.3
+height = 0.6
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="bulb_mat"]
+shading_mode = 0
+albedo_color = Color(1, 0.85, 0.5, 1)
+
+[sub_resource type="CylinderMesh" id="beam_mesh"]
+top_radius = 4.0
+bottom_radius = 0.25
+height = 40.0
+radial_segments = 12
+rings = 1
+cap_top = false
+cap_bottom = false
+
+[sub_resource type="StandardMaterial3D" id="beam_mat"]
+transparency = 1
+blend_mode = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(1, 0.82, 0.45, 0.12)
+
+[sub_resource type="SphereShape3D" id="interact_shape"]
+radius = 0.7
+
+[node name="Beacon" type="Node3D"]
+script = ExtResource("1_beacon")
+
+[node name="Housing" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.4, 0)
+mesh = SubResource("housing_mesh")
+surface_material_override/0 = ExtResource("3_metal")
+
+[node name="Bulb" type="MeshInstance3D" parent="."]
+mesh = SubResource("bulb_mesh")
+surface_material_override/0 = SubResource("bulb_mat")
+
+[node name="Glow" type="OmniLight3D" parent="."]
+light_color = Color(1, 0.8, 0.45, 1)
+light_energy = 1.5
+omni_range = 6.0
+
+[node name="Head" type="Node3D" parent="."]
+
+[node name="Spot" type="SpotLight3D" parent="Head"]
+light_color = Color(1, 0.85, 0.55, 1)
+light_energy = 6.0
+spot_range = 90.0
+spot_angle = 6.0
+
+[node name="Beam" type="MeshInstance3D" parent="Head"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, -20)
+mesh = SubResource("beam_mesh")
+surface_material_override/0 = SubResource("beam_mat")
+
+[node name="Interactable" type="Area3D" parent="."]
+script = ExtResource("2_interactable")
+prompt = "Apagar a lâmpada"
+hold_time = 1.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Interactable"]
+shape = SubResource("interact_shape")
+
+[connection signal="interacted" from="Interactable" to="." method="_on_interacted"]
