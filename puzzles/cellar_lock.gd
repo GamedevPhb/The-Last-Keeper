@@ -20,6 +20,7 @@ func _ready() -> void:
 
 
 func _on_dial(_by: Node, index: int) -> void:
+	GameState.add_note("Porão da casa: cadeado de 3 discos. Os números estão escritos pela ilha.")
 	_digits[index] = (_digits[index] + 1) % 10
 	_refresh()
 	if _digits == CODE:

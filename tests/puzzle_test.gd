@@ -17,6 +17,12 @@ func _process(_delta: float) -> bool:
 	var stations := main.get_node("Island/Details/Stations")
 	var generator := stations.get_node("Station_Generator")
 
+	# Chest: gives the starter kit and moves the objective on.
+	_check(state.objective().contains("baú"), "first objective points at the chest")
+	main.get_node("Island/Details/Chest")._on_open(null)
+	_check(state.has_flashlight and state.oil_cans == 1 and state.fuel_cans == 1, "chest gives flashlight, oil and fuel")
+	_check(state.objective().contains("livro"), "objective moves on to the logbook")
+
 	# Lamp: wrong order jams the mechanism and resets the sequence.
 	state.oil_cans = 2
 	beacon.get_node("Crank").interact(null)

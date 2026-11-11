@@ -23,6 +23,7 @@ var _wait_release := false
 
 
 func _ready() -> void:
+	add_to_group("player")
 	_spawn = global_transform
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -34,8 +35,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotate_y(-motion.x * mouse_sensitivity)
 		_head.rotate_x(-motion.y * mouse_sensitivity)
 		_head.rotation.x = clampf(_head.rotation.x, deg_to_rad(-85.0), deg_to_rad(85.0))
-	elif event.is_action_pressed("ui_cancel"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif event is InputEventMouseButton and event.pressed:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 

@@ -123,6 +123,7 @@ func _on_interacted(_by: Node) -> void:
 		GameState.say("A lâmpada ainda não está pronta: falta %s." % STEPS[_step])
 	else:
 		lit = true
+		GameState.lamp_lit_once = true
 
 
 func _go_out(reason: String) -> void:

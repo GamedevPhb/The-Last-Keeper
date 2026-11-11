@@ -11,6 +11,8 @@ var _toast_left := 0.0
 @onready var _hold_bar: ProgressBar = $Root/HoldBar
 @onready var _toast: Label = $Root/Toast
 @onready var _status: Label = $Root/Status
+@onready var _objective: Label = $Root/Objective
+@onready var _compass: Label = $Root/Compass
 
 
 func _ready() -> void:
@@ -25,6 +27,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_objective.text = "Objetivo: " + GameState.objective()
+	_compass.text = "Rumo %s" % _heading()
 	if _toast_left > 0.0:
 		_toast_left -= delta
 		_toast.visible = _toast_left > 0.0
@@ -52,3 +56,9 @@ func _refresh_status() -> void:
 	_status.text = "Óleo %d  Comb. %d  Navios %d/%d%s" % [
 		GameState.oil_cans, GameState.fuel_cans, GameState.ships_saved,
 		GameState.ships_saved + GameState.ships_lost, "  [gerador]" if GameState.generator_on else ""]
+
+
+func _heading() -> String:
+	var forward := -player.global_transform.basis.z
+	var degrees := rad_to_deg(atan2(forward.x, -forward.z))
+	return ["N", "NE", "L", "SE", "S", "SO", "O", "NO"][posmod(roundi(degrees / 45.0), 8)]

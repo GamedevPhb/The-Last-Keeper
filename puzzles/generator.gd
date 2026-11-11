@@ -97,6 +97,7 @@ func _start() -> void:
 		_reset()
 		return
 	running = true
+	GameState.generator_started = true
 	GameState.generator_on = true
 	GameState.say("O gerador ronca e pega.")
 

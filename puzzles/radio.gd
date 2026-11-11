@@ -6,14 +6,6 @@ const FREQS := [88.1, 91.5, 94.3, 97.7, 101.2]
 const CARGOS := ["café", "carvão", "sal", "lã", "peixe", "tijolos"]
 const CALL_TIMEOUT := 45.0
 const ANOMALY_EVERY := 3
-const SHIPS := [
-	{"call": "Marlin", "register": "café"},
-	{"call": "Aurora", "register": "carvão"},
-	{"call": "Gaivota", "register": "sal"},
-	{"call": "Tritão", "register": "lã"},
-	{"call": "Estrela do Norte", "register": "peixe"},
-	{"call": "Ceres", "register": "tijolos"},
-]
 
 var _freq := 0
 var _call := {}
@@ -21,7 +13,6 @@ var _contact := false
 var _call_age := 0.0
 var _until_next := 20.0
 var _count := 0
-var _page := 0
 var _queue: Array = []
 var _tune: Interactable
 var _authorize: Interactable
@@ -33,7 +24,7 @@ func _ready() -> void:
 	_tune = _add("Tune", -0.6, "", 0.0)
 	_authorize = _add("Authorize", -0.2, "Autorizar atracação", 1.2)
 	_refuse = _add("Refuse", 0.2, "Recusar a chamada", 0.0)
-	_logbook = _add("Logbook", 0.6, "Ler o livro de registros", 0.0)
+	_logbook = _add("Logbook", 0.6, "Ler o livro de registros", 0.0, 0.2)
 	_tune.interacted.connect(_on_tune)
 	_authorize.interacted.connect(func(_by: Node) -> void: _resolve(true))
 	_refuse.interacted.connect(func(_by: Node) -> void: _resolve(false))
@@ -57,17 +48,17 @@ func _process(delta: float) -> void:
 			_lose("A chamada se perdeu na estática.")
 
 
-func _add(node_name: String, x: float, prompt_text: String, hold: float) -> Interactable:
+func _add(node_name: String, x: float, prompt_text: String, hold: float, z := 0.5) -> Interactable:
 	var item := Interactable.create(prompt_text, hold, 0.17)
 	item.name = node_name
-	item.position = Vector3(x, 0.0, 0.5)
+	item.position = Vector3(x, 0.0, z)
 	add_child(item)
 	return item
 
 
 func _spawn_call() -> void:
 	if _queue.is_empty():
-		_queue = SHIPS.duplicate()
+		_queue = GameState.SHIPS.duplicate()
 		_queue.shuffle()
 	var ship: Dictionary = _queue.pop_back()
 	_count += 1
@@ -126,13 +117,4 @@ func _lose(message: String) -> void:
 
 
 func _on_logbook(_by: Node) -> void:
-	var pages := ceili(SHIPS.size() / 3.0)
-	if _page < pages:
-		var entries: Array[String] = []
-		for ship: Dictionary in SHIPS.slice(_page * 3, _page * 3 + 3):
-			entries.append("%s: %s" % [ship.call, ship.register])
-		GameState.say("Registro de cargas. " + "; ".join(entries))
-	else:
-		var gen := get_tree().get_first_node_in_group("generator")
-		GameState.say("Manual do gerador: abrir as válvulas na ordem %s." % gen.valve_order_text())
-	_page = (_page + 1) % (pages + 1)
+	GameState.book_requested.emit()

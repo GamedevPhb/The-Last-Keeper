@@ -6,4 +6,9 @@ extends Interactable
 
 
 func _ready() -> void:
-	interacted.connect(func(_by: Node) -> void: GameState.say(text))
+	interacted.connect(_on_read)
+
+
+func _on_read(_by: Node) -> void:
+	GameState.add_note(text)
+	GameState.say(text)
