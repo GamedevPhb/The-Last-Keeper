@@ -1,0 +1,47 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Projeto
+
+*The Last Keeper*: survival/gestão em primeira pessoa com terror atmosférico e visual PS1, em Godot 4.7 (GDScript, renderer GL Compatibility, física Jolt). Pré-alpha; meta é uma demo de uma noite (ver `docs/PLANO.md`). O design vive em `docs/GDD.md` (pilares, mecânicas, MVP) e o cronograma semanal em `docs/PLANO.md` — ambos em português; consulte-os antes de propor mecânicas ou level design. Comentários e strings de UI do código misturam inglês e português.
+
+## Comandos
+
+Não há build nem lint. O binário do Godot pode se chamar `godot`, `godot-4` ou vir do snap.
+
+```bash
+godot --path .                                                    # rodar o jogo (main.tscn)
+godot --path . --editor                                           # abrir o editor
+godot --headless --path . --script res://tests/smoke_test.gd     # sobe o farol e acende/apaga a lâmpada pela interação
+godot --headless --path . --script res://tests/puzzle_test.gd    # lógica dos puzzles: lâmpada, gerador, disjuntores, cadeado
+```
+
+Os testes são `SceneTree` customizados (não usa GdUnit): instancia `main.tscn`, simula input com `Input.action_press` e sai com código de erro em falha/timeout (60 s). Ele depende de caminhos de nó (`Island/Lighthouse/Beacon`) e das constantes da rampa (`TOWER_CENTER`, `RAMP_RADIUS`, `TOP_FLOOR`); mudou a geometria do farol → atualize o teste.
+
+## Arquitetura
+
+- **Cena principal** `main.tscn`: `Island` (instância de `world/island.tscn`), `Player`, `Hud`, ambiente/lua e o `PsxPost/Filter` (ColorRect em CanvasLayer 5 com `psx_post.gdshader`, que faz dithering e profundidade de cor 15-bit). Fog e cores da noite ficam no `Environment` embutido em `main.tscn`.
+- **Render PS1**: viewport nativa 320×240 com stretch `viewport` + escala inteira (janela 960×720). Os shaders em `shaders/` incluem `psx_common.gdshaderinc`, cujas intensidades vêm de *shader globals* do projeto (`psx_vertex_snap`, `psx_affine_strength`), editáveis em Project Settings → Shader Globals ou em runtime. Materiais novos devem usar `psx_lit.gdshader` (ou `psx_water`) para manter o visual; `materials/` guarda os `.tres` do greybox.
+- **Interação (desacoplada)**: `Interactable` (`interaction/interactable.gd`, `Area3D`) expõe `prompt`, `hold_time` (0 = aperto instantâneo), `enabled` e o sinal `interacted`. O `Player` dispara um `RayCast3D` e gerencia foco e progresso de segurar (sinais `focus_changed` / `hold_progress_changed`), que o `Hud` consome. Objetos do mundo (ex.: `Beacon`) apenas possuem um `Interactable` filho e conectam `interacted` — nunca fazem input próprio.
+- **Camadas de física** (nomeadas em `project.godot`): 1 `world`, 2 `player`, 3 `interact`. O raio do jogador mascara world + interact, então paredes bloqueiam interação. `Interactable.LAYER` fixa a camada 3 no `_init`.
+- **Input actions**: `move_forward/back/left/right`, `sprint`, `interact` (WASD, Shift, E). Mouse look usa `screen_relative` para ignorar o stretch 320×240.
+- **Mundo**: `world/island.tscn` (ilha, farol, casa, galpão, píer) com `spiral_ramp.gd` gerando a rampa em espiral até a sala da lanterna, e `beacon.gd` (lâmpada giratória; placeholder do sistema completo de óleo/corda/lente do GDD).
+
+- **Puzzles** (`puzzles/`, estado em `game_state.gd`, autoload `GameState`): itens carregados, energia (gerador + 3 disjuntores, capacidade 2) e `say()` para mensagens no HUD. `Interactable.create()` monta interativos por código. Lâmpada (`world/beacon.gd`): partida a frio em ordem óleo → corda → lente, ordem errada emperra. `generator.gd` (válvulas na ordem do livro de registros no `radio.gd`), `fuse_box.gd`, `radio.gd` (um navio a cada três mente sobre a carga), `cellar_lock.gd` (código 8-3-5 nas pistas `Clue`), `tide.gd` (pedras do ilhéu sobem e descem) e `oil_drum.gd`. Os pontos das estações são `Marker3D` em `world/island_details.tscn`.
+- **Detalhes da ilha** (`world/island_details.tscn`) foi gerado por script e é editável no editor; vegetação (pinheiros, arbustos, grama em MultiMesh) fica nele.
+- **Testes com `--script`**: autoloads não existem na compilação do script de teste, então não use tipos `class_name` que dependam de `GameState` (ex.: `Beacon`) e espere um frame antes de usar nós criados em `_ready`.
+
+## Convenções
+
+- GDScript tipado (`class_name`, `@export`, `@onready`), indentação com tabs (`.editorconfig` só define UTF-8).
+- Arquivos `.uid` e a pasta `.godot/` : `.godot/` é ignorada pelo git; `.uid` devem ser commitados junto com seus scripts.
+- `scns/` (não versionada) contém cenas experimentais fora do fluxo de `main.tscn`.
+
+## Ferramentas de IA
+
+`.claude/skills/` traz skills de gamedev/Blender/Godot instaladas localmente. Há MCPs de `godot` (rodar/editar cenas) e `blender` (modelagem) disponíveis; o plano de trabalho assume que Claude escreve código, cenas e modelos.
+
+## Agentes do projeto
+
+Subagentes de gamedev em `.claude/agents/` (um por função): `game-designer`, `level-designer`, `narrative-designer`, `game-developer`, `engine-programmer`, `ai-physics-programmer`, `concept-artist`, `artist-3d`, `animator`, `sound-designer`, `producer`, `project-manager`, `creative-director`, `qa-tester`, `localizer`, `community-manager`, `marketing-pr`. Para conceitos de fase/level design, comece por `level-designer` (apoiado por `game-designer` e `creative-director` para coesão de tom).
