@@ -4,16 +4,20 @@
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://ui/hud.tscn" id="3_hud"]
 [ext_resource type="Shader" path="res://shaders/psx_post.gdshader" id="4_post"]
+[ext_resource type="Script" path="res://ui/overlay.gd" id="5_overlay"]
+[ext_resource type="Script" path="res://world/day_night.gd" id="6_daynight"]
+[ext_resource type="Script" path="res://audio/audio_director.gd" id="7_director"]
+[ext_resource type="Script" path="res://ui/calls_panel.gd" id="8_calls"]
 
 [sub_resource type="Environment" id="night"]
 background_mode = 1
-background_color = Color(0.07, 0.1, 0.13, 1)
+background_color = Color(0.015, 0.03, 0.025, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.25, 0.32, 0.4, 1)
-ambient_light_energy = 0.5
+ambient_light_color = Color(0.2, 0.3, 0.26, 1)
+ambient_light_energy = 0.32
 fog_enabled = true
-fog_light_color = Color(0.07, 0.1, 0.13, 1)
-fog_density = 0.035
+fog_light_color = Color(0.02, 0.04, 0.03, 1)
+fog_density = 0.045
 
 [sub_resource type="ShaderMaterial" id="post_mat"]
 shader = ExtResource("4_post")
@@ -25,13 +29,13 @@ environment = SubResource("night")
 
 [node name="Moon" type="DirectionalLight3D" parent="."]
 rotation = Vector3(-0.9, 0.6, 0)
-light_color = Color(0.6, 0.7, 0.9, 1)
-light_energy = 0.25
+light_color = Color(0.5, 0.7, 0.6, 1)
+light_energy = 0.14
 
 [node name="Island" parent="." instance=ExtResource("1_island")]
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
-position = Vector3(3, 0.05, 30)
+position = Vector3(0.4, 0.05, 49.8)
 
 [node name="PsxPost" type="CanvasLayer" parent="."]
 layer = 5
@@ -47,3 +51,17 @@ mouse_filter = 2
 
 [node name="Hud" parent="." node_paths=PackedStringArray("player") instance=ExtResource("3_hud")]
 player = NodePath("../Player")
+
+[node name="Overlay" type="CanvasLayer" parent="."]
+script = ExtResource("5_overlay")
+
+[node name="DayNight" type="Node" parent="." node_paths=PackedStringArray("moon")]
+script = ExtResource("6_daynight")
+environment = SubResource("night")
+moon = NodePath("../Moon")
+
+[node name="AudioDirector" type="Node" parent="."]
+script = ExtResource("7_director")
+
+[node name="Calls" type="CanvasLayer" parent="."]
+script = ExtResource("8_calls")

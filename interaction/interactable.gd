@@ -24,3 +24,16 @@ func _init() -> void:
 func interact(by: Node) -> void:
 	if enabled:
 		interacted.emit(by)
+
+
+## Builds an interactable with a sphere trigger, for puzzles that assemble themselves in code.
+static func create(prompt_text: String, hold := 0.0, radius := 0.4) -> Interactable:
+	var item := Interactable.new()
+	item.prompt = prompt_text
+	item.hold_time = hold
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = radius
+	shape.shape = sphere
+	item.add_child(shape)
+	return item

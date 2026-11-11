@@ -4,11 +4,18 @@ extends CharacterBody3D
 
 signal focus_changed(target: Interactable)
 signal hold_progress_changed(ratio: float)
+signal stepped
+signal jumped
+signal landed
+signal interacted(target: Interactable)
 
 @export var walk_speed := 3.5
 @export var sprint_speed := 5.5
 @export var acceleration := 14.0
+@export var jump_velocity := 4.2
 @export var mouse_sensitivity := 0.0025
+@export var stick_sensitivity := 3.2 ## radians per second at full deflection
+@export var stride := 2.0 ## meters between footstep sounds
 ## Falling below this height (into the sea) respawns at the start position.
 @export var respawn_height := -10.0
 
@@ -17,12 +24,15 @@ var _spawn: Transform3D
 var _focus: Interactable
 var _hold_elapsed := 0.0
 var _wait_release := false
+var _step_distance := 0.0
+var _was_on_floor := true
 
 @onready var _head: Node3D = $Head
 @onready var _ray: RayCast3D = $Head/Camera3D/InteractRay
 
 
 func _ready() -> void:
+	add_to_group("player")
 	_spawn = global_transform
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -34,15 +44,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotate_y(-motion.x * mouse_sensitivity)
 		_head.rotate_x(-motion.y * mouse_sensitivity)
 		_head.rotation.x = clampf(_head.rotation.x, deg_to_rad(-85.0), deg_to_rad(85.0))
-	elif event.is_action_pressed("ui_cancel"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif event is InputEventMouseButton and event.pressed:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
+func apply_settings(mouse: float, stick: float, fov: float) -> void:
+	mouse_sensitivity = mouse
+	stick_sensitivity = stick
+	$Head/Camera3D.fov = fov
+
+
 func _physics_process(delta: float) -> void:
+	var look := Input.get_vector("look_left", "look_right", "look_up", "look_down")
+	rotate_y(-look.x * stick_sensitivity * delta)
+	_head.rotate_x(-look.y * stick_sensitivity * delta)
+	_head.rotation.x = clampf(_head.rotation.x, deg_to_rad(-85.0), deg_to_rad(85.0))
+
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
+	elif Input.is_action_just_pressed("jump"):
+		velocity.y = jump_velocity
+		jumped.emit()
 
 	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := (transform.basis * Vector3(input.x, 0.0, input.y)).normalized()
@@ -50,12 +72,25 @@ func _physics_process(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, direction.x * speed, acceleration * delta)
 	velocity.z = move_toward(velocity.z, direction.z * speed, acceleration * delta)
 	move_and_slide()
+	_emit_footsteps(delta)
 
 	if global_position.y < respawn_height:
 		global_transform = _spawn
 		velocity = Vector3.ZERO
 
 	_update_interaction(delta)
+
+
+func _emit_footsteps(delta: float) -> void:
+	var on_floor := is_on_floor()
+	if on_floor and not _was_on_floor:
+		landed.emit()
+	_was_on_floor = on_floor
+	if on_floor and Vector2(velocity.x, velocity.z).length() > 0.5:
+		_step_distance += Vector2(velocity.x, velocity.z).length() * delta
+		if _step_distance >= stride:
+			_step_distance = 0.0
+			stepped.emit()
 
 
 func _update_interaction(delta: float) -> void:
@@ -85,6 +120,7 @@ func _update_interaction(delta: float) -> void:
 func _complete_interaction() -> void:
 	_wait_release = true
 	_set_hold(0.0)
+	interacted.emit(_focus)
 	_focus.interact(self)
 
 

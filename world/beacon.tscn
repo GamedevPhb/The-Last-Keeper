@@ -38,7 +38,7 @@ shading_mode = 0
 albedo_color = Color(1, 0.82, 0.45, 0.12)
 
 [sub_resource type="SphereShape3D" id="interact_shape"]
-radius = 0.7
+radius = 0.45
 
 [node name="Beacon" type="Node3D"]
 script = ExtResource("1_beacon")

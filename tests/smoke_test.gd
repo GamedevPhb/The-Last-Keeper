@@ -9,7 +9,7 @@ const TOP_FLOOR := 16.0
 const TIMEOUT := 60.0
 
 var _player: Player
-var _beacon: Beacon
+var _beacon: Node
 var _elapsed := 0.0
 var _phase := "climb"
 var _failed := false
@@ -43,11 +43,23 @@ func _physics_process(delta: float) -> bool:
 			_player.velocity = Vector3.ZERO
 			_player.look_at(Vector3(_beacon.global_position.x, _player.global_position.y, _beacon.global_position.z))
 			var head: Node3D = _player.get_node("Head")
-			var to_lamp := _beacon.global_position - head.global_position
+			var to_lamp: Vector3 = _beacon.global_position - head.global_position
 			head.rotation.x = atan2(to_lamp.y, Vector2(to_lamp.x, to_lamp.z).length())
-			_phase = "interact"
+			# The lamp starts cold: do the three steps in order, then light it by hand.
+			root.get_node("GameState").oil_cans = 1
+			for step in ["OilTank", "Crank", "Lens"]:
+				_beacon.get_node(step).interact(_player)
+			_phase = "light"
 			Input.action_press("interact")
-		"interact":
+		"light":
+			if _beacon.lit:
+				print("lamp lit via hold interaction at %.1fs" % _elapsed)
+				Input.action_release("interact")
+				_phase = "release"
+		"release":
+			_phase = "extinguish"
+			Input.action_press("interact")
+		"extinguish":
 			if not _beacon.lit:
 				print("lamp toggled off via hold interaction at %.1fs" % _elapsed)
 				Input.action_release("interact")
