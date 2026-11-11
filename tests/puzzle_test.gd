@@ -17,6 +17,15 @@ func _process(_delta: float) -> bool:
 	var stations := main.get_node("Island/Details/Stations")
 	var generator := stations.get_node("Station_Generator")
 
+	# Clock starts at 17:30 and the pad/jump actions exist.
+	_check(state.clock_text() == "17:30", "night starts at 17:30")
+	for action in ["jump", "look_left", "look_up", "pause", "flashlight"]:
+		_check(InputMap.has_action(action), "input action %s exists" % action)
+	var pad := false
+	for event in InputMap.action_get_events("interact"):
+		pad = pad or event is InputEventJoypadButton
+	_check(pad, "interact is mapped to a gamepad button")
+
 	# Chest: gives the starter kit and moves the objective on.
 	_check(state.objective().contains("baú"), "first objective points at the chest")
 	main.get_node("Island/Details/Chest")._on_open(null)

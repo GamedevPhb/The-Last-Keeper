@@ -22,6 +22,7 @@ func _on_open(_by: Node) -> void:
 	_open = true
 	_interactable.enabled = false
 	GameState.chest_opened = true
+	GameState.play("creak", _interactable.global_position)
 	GameState.has_flashlight = true
 	GameState.oil_cans += oil_cans
 	GameState.fuel_cans += fuel_cans

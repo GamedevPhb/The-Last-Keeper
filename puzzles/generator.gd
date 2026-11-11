@@ -32,7 +32,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_tank.prompt = "Abastecer o gerador (%d%%)" % roundi(fuel * 100.0)
 	if running:
-		fuel -= FUEL_BURN * delta
+		fuel -= FUEL_BURN * (1.0 + 0.5 * GameState.progress()) * delta
 		if fuel <= 0.0:
 			fuel = 0.0
 			_stop("acabou o combustível")
@@ -83,10 +83,12 @@ func _on_valve(_by: Node, index: int) -> void:
 		GameState.say("O gerador já está funcionando.")
 	elif index == order[_progress]:
 		_lights[index].albedo_color = Color(0.2, 0.6, 0.2)
+		GameState.play("switch", global_position)
 		_progress += 1
 		if _progress == order.size():
 			_start()
 	else:
+		GameState.play("jam", global_position)
 		GameState.say("A pressão cai. Recomece as válvulas.")
 		_reset()
 
@@ -99,6 +101,7 @@ func _start() -> void:
 	running = true
 	GameState.generator_started = true
 	GameState.generator_on = true
+	GameState.play("gen_start", global_position)
 	GameState.say("O gerador ronca e pega.")
 
 
@@ -121,9 +124,11 @@ func _on_refuel(_by: Node) -> void:
 		return
 	GameState.fuel_cans -= 1
 	fuel = 1.0
+	GameState.play("clunk", global_position)
 
 
 func _on_barrel(_by: Node, barrel: Interactable) -> void:
 	barrel.enabled = false
 	GameState.fuel_cans += 1
+	GameState.play("clunk", barrel.global_position)
 	GameState.say("Você enche uma lata de combustível.")

@@ -13,6 +13,7 @@ const STEPS := ["óleo", "corda", "lente"]
 var lit := false:
 	set(value):
 		lit = value
+		GameState.lamp_lit = value
 		if is_node_ready():
 			_apply()
 var oil := 0.0
@@ -45,7 +46,7 @@ func _process(delta: float) -> void:
 	_update_prompts()
 	if not lit:
 		return
-	oil -= oil_burn * delta
+	oil -= oil_burn * (1.0 + GameState.progress()) * delta
 	wound = 1.0 if GameState.powered("motor") else wound - spring_unwind * delta
 	dirt = minf(dirt + dirt_rate * delta, 1.0)
 	_head.rotate_y(rotation_speed * delta * clampf(wound * 2.0, 0.2, 1.0))
@@ -81,6 +82,7 @@ func _can_do(step: int) -> bool:
 	if lit or step == _step:
 		return true
 	_step = 0
+	GameState.play("jam", global_position)
 	GameState.say("O mecanismo emperra. Recomece pelo óleo.")
 	return false
 
@@ -98,6 +100,7 @@ func _on_oil(_by: Node) -> void:
 		return
 	GameState.oil_cans -= 1
 	oil = 1.0
+	GameState.play("clunk", global_position)
 	_advance(0)
 
 
@@ -105,6 +108,7 @@ func _on_crank(_by: Node) -> void:
 	if not _can_do(1):
 		return
 	wound = 1.0
+	GameState.play("creak", global_position)
 	_advance(1)
 
 
@@ -112,6 +116,7 @@ func _on_lens(_by: Node) -> void:
 	if not _can_do(2):
 		return
 	dirt = 0.0
+	GameState.play("paper", global_position)
 	_advance(2)
 
 
@@ -124,6 +129,7 @@ func _on_interacted(_by: Node) -> void:
 	else:
 		lit = true
 		GameState.lamp_lit_once = true
+		GameState.play("ignite", global_position)
 
 
 func _go_out(reason: String) -> void:

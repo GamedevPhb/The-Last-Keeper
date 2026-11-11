@@ -22,6 +22,7 @@ func _ready() -> void:
 func _on_dial(_by: Node, index: int) -> void:
 	GameState.add_note("Porão da casa: cadeado de 3 discos. Os números estão escritos pela ilha.")
 	_digits[index] = (_digits[index] + 1) % 10
+	GameState.play("click", global_position)
 	_refresh()
 	if _digits == CODE:
 		_unlock()
@@ -41,6 +42,7 @@ func _unlock() -> void:
 		hatch.queue_free()
 	for dial in _dials:
 		dial.enabled = false
+	GameState.play("bell", global_position)
 	GameState.oil_cans += 2
 	GameState.fuel_cans += 1
 	GameState.say("O porão guardava reservas: 2 latas de óleo e 1 de combustível.")

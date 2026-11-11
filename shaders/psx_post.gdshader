@@ -3,6 +3,7 @@
 // here is one final "PS1 pixel".
 shader_type canvas_item;
 
+global uniform float psx_brightness;
 uniform sampler2D screen_texture : hint_screen_texture, filter_nearest;
 uniform float color_levels = 32.0; // per channel; 32 = 15-bit color like the PS1
 uniform float dither_strength = 1.0;
@@ -23,7 +24,7 @@ void fragment() {
 	vec3 color = textureLod(screen_texture, SCREEN_UV, 0.0).rgb;
 	float luma = dot(color, vec3(0.299, 0.587, 0.114));
 	color = mix(vec3(luma), color, saturation) * tint;
-	color = pow(color, vec3(gamma));
+	color = pow(color * psx_brightness, vec3(gamma));
 	float edge = length((SCREEN_UV - 0.5) * vec2(1.0, 0.9));
 	color *= mix(1.0, smoothstep(0.85, 0.2, edge), vignette);
 	ivec2 cell = ivec2(FRAGCOORD.xy) % 4;

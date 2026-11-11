@@ -5,6 +5,9 @@
 [ext_resource type="PackedScene" path="res://ui/hud.tscn" id="3_hud"]
 [ext_resource type="Shader" path="res://shaders/psx_post.gdshader" id="4_post"]
 [ext_resource type="Script" path="res://ui/overlay.gd" id="5_overlay"]
+[ext_resource type="Script" path="res://world/day_night.gd" id="6_daynight"]
+[ext_resource type="Script" path="res://audio/audio_director.gd" id="7_director"]
+[ext_resource type="Script" path="res://ui/calls_panel.gd" id="8_calls"]
 
 [sub_resource type="Environment" id="night"]
 background_mode = 1
@@ -51,3 +54,14 @@ player = NodePath("../Player")
 
 [node name="Overlay" type="CanvasLayer" parent="."]
 script = ExtResource("5_overlay")
+
+[node name="DayNight" type="Node" parent="." node_paths=PackedStringArray("moon")]
+script = ExtResource("6_daynight")
+environment = SubResource("night")
+moon = NodePath("../Moon")
+
+[node name="AudioDirector" type="Node" parent="."]
+script = ExtResource("7_director")
+
+[node name="Calls" type="CanvasLayer" parent="."]
+script = ExtResource("8_calls")

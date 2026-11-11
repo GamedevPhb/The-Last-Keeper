@@ -15,6 +15,7 @@ func _ready() -> void:
 
 func _on_pickup(_by: Node) -> void:
 	cans -= 1
+	GameState.play("clunk", global_position)
 	GameState.oil_cans += 1
 	if cans <= 0:
 		_pickup.enabled = false

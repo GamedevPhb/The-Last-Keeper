@@ -1,11 +1,13 @@
 extends CanvasLayer
-## Pause menu, inventory and the logbook, built in code so they share one look.
-## Pause and the book stop the tree; the inventory is a glance that keeps the night running.
+## Pause menu, options, inventory, the logbook and the dawn summary, built in code.
+## Pause, the book and the summary stop the tree; the inventory is a glance that keeps the night running.
 
-const FONT_SIZE := 8
-const CONTROLS := "WASD andar   Shift correr   E interagir (segure para ações longas)\nF lanterna   Tab inventário   J livro   Esc pausa"
+const MENU := "res://ui/main_menu.tscn"
+const CONTROLS := "Teclado: WASD andar, Shift correr, Espaço pular, E interagir, F lanterna, Tab inventário, J livro, Esc pausa.\nControle PS4: analógico esquerdo anda, direito olha, L3 corre, X pula, Quadrado interage, R1 lanterna, Triângulo inventário, L1 livro, Options pausa."
 
 var _pause: Control
+var _pause_box: VBoxContainer
+var _settings: SettingsPanel
 var _controls: Label
 var _inventory: Control
 var _inventory_text: Label
@@ -14,6 +16,8 @@ var _left: Label
 var _right: Label
 var _spread_text: Label
 var _spread := 0
+var _ending: Control
+var _ending_text: Label
 var _flashlight: SpotLight3D
 
 
@@ -23,20 +27,29 @@ func _ready() -> void:
 	_pause = _build_pause()
 	_inventory = _build_inventory()
 	_book = _build_book()
+	_ending = _build_ending()
 	GameState.book_requested.connect(open_book)
 	GameState.changed.connect(_refresh_inventory)
+	GameState.night_ended.connect(_show_ending)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		if _book.visible:
+	if _ending.visible:
+		return
+	var closing := event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause")
+	if closing:
+		if _settings.visible:
+			_close_settings()
+		elif _book.visible:
 			close_book()
 		elif _pause.visible:
 			resume()
 		elif _inventory.visible:
 			_inventory.visible = false
-		else:
+		elif event.is_action_pressed("pause"):
 			open_pause()
+		else:
+			return
 	elif _pause.visible:
 		return
 	elif event.is_action_pressed("inventory") and not _book.visible:
@@ -102,6 +115,12 @@ func _toggle_flashlight() -> void:
 		camera.add_child(_flashlight)
 		_flashlight.visible = false
 	_flashlight.visible = not _flashlight.visible
+	GameState.play("switch")
+
+
+func _go_to_menu() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file(MENU)
 
 
 # ---- Inventory
@@ -116,24 +135,40 @@ func _refresh_inventory() -> void:
 
 func _build_inventory() -> Control:
 	var root := _screen(false)
-	_inventory_text = _label("", 160)
+	_inventory_text = UiKit.label("", 170)
 	root.get_node("Center/Panel/Box").add_child(_inventory_text)
 	return root
 
 
-# ---- Pause
+# ---- Pause and options
 
 func _build_pause() -> Control:
 	var root := _screen(true)
-	var box: VBoxContainer = root.get_node("Center/Panel/Box")
-	box.add_child(_label("PAUSADO", 0))
-	box.add_child(_button("Continuar", resume))
-	_controls = _label(CONTROLS, 220)
+	_pause_box = root.get_node("Center/Panel/Box")
+	_pause_box.add_child(UiKit.label("PAUSADO"))
+	_pause_box.add_child(UiKit.button("Continuar", resume))
+	_pause_box.add_child(UiKit.button("Opções", _open_settings))
+	_controls = UiKit.label(CONTROLS, 230)
 	_controls.visible = false
-	box.add_child(_button("Controles", func() -> void: _controls.visible = not _controls.visible))
-	box.add_child(_controls)
-	box.add_child(_button("Sair do jogo", func() -> void: get_tree().quit()))
+	_pause_box.add_child(UiKit.button("Controles", func() -> void: _controls.visible = not _controls.visible))
+	_pause_box.add_child(_controls)
+	_pause_box.add_child(UiKit.button("Menu principal", _go_to_menu))
+	_pause_box.add_child(UiKit.button("Sair do jogo", func() -> void: get_tree().quit()))
+	_settings = SettingsPanel.new()
+	_settings.visible = false
+	_settings.closed.connect(_close_settings)
+	root.get_node("Center").add_child(_settings)
 	return root
+
+
+func _open_settings() -> void:
+	_pause_box.get_parent().visible = false
+	_settings.visible = true
+
+
+func _close_settings() -> void:
+	_settings.visible = false
+	_pause_box.get_parent().visible = true
 
 
 # ---- Logbook
@@ -141,7 +176,7 @@ func _build_pause() -> Control:
 func _build_book() -> Control:
 	var root := _screen(true)
 	var panel: PanelContainer = root.get_node("Center/Panel")
-	panel.add_theme_stylebox_override("panel", _style(Color(0.2, 0.14, 0.09, 0.97), Color(0.08, 0.05, 0.03)))
+	panel.add_theme_stylebox_override("panel", UiKit.style(Color(0.2, 0.14, 0.09, 0.97), Color(0.08, 0.05, 0.03)))
 	var box: VBoxContainer = panel.get_node("Box")
 	var pages := HBoxContainer.new()
 	pages.add_theme_constant_override("separation", 3)
@@ -152,11 +187,11 @@ func _build_book() -> Control:
 	box.add_child(pages)
 	var bar := HBoxContainer.new()
 	bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	bar.add_child(_button("< Anterior", func() -> void: _turn(-1)))
-	_spread_text = _label("", 0)
+	bar.add_child(UiKit.button("< Anterior", func() -> void: _turn(-1)))
+	_spread_text = UiKit.label("")
 	bar.add_child(_spread_text)
-	bar.add_child(_button("Próxima >", func() -> void: _turn(1)))
-	bar.add_child(_button("Fechar", close_book))
+	bar.add_child(UiKit.button("Próxima >", func() -> void: _turn(1)))
+	bar.add_child(UiKit.button("Fechar", close_book))
 	box.add_child(bar)
 	return root
 
@@ -168,6 +203,8 @@ func _turn(step: int) -> void:
 	_left.text = pages[_spread * 2]
 	_right.text = pages[_spread * 2 + 1] if _spread * 2 + 1 < pages.size() else ""
 	_spread_text.text = " %d/%d " % [_spread + 1, spreads]
+	if step != 0:
+		GameState.play("paper")
 
 
 func _pages() -> Array[String]:
@@ -180,13 +217,38 @@ func _pages() -> Array[String]:
 		return "\n".join(lines)
 	var notes := "\n\n".join(GameState.notes) if not GameState.notes.is_empty() else "Nada anotado ainda. Leia placas, etiquetas e inscrições pela ilha."
 	return [
-		"ROTINA DO VIGIA\n\nManter a luz acesa a noite toda, atender o rádio e manter o gerador vivo.\n\nSem energia não há rádio. Sem luz não há navios.",
-		"MAPA DA ILHA\n\nNorte: farol, lâmpada no topo.\nLeste: esta casa, rádio e fusíveis.\nOeste: galpão do gerador.\nSul: píer e baú.\nIlhéu a leste: tambor de óleo, só a pé na maré baixa.",
+		"ROTINA DO VIGIA\n\nDas 17:30 às 06:00: manter a luz acesa, atender o rádio e manter o gerador vivo.\n\nSem energia não há rádio. Sem luz os navios encalham.",
+		"MAPA DA ILHA\n\nNorte: farol, lâmpada no topo.\nLeste: esta casa, rádio e fusíveis.\nOeste: galpão do gerador.\nSul: píer e baú.\nIlhéu a leste: tambor de óleo.",
+		"A LÂMPADA\n\nPara acender, na ordem:\n1. Óleo (lata)\n2. Corda (manivela)\n3. Lente (limpar)\nDepois, segure o botão no centro.\n\nErrar a ordem emperra tudo.",
+		"ONDE PEGAR ÓLEO\n\nO tambor está no ilhéu a leste, depois da praia. Só se cruza pelas pedras na maré baixa. Há 3 latas.\n\nNa casa, o porão tem 2 latas reserva (cadeado de 3 números).",
+		"GERADOR E ENERGIA\n\nAbrir as válvulas na ordem: %s.\nCombustível: barris atrás do galpão. O tanque enche com uma lata.\n\nFusíveis: o gerador aguenta só dois circuitos por vez." % order,
+		"RÁDIO E CHAMADOS\n\nCom o rádio ligado, chega uma chamada. Gire a sintonia até o sinal ficar claro, ouça a carga e compare com o registro. Igual: autorize. Diferente: recuse.\n\nSem luz no farol, o navio encalha.",
 		"REGISTRO DE CARGAS\n\n" + register.call(0, 3),
 		"REGISTRO DE CARGAS\n\n" + register.call(3, 6) + "\n\nCarga diferente da registrada: não autorize.",
-		"MANUAL DO GERADOR\n\nAbrir as válvulas na ordem:\n%s\n\nO tanque precisa de combustível. O gerador aguenta dois circuitos por vez." % order,
 		"ANOTAÇÕES\n\n" + notes,
 	]
+
+
+# ---- Dawn summary
+
+func _build_ending() -> Control:
+	var root := _screen(true)
+	var box: VBoxContainer = root.get_node("Center/Panel/Box")
+	_ending_text = UiKit.label("", 180)
+	box.add_child(_ending_text)
+	box.add_child(UiKit.button("Menu principal", _go_to_menu))
+	return root
+
+
+func _show_ending() -> void:
+	_pause.visible = false
+	_book.visible = false
+	_inventory.visible = false
+	var verdict := "O farol resistiu." if GameState.ships_lost <= GameState.ships_saved else "Muitos não voltaram."
+	_ending_text.text = "06:00. AMANHECEU\n\nNavios salvos: %d\nNavios perdidos: %d\n\n%s" % [GameState.ships_saved, GameState.ships_lost, verdict]
+	_ending.visible = true
+	GameState.play("bell")
+	_set_paused(true)
 
 
 # ---- Widgets
@@ -206,9 +268,8 @@ func _screen(blocks_mouse: bool) -> Control:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(center)
-	var panel := PanelContainer.new()
+	var panel := UiKit.panel()
 	panel.name = "Panel"
-	panel.add_theme_stylebox_override("panel", _style(Color(0.05, 0.06, 0.08, 0.94), Color(0.45, 0.38, 0.26)))
 	center.add_child(panel)
 	var box := VBoxContainer.new()
 	box.name = "Box"
@@ -218,38 +279,8 @@ func _screen(blocks_mouse: bool) -> Control:
 	return root
 
 
-func _style(fill: Color, border: Color) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = fill
-	style.border_color = border
-	style.set_border_width_all(1)
-	style.set_content_margin_all(6)
-	return style
-
-
-func _label(text: String, width: int) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", FONT_SIZE)
-	label.add_theme_color_override("font_color", Color(0.92, 0.9, 0.82))
-	if width > 0:
-		label.custom_minimum_size.x = width
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return label
-
-
 func _page_label() -> Label:
-	var label := _label("", 120)
-	label.custom_minimum_size.y = 120
-	label.add_theme_color_override("font_color", Color(0.14, 0.09, 0.04))
-	var style := _style(Color(0.76, 0.7, 0.55), Color(0.4, 0.32, 0.2))
-	label.add_theme_stylebox_override("normal", style)
-	return label
-
-
-func _button(text: String, action: Callable) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.add_theme_font_size_override("font_size", FONT_SIZE)
-	button.pressed.connect(action)
-	return button
+	var item := UiKit.label("", 120, Color(0.14, 0.09, 0.04))
+	item.custom_minimum_size.y = 125
+	item.add_theme_stylebox_override("normal", UiKit.style(Color(0.76, 0.7, 0.55), Color(0.4, 0.32, 0.2)))
+	return item

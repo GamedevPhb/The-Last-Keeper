@@ -11,4 +11,5 @@ func _ready() -> void:
 
 func _on_read(_by: Node) -> void:
 	GameState.add_note(text)
+	GameState.play("paper", global_position)
 	GameState.say(text)

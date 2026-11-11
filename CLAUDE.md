@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Não há build nem lint. O binário do Godot pode se chamar `godot`, `godot-4` ou vir do snap.
 
 ```bash
-godot --path .                                                    # rodar o jogo (main.tscn)
+godot --path .                                                    # rodar o jogo (abre o menu principal; main.tscn é a partida)
 godot --path . --editor                                           # abrir o editor
 godot --headless --path . --script res://tests/smoke_test.gd     # sobe o farol e acende/apaga a lâmpada pela interação
 godot --headless --path . --script res://tests/puzzle_test.gd    # lógica dos puzzles: lâmpada, gerador, disjuntores, cadeado
@@ -30,6 +30,9 @@ Os testes são `SceneTree` customizados (não usa GdUnit): instancia `main.tscn`
 
 - **Puzzles** (`puzzles/`, estado em `game_state.gd`, autoload `GameState`): itens carregados, energia (gerador + 3 disjuntores, capacidade 2) e `say()` para mensagens no HUD. `Interactable.create()` monta interativos por código. Lâmpada (`world/beacon.gd`): partida a frio em ordem óleo → corda → lente, ordem errada emperra. `generator.gd` (válvulas na ordem do livro de registros no `radio.gd`), `fuse_box.gd`, `radio.gd` (um navio a cada três mente sobre a carga), `cellar_lock.gd` (código 8-3-5 nas pistas `Clue`), `tide.gd` (pedras do ilhéu sobem e descem) e `oil_drum.gd`. Os pontos das estações são `Marker3D` em `world/island_details.tscn`.
 - **UI e progressão**: `ui/hud.gd` mostra objetivo (`GameState.objective()`, derivado de flags), rumo e mensagens; `ui/overlay.gd` (criado em código) cobre pausa (Esc), inventário (Tab) e o livro (J, aberto pelo `Logbook` do rádio via `GameState.book_requested`). O jogador nasce no píer, perto do baú (`puzzles/chest.gd`) com lanterna, óleo e combustível.
+- **Relógio e dificuldade**: `GameState` conta de 17:30 a 06:00 (1,2 s reais por minuto de jogo, 15 min); `progress()` aumenta consumo de óleo/combustível e a frequência de navios mentirosos; `world/day_night.gd` leva o céu do crepúsculo à madrugada. `night_ended` abre o resumo no `overlay.gd`.
+- **Áudio** (autoloads `Settings` e `Audio`): todo som é procedural (`audio/synth.gd`, sem assets). Música em camadas sobe com `GameState.tension()`. Puzzles pedem sons com `GameState.play(nome, posição)`; `audio/audio_director.gd` os toca e liga os loops 3D (gerador, lâmpada).
+- **Controle e opções**: ações em `project.godot` incluem PS4 (analógicos, X pula, Quadrado interage, R1 lanterna, L1 livro, Triângulo inventário, Options pausa). Opções salvas em `user://settings.cfg` (`settings.gd`); o jogador recebe via `apply_settings`. Menu principal em `ui/main_menu.tscn` (ilha à direita, botões à esquerda) é a cena inicial.
 - **Detalhes da ilha** (`world/island_details.tscn`) foi gerado por script e é editável no editor; vegetação (pinheiros, arbustos, grama em MultiMesh) fica nele.
 - **Testes com `--script`**: autoloads não existem na compilação do script de teste, então não use tipos `class_name` que dependam de `GameState` (ex.: `Beacon`) e espere um frame antes de usar nós criados em `_ready`.
 
