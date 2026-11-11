@@ -95,9 +95,9 @@ func _toggle_flashlight() -> void:
 	if _flashlight == null:
 		var camera: Camera3D = get_tree().get_first_node_in_group("player").get_node("Head/Camera3D")
 		_flashlight = SpotLight3D.new()
-		_flashlight.spot_range = 16.0
-		_flashlight.spot_angle = 26.0
-		_flashlight.light_energy = 3.0
+		_flashlight.spot_range = 20.0
+		_flashlight.spot_angle = 30.0
+		_flashlight.light_energy = 7.0
 		_flashlight.light_color = Color(1, 0.95, 0.8)
 		camera.add_child(_flashlight)
 		_flashlight.visible = false

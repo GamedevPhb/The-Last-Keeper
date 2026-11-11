@@ -2578,8 +2578,8 @@ surface_material_override/0 = ExtResource("m_metal")
 [node name="LanternLight" type="OmniLight3D" parent="PierProps"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2.75, 51.8)
 light_color = Color(1, 0.75, 0.4, 1)
-light_energy = 0.45
-omni_range = 8.0
+light_energy = 1.0
+omni_range = 7.5
 
 [node name="LanternHead" type="MeshInstance3D" parent="PierProps"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2.75, 51.8)
