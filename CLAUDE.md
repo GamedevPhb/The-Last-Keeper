@@ -47,6 +47,28 @@ Os testes são `SceneTree` customizados (não usa GdUnit): instancia `main.tscn`
 
 `.claude/skills/` traz skills de gamedev/Blender/Godot instaladas localmente. Há MCPs de `godot` (rodar/editar cenas) e `blender` (modelagem) disponíveis; o plano de trabalho assume que Claude escreve código, cenas e modelos.
 
-## Agentes do projeto
+## Agentes do projeto (uso OBRIGATÓRIO)
 
-Subagentes de gamedev em `.claude/agents/` (um por função): `game-designer`, `level-designer`, `narrative-designer`, `game-developer`, `engine-programmer`, `ai-physics-programmer`, `concept-artist`, `artist-3d`, `animator`, `sound-designer`, `producer`, `project-manager`, `creative-director`, `qa-tester`, `localizer`, `community-manager`, `marketing-pr`. Para conceitos de fase/level design, comece por `level-designer` (apoiado por `game-designer` e `creative-director` para coesão de tom).
+Subagentes de gamedev em `.claude/agents/` (um por função): `game-designer`, `level-designer`, `narrative-designer`, `game-developer`, `engine-programmer`, `ai-physics-programmer`, `concept-artist`, `artist-3d`, `animator`, `sound-designer`, `producer`, `project-manager`, `creative-director`, `qa-tester`, `localizer`, `community-manager`, `marketing-pr`.
+
+**Regra:** toda tarefa que se encaixe numa função acima vai para o agente dessa função, com a ferramenta `Agent` e `subagent_type` igual ao nome do arquivo. Só faça direto: pergunta rápida, leitura de arquivo, edição de 1–2 linhas, rodar teste/build/commit.
+
+| Tarefa | Agente |
+|---|---|
+| Mecânicas, balanceamento, GDD | `game-designer` |
+| Level design da ilha, puzzles espaciais | `level-designer` |
+| História, falas, notas, chamadas de rádio | `narrative-designer` |
+| Gameplay, UI em GDScript, sistemas | `game-developer` |
+| Shaders, render, performance, exportação | `engine-programmer` |
+| Criaturas, IA, física | `ai-physics-programmer` |
+| Logo, conceitos, arte 2D | `concept-artist` |
+| Modelos 3D | `artist-3d` |
+| Sons e música | `sound-designer` |
+| Testes e bugs | `qa-tester` |
+| Página do itch.io, divulgação | `marketing-pr` |
+| Planejamento e prioridades | `producer` / `project-manager` |
+| Coerência de tom e visão | `creative-director` |
+
+Ao delegar: brief curto com arquivos e critério de pronto, sem recontar o que o agente consegue ler no repositório; peça só o resumo no retorno. Se o tipo não aparecer na lista de agentes da sessão (os arquivos só carregam ao iniciar), avise o usuário em uma linha antes de usar um agente genérico.
+
+Consulte o grafo do Obsidian (`~/obsidian/CodeGraph/graf/CodeGraph`) só quando precisar de padrões de outro projeto; os projetos de Godot de lá são pequenos (starter kit FPS e exercícios de GDScript).
