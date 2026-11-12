@@ -6,12 +6,17 @@ signal applied
 const PATH := "user://settings.cfg"
 const DEFAULTS := {
 	"master": 0.8, "music": 0.7, "sfx": 0.9, "brightness": 1.0,
-	"mouse": 0.0025, "stick": 3.2, "fov": 75.0, "fullscreen": false, "jitter": true,
+	"mouse": 0.0025, "stick": 3.2, "fov": 75.0, "fullscreen": false, "jitter": true, "hands": true, ## first-person hands (ui/hands.gd)
+	"crt": 0.7, ## CRT filter strength, 0 = off (psx_post.gdshader)
+	"grain": 0.6, ## film/VHS grain strength, 0 = off (psx_post.gdshader)
+	"fps": 30, ## frame cap, 30 or 60
 	"touch": 0, ## touch HUD: 0 auto (phones / touchscreens), 1 always, 2 never (TouchControls)
 	"touch_look": 0.012, ## radians per viewport pixel dragged on the right half
 }
 
 var values := DEFAULTS.duplicate()
+## Headless tests run uncapped so the cap never slows them down.
+var _headless := DisplayServer.get_name() == "headless"
 
 
 func _ready() -> void:
@@ -39,6 +44,9 @@ func apply() -> void:
 			AudioServer.set_bus_volume_db(index, linear_to_db(maxf(level, 0.0001)))
 	RenderingServer.global_shader_parameter_set("psx_brightness", values["brightness"])
 	RenderingServer.global_shader_parameter_set("psx_vertex_snap", ProjectSettings.get_setting("shader_globals/psx_vertex_snap", {"value": 2.0})["value"] if values["jitter"] else 0.0)
+	RenderingServer.global_shader_parameter_set("psx_crt", values["crt"])
+	RenderingServer.global_shader_parameter_set("psx_grain", values["grain"])
+	Engine.max_fps = 0 if _headless else int(values["fps"])
 	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if values["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED
 	if DisplayServer.window_get_mode() != mode:
 		DisplayServer.window_set_mode(mode)

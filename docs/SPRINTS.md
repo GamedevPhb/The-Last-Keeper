@@ -345,3 +345,20 @@ Tarefas que ficaram na mesma sprint mas tiveram o critério ajustado para o Andr
 | M5 · Release candidate | seg 04/01 | **seg 28/12** |
 | M6 · Build congelado | qui 07/01 | **seg 04/01** |
 | M7 · Lançamento | qui 14/01 (a confirmar) | **qui 07/01** (confirmado; Web, Windows, Linux e Android) |
+
+---
+
+## Backlog de gameplay (feedback do humano, 12/11)
+
+Blocos independentes, feitos um de cada vez, em ordem. Fora do plano até o humano decidir o que entra na demo de 07/01 (combate, carga de caixas e criatura gigante estão hoje na linha *Won't*).
+
+| Bloco | Tema | Estado |
+|---|---|---|
+| 1 | Abertura que não aparece ao iniciar jogo novo (diálogo sobre a ilha, versão simples) | em andamento |
+| 2 | Aviso de chamada: ícone de telefone no canto da tela, som de rádio/telefone, sem texto no meio | pendente |
+| 3 | Ritmo e tamanho da noite (~10 min jogáveis), ver abaixo | pendente |
+| 4 | Carga dos navios: atracar e carregar/descarregar ~10 caixas (varia com a carga) | pendente, decisão de escopo |
+| 5 | Combate secundário estilo Doom: pistola e horda numa chamada falsa | pendente, decisão de escopo |
+| 6 | Presença observadora (inimigo gigante; ver `HISTORIA.md`, "o nono ainda vigia") e terror psicológico | pendente, decisão de escopo |
+
+**Bloco 3 (escopo ajustado):** ao aumentar a ilha, entram mais estruturas e **tarefas pequenas e repetitivas** para o jogador cumprir ao longo da noite (manutenção, abastecer, conferir), e **eventos especiais** não previstos no roteiro da noite, mas já descritos no GDD (§4.6 clima: neblina, tempestade que quebra a janela da lanterna; rajadas; falhas do gerador). Eles entram no `.tres` do roteiro da 2.1. As texturas "com cara de ar" ficam na arte P0 da S3.

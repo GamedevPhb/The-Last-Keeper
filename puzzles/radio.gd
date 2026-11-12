@@ -5,7 +5,8 @@ extends Marker3D
 
 const FREQS := [88.1, 91.5, 94.3, 97.7, 101.2]
 const CARGOS := ["café", "carvão", "sal", "lã", "peixe", "tijolos"]
-const CALL_TIMEOUT := 45.0
+## Real seconds (delta), not game minutes; the phone rings the whole time.
+const CALL_TIMEOUT := 30.0
 ## Answering from the portable makes the ship wait this much longer, once per call.
 const ANSWER_EXTENSION := 30.0
 const BEARINGS := ["N", "NE", "L", "SE", "S", "SO", "O", "NO"]
@@ -13,6 +14,7 @@ const BEARINGS := ["N", "NE", "L", "SE", "S", "SO", "O", "NO"]
 var _freq := 0
 var _call := {}
 var _contact := false
+var _ringing := false
 var _until_next := 20.0
 var _count := 0
 var _queue: Array = []
@@ -44,6 +46,7 @@ func _process(delta: float) -> void:
 	_tune.prompt = "Sintonizar (%.1f MHz)" % FREQS[_freq] if on else "Rádio sem energia"
 	_authorize.enabled = on and _contact
 	_refuse.enabled = on and _contact
+	_sync_ring(on)
 	if not on:
 		return
 	if _call.is_empty():
@@ -81,11 +84,12 @@ func _spawn_call() -> void:
 		var others := CARGOS.duplicate()
 		others.erase(ship.register)
 		claim = others.pick_random()
-	_call = {"call": ship.call, "register": ship.register, "claim": claim, "freq": randi() % FREQS.size(),
-		"status": "incoming", "left": CALL_TIMEOUT, "extended": false, "bearing": BEARINGS.pick_random(), "seed": randi()}
+	# Never the frequency the desk is on, so every call rings before it is answered.
+	_call = {"call": ship.call, "register": ship.register, "claim": claim, "freq": (_freq + 1 + randi() % (FREQS.size() - 1)) % FREQS.size(),
+		"status": "incoming", "left": CALL_TIMEOUT, "total": CALL_TIMEOUT, "answered": false, "extended": false, "bearing": BEARINGS.pick_random(), "seed": randi()}
 	_until_next = randf_range(60.0, 90.0) * (1.0 - 0.45 * GameState.progress())
 	GameState.active_call = _call
-	GameState.play("ring", global_position)
+	_sync_ring(GameState.powered("radio"))
 	if GameState.has_radio and GameState.radio_battery > 0.0:
 		# The portable only beeps; the keeper decides whether to look (GDD 4.8).
 		GameState.play("radio_beep", GameState.player.global_position if GameState.player else Vector3.INF)
@@ -104,10 +108,21 @@ func _on_tune(_by: Node) -> void:
 		GameState.say("Estática em %.1f MHz." % FREQS[_freq])
 
 
+## The phone rings (non-positional, so it carries through the lighthouse) while a call is
+## unanswered and the radio has power; the panel being open does not touch it.
+func _sync_ring(on: bool) -> void:
+	var want: bool = on and not _call.is_empty() and not _call.get("answered", false)
+	if want != _ringing:
+		_ringing = want
+		GameState.ringing = want
+		GameState.play("ring_start" if want else "ring_stop")
+
+
 func _check_contact(announce := true) -> bool:
 	_contact = not _call.is_empty() and _freq == _call.freq
 	if _contact:
 		_call.status = "contact"
+		_call.answered = true
 		if announce:
 			GameState.say("\"Aqui é o %s, pedimos atracação. Carga: %s.\"" % [_call.call, _call.claim])
 	elif not _call.is_empty():
@@ -158,6 +173,7 @@ func _end_call() -> void:
 	_call = {}
 	_contact = false
 	GameState.active_call = {}
+	_sync_ring(false)
 
 
 ## Portable: answering tunes the call in from afar and buys 30 s, once per call.
@@ -165,10 +181,23 @@ func answer_remote() -> bool:
 	if _call.is_empty() or not GameState.powered("radio"):
 		return false
 	_freq = _call.freq
+	_call.answered = true
 	if not _call.extended:
 		_call.extended = true
 		_call.left += ANSWER_EXTENSION
+		_call.total += ANSWER_EXTENSION
 	_check_contact(false)
+	return true
+
+
+## Portable: authorizing needs the call answered first, and counts like the desk.
+func authorize_remote() -> bool:
+	if _call.is_empty() or not GameState.powered("radio"):
+		return false
+	if not _contact:
+		GameState.say("Atenda a chamada antes de autorizar.")
+		return false
+	_resolve(true)
 	return true
 
 

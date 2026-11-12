@@ -263,18 +263,21 @@ Pressão de fundo, não uma segunda rotina: numa noite bem jogada, o jogador beb
 
 ## 8. Controles
 
-| Ação (`project.godot`) | Teclado / mouse | Controle PS4 | Toque |
+| Ação (`project.godot`) | Teclado / mouse | Controle PS4 / Xbox / PS2 genérico | Toque |
 |---|---|---|---|
+| Menus: confirmar (`ui_accept`) | Enter, Espaço | A/X, Quadrado/X e Start (0, 2, 6) | toque |
+| Menus: voltar (`ui_cancel`) | Esc | Círculo / B (1) | |
+| Menus: navegar (`ui_*`) | setas | direcional (botões 11-14, ou eixos 6/7 de hat em genéricos) ou analógico | |
 | Mover (`move_*`) | WASD | analógico esquerdo | joystick virtual |
 | Olhar (`look_*`) | mouse | analógico direito | arrastar o dedo na tela |
 | Correr (`sprint`) | Shift (bloqueado com sede ou fome em 0, ou 4+ latas) | L3 | sem botão (joystick virtual pressionado até o limite) |
-| Pular (`jump`) | Espaço | X | botão pular |
-| Interagir / pegar item no chão (`interact`) | E (segurar nas ações contínuas) | Quadrado | botão interagir (segurar nas ações contínuas) |
+| Pular (`jump`) | Espaço | Círculo / B (índice 1) | botão pular |
+| Interagir / pegar item no chão (`interact`) | E (segurar nas ações contínuas) | X ou Quadrado / A (índices 0 e 2) | botão interagir (segurar nas ações contínuas) |
 | Lanterna (`flashlight`) | F | R1 | botão lanterna |
 | Rádio portátil (`radio`) | R | direcional para cima | botão rádio |
 | Inventário (`inventory`) | Tab | Triângulo | botão inventário |
 | Livro de registros (`journal`) | J | L1 | botão livro |
-| Pausa (`pause`) | Esc | Options | botão pausa |
+| Pausa (`pause`) | Esc | Options / Start (índice 6) | botão pausa |
 
 **Consoles (lâmpada, quadro de força, rádio portátil):** clique no ícone (segure nas ações contínuas), `1`–`N` como atalho, `A`/`D` ou setas movem o foco, `E`/Espaço usa; fecha com `Q`, `Esc` (ou `R` no rádio). No PS4: direcional ou analógico move o foco, X ou Quadrado usa, Círculo fecha e Options fecha e pausa.
 

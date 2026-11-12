@@ -1,97 +1,60 @@
 class_name OpeningCutscene
 extends CanvasLayer
-## Opening cutscene (docs/CUTSCENE_ABERTURA.md): 12 shots, ~82 s, over the real island.
-## A boatman ferries the keeper to the pier at dusk. Built in code: its own Camera3D, a low-poly
-## boat from primitives, the dialogue box and title cards on this layer, procedural sound cues.
-## The night clock does not run (GameState.in_game stays false) and the HUD steps aside
-## (`set_panel_open`). Holding interact (or a finger, with touch controls) for 1 s skips to shot 12. Emits `finished` on the
-## first playable frame, with the keeper on the pier next to the chest.
+## Short opening (docs/CUTSCENE_ABERTURA.md, trimmed): a camera drifts around the real island at
+## dusk while the boatman's lines play in a box at the bottom. Built in code, own Camera3D plus
+## a warm light so the night environment does not swallow the shots. The night clock does not run
+## (GameState.in_game stays false) and the HUD steps aside (`set_panel_open`). Holding interact
+## (E / Square, or a finger with touch controls) for 1 s skips to the title. Emits `finished` on
+## the first playable frame, with the keeper on the pier next to the chest.
 
 signal finished
 
-const LENGTH := 82.0
 const SKIP_HOLD := 1.0
 const SKIP_FADE := 0.5
 const CHARS_PER_SECOND := 30.0
-const LINE_HOLD := 1.5
-const WATER := -1.2
+const LINE_HOLD := 1.6
 const PIER_SPAWN := Vector3(0.4, 0.05, 49.8)
-const DOCK := Vector3(2.7, WATER, 47.0)
 
-## Each shot: start/length, camera ("world": from/to + look_from/look_to; "boat": local to the
-## boat), boat path (or a fixed docked pose), dialogue lines [pause before, text, radio?] played
-## in order, sound cues [offset, name, where], motor mode and an optional title card.
+## Each shot: start/length, camera from/to and look_from/look_to (all world space), dialogue
+## lines [pause before, text] played in order, an optional title card, an optional cue.
 const SHOTS := [
-	{"t": 0.0, "len": 5.0, "black": true, "title": "PONTO 7\nLacrado há trinta anos.", "motor": "off",
-		"sounds": [[3.8, "gust", "cam"]]},
-	{"t": 5.0, "len": 8.0, "cam": "world", "from": Vector3(46, -0.7, 118), "to": Vector3(10, -0.7, 120),
-		"look_from": Vector3(6, 5, 0), "look_to": Vector3(-4, 5, 0),
-		"boat_from": Vector3(95, WATER, 96), "boat_to": Vector3(72, WATER, 92), "motor": "drive",
-		"sounds": [[0.5, "gust", "cam"]]},
-	{"t": 13.0, "len": 8.0, "cam": "boat", "from": Vector3(0, 1.7, 2.3), "look_from": Vector3(0, 1.3, -8),
-		"boat_from": Vector3(30, WATER, 96), "boat_to": Vector3(10, WATER, 80), "motor": "drive", "bob": true,
-		"lines": [[1.0, "Ninguém pede o Sete.", false], [1.0, "O senhor pediu.", false]],
-		"sounds": [[1.0, "splash", "boat"], [3.0, "splash", "boat"], [5.0, "splash", "boat"], [7.0, "splash", "boat"]]},
-	{"t": 21.0, "len": 8.0, "cam": "world", "from": Vector3(9, -0.4, 34), "to": Vector3(9, -0.4, 34),
+	{"t": 0.0, "len": 3.5, "black": true, "title": "PONTO 7\nLacrado há trinta anos."},
+	{"t": 3.5, "len": 9.0, "from": Vector3(34, 1.2, 108), "to": Vector3(8, 2.0, 80),
+		"look_from": Vector3(0, 9, -12), "look_to": Vector3(0, 10, -12),
+		"lines": [[1.0, "Ninguém pede o Sete."], [0.8, "O senhor pediu."]], "cue": "gust"},
+	{"t": 12.5, "len": 8.0, "from": Vector3(9, 1.0, 34), "to": Vector3(9, 1.0, 34),
 		"look_from": Vector3(0, 1, -12), "look_to": Vector3(0, 17.5, -12),
-		"boat_from": Vector3(10, WATER, 80), "boat_to": Vector3(-14, WATER, 66), "motor": "drive",
-		"lines": [[1.5, "A luz não gira desde aquela noite.", false]],
-		"sounds": [[0.5, "gust", "cam"], [5.5, "metal_creak", Vector3(0, 17, -12)]]},
-	{"t": 29.0, "len": 9.0, "cam": "world", "from": Vector3(-63, 0.6, 44), "to": Vector3(-63, 0.6, 30),
+		"lines": [[1.2, "A luz não gira desde aquela noite."]], "cue": "metal_creak"},
+	{"t": 20.5, "len": 7.0, "from": Vector3(-63, 0.8, 44), "to": Vector3(-63, 0.8, 30),
 		"look_from": Vector3(-44, 0, 38), "look_to": Vector3(-42, 0, 22),
-		"boat_from": Vector3(-54, WATER, 46), "boat_to": Vector3(-53, WATER, 14), "motor": "drive",
-		"lines": [[3.0, "Não olhe pra lá.", false]],
-		"sounds": [[1.5, "hull_knock", Vector3(-40, 0, 24)], [3.5, "hull_knock", Vector3(-40, 0, 24)],
-			[5.0, "splash", Vector3(-40, 0, 24)], [6.5, "hull_knock", Vector3(-40, 0, 24)]]},
-	{"t": 38.0, "len": 8.0, "cam": "boat", "from": Vector3(0.38, 1.24, 0.3), "look_from": Vector3(0.35, 1.15, -0.1),
-		"boat_from": Vector3(-30, WATER, 70), "boat_to": Vector3(-12, WATER, 66), "motor": "drive", "radio_scene": true,
-		"lines": [[2.0, "\"...arol Sete... Farol S...\"", true]],
-		"sounds": [[1.0, "radio_voice", "boat"], [2.5, "radio_voice", "boat"], [5.6, "knob_click", "boat"]]},
-	{"t": 46.0, "len": 7.0, "cam": "world", "from": Vector3(-5, 4.5, 40), "to": Vector3(-5, 4.2, 41),
-		"look_from": Vector3(1.5, -0.6, 49), "look_to": Vector3(1.8, -0.6, 48),
-		"boat_from": Vector3(7, WATER, 64), "boat_to": DOCK, "ease_out": true, "motor": "idle",
-		"sounds": [[5.5, "pier_creak", DOCK], [6.2, "rope_slap", DOCK]]},
-	{"t": 53.0, "len": 8.0, "cam": "world", "from": Vector3(0.0, 1.6, 44.6), "to": Vector3(0.0, 1.6, 44.6),
-		"look_from": Vector3(2.7, 0.3, 47.4), "look_to": Vector3(2.7, 0.3, 47.4),
-		"docked": true, "motor": "idle",
-		"lines": [[1.0, "Daqui o senhor segue.", false], [0.4, "O baú tem o que precisa.", false]],
-		"sounds": [[2.0, "splash", DOCK]]},
-	{"t": 61.0, "len": 7.0, "cam": "world", "from": Vector3(1.0, 1.5, 46.2), "to": Vector3(1.0, 1.5, 46.2),
-		"look_from": Vector3(2.7, 0.35, 47.4), "look_to": Vector3(2.7, 0.35, 47.4),
-		"docked": true, "motor": "idle",
-		"lines": [[0.5, "Conhece a regra.", false], [1.5, "Carga diferente, não autorize.", false]]},
-	{"t": 68.0, "len": 5.0, "cam": "world", "from": Vector3(3.2, 0.7, 49.5), "to": Vector3(3.2, 0.7, 49.3),
-		"look_from": Vector3(-0.2, 5.5, 20), "look_to": Vector3(-0.2, 6, 20),
-		"docked": true, "motor": "drive",
-		"lines": [[0.3, "Volto às seis.", false], [0.3, "Se a luz estiver acesa.", false]]},
-	{"t": 73.0, "len": 6.0, "cam": "world", "from": Vector3(0.0, 1.7, 50.5), "to": Vector3(0.0, 1.7, 50.5),
-		"look_from": Vector3(3, 0, 60), "look_to": Vector3(10, -0.5, 95),
-		"boat_from": Vector3(2.7, WATER, 52), "boat_to": Vector3(14, WATER, 112), "motor": "drive", "lantern_at": 2.5,
-		"sounds": [[1.5, "boat_bell", "boat"], [3.0, "boat_bell", "boat"]]},
-	{"t": 79.0, "len": 3.0, "black": true, "title": "THE LAST KEEPER", "motor": "off"},
+		"lines": [[1.0, "Não olhe pra lá."]], "cue": "hull_knock"},
+	{"t": 27.5, "len": 8.5, "from": Vector3(-5, 4.5, 40), "to": Vector3(-1, 3.0, 44),
+		"look_from": Vector3(1.5, 0.0, 49), "look_to": Vector3(0.5, 0.5, 49),
+		"lines": [[1.0, "Daqui o senhor segue."], [0.6, "O baú tem o que precisa."]], "cue": "pier_creak"},
+	{"t": 36.0, "len": 7.0, "from": Vector3(1.0, 1.6, 46.2), "to": Vector3(1.0, 1.6, 46.2),
+		"look_from": Vector3(3.0, 0.3, 54), "look_to": Vector3(8, 0.0, 70),
+		"lines": [[0.8, "Conhece a regra."], [0.8, "Carga diferente, não autorize."]]},
+	{"t": 43.0, "len": 5.0, "from": Vector3(0.0, 1.7, 50.5), "to": Vector3(0.0, 1.7, 50.5),
+		"look_from": Vector3(-0.2, 6, 20), "look_to": Vector3(-0.2, 12, -12),
+		"lines": [[0.5, "Volto às seis. Se a luz estiver acesa."]], "cue": "boat_bell"},
+	{"t": 48.0, "len": 3.0, "black": true, "title": "THE LAST KEEPER"},
 ]
 
 var _t := 0.0
 var _shot := -1
 var _done := false
 var _skip_hold := 0.0
-var _skip_hint := 0.0
+var _skip_hint := 4.0
 var _skipping := -1.0
-var _sounds_played := {}
+var _cues_played := {}
 var _lines: Array = []
 var _line := ""
 var _line_shown := 0.0
 var _line_hold := 0.0
-var _line_radio := false
 var _next_line_at := 0.0
-var _motor_left := 0.0
 var _player: Node3D
 var _camera: Camera3D
-var _boat: Node3D
-var _lantern: OmniLight3D
-var _lantern_mat: StandardMaterial3D
-var _dial_mat: StandardMaterial3D
-var _hand: Node3D
+var _light: OmniLight3D
 var _black: ColorRect
 var _title: Label
 var _dialog_frame: PanelContainer
@@ -110,17 +73,23 @@ func _ready() -> void:
 		_player.velocity = Vector3.ZERO
 	GameState.set_panel_open(self, true)
 	_build_ui()
-	_build_boat()
 	_camera = Camera3D.new()
 	_camera.fov = 60.0
 	_camera.far = 200.0
 	get_parent().add_child(_camera)
 	_camera.current = true
+	# Warm light riding with the camera: the night look alone leaves the shots near black.
+	_light = OmniLight3D.new()
+	_light.omni_range = 40.0
+	_light.light_energy = 1.6
+	_light.light_color = Color(1.0, 0.72, 0.5)
+	_camera.add_child(_light)
 	_apply(0.0)
 
 
 func _process(delta: float) -> void:
-	advance(delta)
+	# A long hitch (the scene just loaded) must not eat the first shots.
+	advance(minf(delta, 0.1))
 
 
 ## Steps the cutscene by `delta` seconds (tests drive it directly).
@@ -134,18 +103,18 @@ func advance(delta: float) -> void:
 		_black.modulate.a = 1.0
 		if _skipping <= 0.0:
 			_skipping = -1.0
-			_t = SHOTS[11].t
+			_t = SHOTS[-1].t
 			_shot = -1
 			_lines.clear()
 			_line = ""
-	if _t >= LENGTH:
+	if _t >= float(SHOTS[-1].t) + float(SHOTS[-1].len):
 		_finish()
 		return
 	_apply(delta)
 
 
 func skip() -> void:
-	if _skipping < 0.0 and _t < SHOTS[11].t:
+	if _skipping < 0.0 and _t < float(SHOTS[-1].t):
 		_skipping = SKIP_FADE
 
 
@@ -156,23 +125,14 @@ func _apply(delta: float) -> void:
 	var k := clampf(local / float(shot.len), 0.0, 1.0)
 	if index != _shot:
 		_shot = index
-		_enter_shot(shot)
-	_place_boat(shot, k)
-	_place_camera(shot, k, local)
-	_play_cues(index, shot, local)
-	_drive_motor(shot, delta)
+		_lines = shot.get("lines", []).duplicate()
+		_next_line_at = _lines[0][0] if not _lines.is_empty() else INF
+	_place_camera(shot, k)
+	if shot.has("cue") and local >= 0.5 and not _cues_played.has(index):
+		_cues_played[index] = true
+		GameState.play(shot.cue, _camera.global_position)
 	_update_titles(shot, local)
 	_update_dialog(delta, local)
-	if shot.has("lantern_at") and local >= shot.lantern_at:
-		_lantern.light_energy = 1.4
-		_lantern_mat.albedo_color = Color(1.0, 0.85, 0.5)
-	if shot.get("radio_scene", false):
-		var reach := clampf((local - 3.5) / 1.8, 0.0, 1.0)
-		_hand.position = Vector3(0.62, 1.08, 0.42).lerp(Vector3(0.4, 1.15, 0.0), reach)
-		_dial_mat.albedo_color = Color(0.25, 0.9, 0.4) if local < 5.6 else Color(0.03, 0.08, 0.04)
-		if local >= 5.6 and _line_radio:
-			_line = ""
-			_dialog_frame.visible = false
 	if _skipping < 0.0:
 		_black.modulate.a = 1.0 if shot.get("black", false) else 0.0
 
@@ -184,70 +144,12 @@ func _shot_at(time: float) -> int:
 	return 0
 
 
-func _enter_shot(shot: Dictionary) -> void:
-	_lines = shot.get("lines", []).duplicate()
-	_next_line_at = _lines[0][0] if not _lines.is_empty() else INF
-	_hand.visible = shot.get("radio_scene", false)
-
-
-func _place_boat(shot: Dictionary, k: float) -> void:
-	if shot.get("docked", false):
-		_boat.global_position = DOCK
-		_boat.rotation = Vector3.ZERO
-	elif shot.has("boat_from"):
-		var eased := 1.0 - pow(1.0 - k, 2.0) if shot.get("ease_out", false) else k
-		var from: Vector3 = shot.boat_from
-		var to: Vector3 = shot.boat_to
-		_boat.global_position = from.lerp(to, eased)
-		var heading := to - from
-		heading.y = 0.0
-		if heading.length() > 0.01:
-			_boat.rotation = Vector3(0.0, atan2(-heading.x, -heading.z), 0.0)
-	var wave := sin(_t * 1.6)
-	_boat.rotation.z = deg_to_rad(1.5) * wave
-	_boat.rotation.x = deg_to_rad(1.0) * sin(_t * 1.1)
-
-
-func _place_camera(shot: Dictionary, k: float, local: float) -> void:
+func _place_camera(shot: Dictionary, k: float) -> void:
 	if shot.get("black", false):
 		return
 	var eased := smoothstep(0.0, 1.0, k)
-	if shot.cam == "boat":
-		var frame := _boat.global_transform
-		_camera.global_position = frame * (shot.from as Vector3)
-		_camera.look_at(frame * (shot.look_from as Vector3))
-		if shot.get("bob", false):
-			_camera.rotation.z += deg_to_rad(1.0) * sin(local * 1.7)
-	else:
-		_camera.global_position = (shot.from as Vector3).lerp(shot.to, eased)
-		_camera.look_at((shot.look_from as Vector3).lerp(shot.look_to, eased))
-
-
-func _play_cues(index: int, shot: Dictionary, local: float) -> void:
-	for i in shot.get("sounds", []).size():
-		var cue: Array = shot.sounds[i]
-		var key := "%d:%d" % [index, i]
-		if local >= cue[0] and not _sounds_played.has(key):
-			_sounds_played[key] = true
-			GameState.play(cue[1], _where(cue[2]))
-
-
-func _where(where: Variant) -> Vector3:
-	if where is Vector3:
-		return where
-	if where == "boat":
-		return _boat.global_position + Vector3.UP
-	return _camera.global_position
-
-
-func _drive_motor(shot: Dictionary, delta: float) -> void:
-	var mode: String = shot.get("motor", "off")
-	if mode == "off":
-		return
-	_motor_left -= delta
-	if _motor_left <= 0.0:
-		_motor_left = 1.0 if mode == "drive" else 1.4
-		GameState.play("boat_motor" if mode == "drive" else "boat_idle", _boat.global_position)
+	_camera.global_position = (shot.from as Vector3).lerp(shot.to, eased)
+	_camera.look_at((shot.look_from as Vector3).lerp(shot.look_to, eased))
 
 
 func _update_titles(shot: Dictionary, local: float) -> void:
@@ -266,7 +168,6 @@ func _update_dialog(delta: float, local: float) -> void:
 		if not _lines.is_empty() and local >= _next_line_at:
 			var entry: Array = _lines.pop_front()
 			_line = entry[1]
-			_line_radio = entry[2]
 			_line_shown = 0.0
 			_line_hold = LINE_HOLD
 		else:
@@ -283,8 +184,6 @@ func _update_dialog(delta: float, local: float) -> void:
 				_next_line_at = local + float(_lines[0][0])
 			return
 	_dialog.text = _line.substr(0, int(_line_shown))
-	# Radio lines tremble a little.
-	_dialog.position = Vector2(randf_range(-1, 1), randf_range(-1, 1)) if _line_radio else Vector2.ZERO
 
 
 func _update_skip(delta: float) -> void:
@@ -322,7 +221,6 @@ func _finish() -> void:
 		var eyes: Camera3D = _player.get_node("Head/Camera3D")
 		eyes.current = true
 	GameState.set_panel_open(self, false)
-	_boat.queue_free()
 	_camera.queue_free()
 	finished.emit()
 	queue_free()
@@ -368,68 +266,6 @@ func _build_ui() -> void:
 	_ring.size = Vector2(12, 12)
 	_ring.visible = false
 	root.add_child(_ring)
-
-
-func _build_boat() -> void:
-	_boat = Node3D.new()
-	_boat.name = "OpeningBoat"
-	get_parent().add_child(_boat)
-	var wood: Material = load("res://materials/m_wood.tres")
-	var metal: Material = load("res://materials/m_metal.tres")
-	var dark := StandardMaterial3D.new()
-	dark.albedo_color = Color(0.05, 0.05, 0.06)
-	_part(BoxMesh.new(), Vector3(1.6, 0.6, 4.0), Vector3(0, 0.15, 0.2), wood)
-	var bow := PrismMesh.new()
-	bow.size = Vector3(1.6, 0.6, 1.0)
-	var bow_part := _part(bow, Vector3.ZERO, Vector3(0, 0.15, -2.3), wood)
-	bow_part.rotation_degrees = Vector3(-90, 0, 0)
-	_part(BoxMesh.new(), Vector3(1.3, 0.08, 1.3), Vector3(0, 1.75, 0.4), metal) # roof
-	for x: float in [-0.6, 0.6]:
-		_part(BoxMesh.new(), Vector3(0.06, 1.3, 0.06), Vector3(x, 1.1, -0.2), metal)
-		_part(BoxMesh.new(), Vector3(0.06, 1.3, 0.06), Vector3(x, 1.1, 1.0), metal)
-	_part(BoxMesh.new(), Vector3(1.2, 0.55, 0.08), Vector3(0, 0.75, -0.2), wood) # dashboard
-	_part(BoxMesh.new(), Vector3(0.26, 0.15, 0.1), Vector3(0.35, 1.1, -0.15), metal) # radio
-	var dial := QuadMesh.new()
-	dial.size = Vector2(0.12, 0.06)
-	_dial_mat = StandardMaterial3D.new()
-	_dial_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_dial_mat.albedo_color = Color(0.25, 0.9, 0.4)
-	_part(dial, Vector3.ZERO, Vector3(0.33, 1.11, -0.095), _dial_mat)
-	# The boatman: a dark silhouette at the helm, cap on.
-	var body := CapsuleMesh.new()
-	body.radius = 0.22
-	body.height = 1.3
-	_part(body, Vector3.ZERO, Vector3(0, 1.0, 0.45), dark)
-	var cap := CylinderMesh.new()
-	cap.top_radius = 0.16
-	cap.bottom_radius = 0.2
-	cap.height = 0.1
-	_part(cap, Vector3.ZERO, Vector3(0, 1.7, 0.45), dark)
-	_hand = _part(BoxMesh.new(), Vector3(0.07, 0.05, 0.2), Vector3(0.62, 1.08, 0.42), dark)
-	var lamp := SphereMesh.new()
-	lamp.radius = 0.06
-	lamp.height = 0.12
-	_lantern_mat = StandardMaterial3D.new()
-	_lantern_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_lantern_mat.albedo_color = Color(0.2, 0.15, 0.1)
-	_part(lamp, Vector3.ZERO, Vector3(0, 0.6, -2.7), _lantern_mat)
-	_lantern = OmniLight3D.new()
-	_lantern.position = Vector3(0, 0.7, -2.7)
-	_lantern.omni_range = 6.0
-	_lantern.light_energy = 0.0
-	_lantern.light_color = Color(1.0, 0.8, 0.5)
-	_boat.add_child(_lantern)
-
-
-func _part(mesh: Mesh, box_size: Vector3, at: Vector3, material: Material) -> MeshInstance3D:
-	if mesh is BoxMesh and box_size != Vector3.ZERO:
-		(mesh as BoxMesh).size = box_size
-	var part := MeshInstance3D.new()
-	part.mesh = mesh
-	part.material_override = material
-	part.position = at
-	_boat.add_child(part)
-	return part
 
 
 ## The skip progress ring, like the HUD's hold bar but round.

@@ -674,6 +674,22 @@ static func growl(gain: float) -> AudioStreamWAV:
 	return _wav(out)
 
 
+## Dull blow, then the noise falling away: the keeper's last sound.
+static func mix_death_blow() -> AudioStreamWAV:
+	var n := _count(3.2)
+	var out := PackedFloat32Array()
+	out.resize(n)
+	var phase := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		var k := float(i) / n
+		phase += TAU * (46.0 - 10.0 * minf(t, 1.0)) / RATE
+		var blow := sin(phase) * exp(-t * 6.0) * 1.0 + randf_range(-1.0, 1.0) * exp(-t * 40.0) * 0.6
+		var hiss := randf_range(-1.0, 1.0) * 0.3 * minf(maxf(t - 0.3, 0.0) * 6.0, 1.0) * (1.0 - k)
+		out[i] = clampf(blow + hiss, -1.0, 1.0)
+	return _wav(out)
+
+
 ## White noise falling away, for the fade to death.
 static func fade_noise(seconds: float, gain: float) -> AudioStreamWAV:
 	var n := _count(seconds)
@@ -741,6 +757,26 @@ static func wood_creak(seconds: float, gain: float) -> AudioStreamWAV:
 	return _wav(out)
 
 
+## Old two-tone telephone bell: two bursts of a 25 Hz warble (440/480 Hz, hard-clipped for
+## a tinny SPU bite) then a pause. Loops every 2.4 s.
+static func phone_ring(gain := 0.55) -> AudioStreamWAV:
+	var n := _count(2.4)
+	var out := PackedFloat32Array()
+	out.resize(n)
+	for i in n:
+		var t := float(i) / RATE
+		var in_burst := (t < 0.5) or (t >= 0.7 and t < 1.2)
+		if not in_burst:
+			out[i] = 0.0
+			continue
+		var local := t if t < 0.5 else t - 0.7
+		var env := minf(local * 80.0, 1.0) * minf((0.5 - local) * 80.0, 1.0)
+		var warble := 0.5 + 0.5 * signf(sin(TAU * 25.0 * t))
+		var v := sin(TAU * 440.0 * t) + sin(TAU * 480.0 * t) + 0.3 * sin(TAU * 1320.0 * t)
+		out[i] = clampf(v * 0.8, -1.0, 1.0) * warble * env * gain
+	return _wav(out, true)
+
+
 static func build_effects() -> Dictionary:
 	return {
 		"step": noise(0.16, 0.12, 22.0, 0.9),
@@ -783,6 +819,7 @@ static func build_effects() -> Dictionary:
 		"stomach": growl(0.4),
 		"heart": _once(heartbeat(0.7)),
 		"death": fade_noise(3.0, 0.5),
+		"death_blow": mix_death_blow(),
 		"hurt": tone(85.0, 0.3, 10.0, 0.9, [[1.6, 0.4]]),
 		"boat_motor": motor(1.0, 6.0, 0.6),
 		"boat_idle": motor(1.4, 3.0, 0.45),

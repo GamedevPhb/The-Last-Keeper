@@ -13,6 +13,10 @@ signal panel_changed(open: bool)
 signal player_died(cause: String)
 ## The inventory asks the overlay/radio to act (flashlight toggle, open the portable radio).
 signal flashlight_requested
+## The flashlight beam was switched on or off (the hands animate it).
+signal flashlight_toggled(on: bool)
+## Something went into the inventory (the hands reach for it).
+signal item_given(id: String)
 signal radio_requested
 
 const SHIPS := [
@@ -88,6 +92,8 @@ var has_flashlight: bool:
 		return inventory.count("flashlight") > 0
 	set(value):
 		_set_count("flashlight", 1 if value else 0)
+## True while the flashlight beam is on (set by the overlay).
+var flashlight_on := false
 var has_radio: bool:
 	get:
 		return inventory.count("radio") > 0
@@ -134,11 +140,14 @@ var lamp_lit_once := false
 var notes: Array[String] = []
 ## The radio call in progress: {call, claim, status ("incoming" or "contact"), left}.
 var active_call := {}
+## True while the radio phone rings (call pending and unanswered); drives the loop and the HUD icon.
+var ringing := false
 var call_log: Array[String] = []
 var breakers := {"radio": false, "house": false, "motor": false}
 
 
 func _ready() -> void:
+	_load_keepers()
 	inventory.changed.connect(func() -> void: changed.emit())
 
 
@@ -187,6 +196,7 @@ func reset() -> void:
 	dead = false
 	death_cause = ""
 	sprinting = false
+	flashlight_on = false
 	in_water = false
 	cold_left = 0.0
 	_critical = {"thirst": false, "hunger": false, "health": false}
@@ -204,6 +214,9 @@ func reset() -> void:
 	lamp_lit_once = false
 	notes.clear()
 	active_call = {}
+	if ringing:
+		ringing = false
+		play("ring_stop")
 	call_log.clear()
 	breakers = {"radio": false, "house": false, "motor": false}
 
@@ -225,6 +238,8 @@ func give(id: String, amount: int, at := Vector3.INF) -> int:
 	if rest > 0:
 		drop_item(id, rest, at)
 		say("Inventário cheio: %s ficou no chão." % INVENTORY.item_name(id))
+	if amount - rest > 0:
+		item_given.emit(id)
 	return amount - rest
 
 
@@ -324,8 +339,94 @@ func die(cause: String) -> void:
 		return
 	dead = true
 	death_cause = cause
-	play("death")
+	_record_death()
+	play("death_blow")
 	player_died.emit(cause)
+
+
+## Titles, the two lines on the death screen and the line the dead keeper leaves in the logbook,
+## by cause. Unknown causes use "".
+const FATES := {
+	"A queda": {
+		"title": "A RAMPA ESTAVA ESPERANDO",
+		"text": "O chão chegou antes do grito.\nLá em cima, a luz continuou girando para ninguém.",
+		"book": "Contei os degraus no escuro. Errei o último.",
+	},
+	"A sede": {
+		"title": "A CISTERNA FICOU PARA TRÁS",
+		"text": "O mar tem água de sobra e nenhuma serve.\nA língua foi a primeira a parar de pedir.",
+		"book": "Tinha água a cem passos. Fiquei para anotar a carga.",
+	},
+	"A fome": {
+		"title": "NINGUÉM DEIXOU PÃO NO LIVRO",
+		"text": "A regra diz o que recusar, não o que comer.\nO estômago fechou antes dos olhos.",
+		"book": "A despensa tinha cadeado. A fome não tem regra.",
+	},
+	"O mar": {
+		"title": "O MAR LEVOU O DÉCIMO",
+		"text": "A água não pergunta a carga. Só leva.\nOs afogados abriram espaço na fila.",
+		"book": "A maré subiu mais rápido que a regra.",
+	},
+	"Algo na escada": {
+		"title": "O NONO AINDA VIGIA",
+		"text": "Na escada, passos que não eram seus.\nO farol nunca ficou sem vigia. Só trocou.",
+		"book": "Alguém subiu atrás de mim. Conhecia o caminho.",
+	},
+}
+const FATE_DEFAULT := {
+	"title": "O DÉCIMO CAIU",
+	"text": "O turno acabou antes da noite.\nA luz não perguntou por quê.",
+	"book": "Não deu tempo de escrever.",
+}
+const FAILURE := {
+	"title": "A LUZ NÃO CHEGOU",
+	"text": "O sol voltou. As pedras já tinham dono.\nVocê sobreviveu. Eles, não.",
+	"book": "Anotei todas as chamadas. Não bastou anotar.",
+}
+
+## Keepers who died, kept between attempts in user://keepers.cfg (tests point it elsewhere).
+var keepers_lost := 0
+var last_death := {}
+var keepers_path := "user://keepers.cfg"
+
+
+func fate(cause: String) -> Dictionary:
+	return FATES.get(cause, FATE_DEFAULT)
+
+
+## Failed dawn: the keeper lived but more ships were lost than saved.
+func lighthouse_failed() -> bool:
+	return ships_lost > ships_saved
+
+
+## Which keeper you are: the tenth, then the eleventh...
+func keeper_number() -> int:
+	return 10 + keepers_lost
+
+
+## The line left in the logbook by the previous keeper, or "" on the first night.
+func previous_keeper_line() -> String:
+	if keepers_lost <= 0:
+		return ""
+	var book: String = fate(last_death.get("cause", ""))["book"]
+	return "VIGIA %d\n\nO vigia %d morreu às %s. A última linha dele ainda estava fresca:\n«%s»" % [
+		keeper_number(), keeper_number() - 1, last_death.get("clock", "??:??"), book]
+
+
+func _record_death() -> void:
+	keepers_lost += 1
+	last_death = {"cause": death_cause, "clock": clock_text()}
+	var file := ConfigFile.new()
+	file.set_value("keepers", "lost", keepers_lost)
+	file.set_value("keepers", "last", last_death)
+	file.save(keepers_path)
+
+
+func _load_keepers() -> void:
+	var file := ConfigFile.new()
+	if file.load(keepers_path) == OK:
+		keepers_lost = int(file.get_value("keepers", "lost", 0))
+		last_death = file.get_value("keepers", "last", {})
 
 
 ## Statuses at or below their critical line, for the HUD icons.
@@ -402,6 +503,9 @@ func from_save(data: Dictionary) -> void:
 	radio_battery = data.get("radio_battery", 100.0)
 	radio_docked = data.get("radio_docked", false)
 	active_call = {}
+	if ringing:
+		ringing = false
+		play("ring_stop")
 	_last_hour = floori(minutes / 60.0)
 	changed.emit()
 

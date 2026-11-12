@@ -436,7 +436,7 @@ func _test_radio(state: Node, main: Node, stations: Node) -> void:
 	var panel: Node = main.get_node("Overlay")._radio
 	var player: Node3D = main.get_node("Player")
 	_check(main.get_node_or_null("Calls") == null, "the old calls panel is gone from the HUD")
-	_check(not panel.ACTIONS.has("AUTORIZAR"), "the portable cannot authorise a docking")
+	_check(panel.ACTIONS.has("AUTORIZAR"), "the portable can authorise a docking")
 	if state.breakers["house"]:
 		state.toggle_breaker("house")
 	if not state.breakers["radio"]:
@@ -455,7 +455,11 @@ func _test_radio(state: Node, main: Node, stations: Node) -> void:
 	_check(panel.signal_loss() == 0.0, "the top of the lighthouse counts as clean")
 	player.global_position = desk + Vector3(5, 0, 0)
 	var left: float = state.active_call.left
+	radio._freq = (state.active_call.freq + 1) % radio.FREQS.size() # the desk may start tuned by chance
+	radio._check_contact(false)
+	_check(panel.screen_text().contains("ATENDA PARA OUVIR") and not panel.screen_text().contains(state.active_call.claim), "before ATENDER the name and cargo stay hidden")
 	radio.answer_remote()
+	_check(panel.screen_text().contains("AQUI É O") and panel.screen_text().contains("AUTORIZE OU RECUSE"), "after ATENDER the voice line and next step show on the panel")
 	_check(is_equal_approx(state.active_call.left, left + 30.0) and state.active_call.status == "contact", "ATENDER makes contact and adds 30 s")
 	radio.answer_remote()
 	_check(is_equal_approx(state.active_call.left, left + 30.0), "the extension only happens once per call")
@@ -463,6 +467,42 @@ func _test_radio(state: Node, main: Node, stations: Node) -> void:
 	_check(panel.screen_text().contains("SEM PORTADORA"), "radio breaker off: SEM PORTADORA")
 	state.toggle_breaker("radio")
 	radio._end_call()
+
+	# The call rings for 30 s with the panel open, and the phone loop follows it.
+	var director: Node = main.get_node("AudioDirector")
+	radio._spawn_call()
+	radio._process(0.0)
+	_check(is_equal_approx(state.active_call.left, 30.0) and radio.CALL_TIMEOUT == 30.0, "a call lasts 30 s")
+	_check(state.ringing and director.is_phone_ringing(), "the phone loop starts with the call")
+	main.get_node("Hud")._process(0.0)
+	_check(main.get_node("Hud")._phone_box.visible, "the HUD phone icon shows while the call is pending")
+	panel.open(player)
+	for i in 28:
+		radio._process(1.0)
+	_check(panel.is_open() and not state.active_call.is_empty() and state.ringing and director.is_phone_ringing(), "after 28 s with the panel open the call still pends and rings")
+	main.get_node("Hud")._process(0.0)
+	_check(main.get_node("Hud")._phone_box.visible, "the phone icon stays with the panel open")
+	var lost: int = state.ships_lost
+	radio._process(3.0)
+	_check(state.active_call.is_empty() and state.ships_lost == lost + 1 and not state.ringing and not director.is_phone_ringing(), "past 30 s the call is lost and the phone stops")
+	radio._spawn_call()
+	radio._process(0.0)
+	radio.answer_remote()
+	radio._process(0.0)
+	_check(not state.ringing and not director.is_phone_ringing(), "answering stops the ring")
+	radio.refuse_remote()
+	radio._spawn_call()
+	radio._process(0.0)
+	radio.refuse_remote()
+	_check(not state.ringing and not director.is_phone_ringing(), "refusing stops the ring")
+	radio._spawn_call()
+	radio._process(0.0)
+	radio._freq = (state.active_call.freq + 1) % radio.FREQS.size() # the desk may start tuned by chance
+	radio._check_contact(false)
+	_check(not radio.authorize_remote() and not state.active_call.is_empty(), "AUTORIZAR is refused before ATENDER")
+	radio.answer_remote()
+	_check(radio.authorize_remote() and state.active_call.is_empty() and not state.ringing, "AUTORIZAR from the portable resolves an answered call")
+	panel.close()
 
 	state.radio_battery = 50.0
 	state.radio_open = true
@@ -585,9 +625,33 @@ func _test_status(state: Node, main: Node) -> void:
 	state.tick_status(state.SECONDS_PER_MINUTE * 5.0)
 	_check(state.health > 60.0 and state.health <= 70.0, "health regenerates up to 70 when fed")
 	state.health = 10.0
+	state.keepers_path = "user://keepers_test.cfg"
+	var lost_before: int = state.keepers_lost
+	var overlay: Node = main.get_node("Overlay")
 	state.damage(60.0, "A queda")
 	_check(state.dead and state.death_cause == "A queda", "health 0 kills with a cause")
-	_check(main.get_node("Overlay")._ending.visible and main.get_node("Overlay")._ending_text.text.contains("A queda"), "the summary shows the cause of death")
+	_check(overlay._fate.visible and not overlay._ending.visible, "death opens its own screen, not the dawn panel")
+	_check(overlay._fate_title.text == "A RAMPA ESTAVA ESPERANDO" and overlay._fate_text.text.contains("A QUEDA"), "the fall shows its title and cause")
+	_check(overlay._fate_text.text.contains("Navios salvos") and overlay._fate_book.text.contains("Livro de registros"), "death shows clock, ships and a logbook line")
+	_check(state.keepers_lost == lost_before + 1 and FileAccess.file_exists("user://keepers_test.cfg"), "the death is recorded for later attempts")
+	_check(state.previous_keeper_line().contains("VIGIA %d" % (10 + lost_before + 1)), "the next keeper finds the dead one's line")
+	for pair: Array in [["A sede", "A CISTERNA FICOU PARA TRÁS"], ["A fome", "NINGUÉM DEIXOU PÃO NO LIVRO"], ["O mar", "O MAR LEVOU O DÉCIMO"], ["Algo na escada", "O NONO AINDA VIGIA"], ["Outra", "O DÉCIMO CAIU"]]:
+		overlay._show_death(pair[0])
+		_check(overlay._fate_title.text == pair[1], "death by '%s' picks title '%s'" % pair)
+	state.dead = false
+	state.finished = true
+	state.ships_saved = 1
+	state.ships_lost = 3
+	overlay._ending.visible = false
+	overlay._fate.visible = false
+	state.night_ended.emit()
+	_check(overlay._fate.visible and overlay._fate_title.text == "A LUZ NÃO CHEGOU" and not overlay._ending.visible, "a failed lighthouse has its own screen")
+	overlay._fate.visible = false
+	state.ships_lost = 0
+	state.night_ended.emit()
+	_check(overlay._ending.visible and not overlay._fate.visible, "a survived dawn keeps the dawn panel")
+	overlay._ending.visible = false
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://keepers_test.cfg"))
 	paused = false
 
 
