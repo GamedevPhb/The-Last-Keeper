@@ -82,7 +82,8 @@ main.tscn      Main scene
 
 - [Game Design Document](docs/GDD.md)
 - [Development plan](docs/PLANO.md)
+- [Sprints to launch](docs/SPRINTS.md)
 
 ## License
 
-Not yet defined.
+Source code: [MIT](LICENSE). Art, narrative and other creative assets: [CC BY-NC 4.0](LICENSE-ASSETS.md). Names and logos are not covered by either license.

@@ -82,7 +82,8 @@ main.tscn      Cena principal
 
 - [Game Design Document](docs/GDD.md)
 - [Plano de desenvolvimento](docs/PLANO.md)
+- [Sprints até o lançamento](docs/SPRINTS.md)
 
 ## Licença
 
-Ainda não definida.
+Código: [MIT](LICENSE). Arte, narrativa e demais assets criativos: [CC BY-NC 4.0](LICENSE-ASSETS.md). Nomes e logos não estão cobertos por nenhuma das duas.
