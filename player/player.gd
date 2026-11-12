@@ -52,7 +52,7 @@ func _ready() -> void:
 	GameState.player = self
 	_spawn = global_transform
 	_air_peak = global_position.y
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = TouchControls.game_mouse_mode()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -61,11 +61,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		# screen_relative ignores the 320x240 stretch, keeping sensitivity stable.
 		var motion: Vector2 = event.screen_relative
-		rotate_y(-motion.x * mouse_sensitivity)
-		_head.rotate_x(-motion.y * mouse_sensitivity)
-		_head.rotation.x = clampf(_head.rotation.x, deg_to_rad(-85.0), deg_to_rad(85.0))
-	elif event is InputEventMouseButton and event.pressed:
+		look_by(-motion.x * mouse_sensitivity, -motion.y * mouse_sensitivity)
+	elif event is InputEventMouseButton and event.pressed and not TouchControls.enabled:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+## Turns the view by radians (mouse, touch drag). Ignored while a console holds the hands.
+func look_by(yaw: float, pitch: float) -> void:
+	if locked:
+		return
+	rotate_y(yaw)
+	_head.rotate_x(pitch)
+	_head.rotation.x = clampf(_head.rotation.x, deg_to_rad(-85.0), deg_to_rad(85.0))
 
 
 func apply_settings(mouse: float, stick: float, fov: float) -> void:

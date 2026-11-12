@@ -133,7 +133,7 @@ func close_book() -> void:
 
 func _set_paused(paused: bool) -> void:
 	get_tree().paused = paused
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if paused or GameState.panel_open else Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if paused or GameState.panel_open else TouchControls.game_mouse_mode()
 
 
 func _toggle_flashlight() -> void:

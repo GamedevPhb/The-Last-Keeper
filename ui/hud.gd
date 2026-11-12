@@ -5,6 +5,7 @@ extends CanvasLayer
 ## inventory strip when it changes, messages fade on their own, the interaction prompt sits
 ## in the lower third, and the whole HUD hides while a puzzle panel is open
 ## (`GameState.panel_changed`), since panels show their own messages.
+## It also owns the touch controls (`ui/touch_controls.gd`), which show only on touch devices.
 
 const OBJECTIVE_TIME := 8.0
 const STATUS_TIME := 5.0
@@ -56,6 +57,12 @@ func _ready() -> void:
 	_compass.visible = false # the heading now rides on the objective line
 	_refresh_status()
 	_update_hints()
+	var touch := TouchControls.new()
+	touch.name = "TouchControls"
+	touch.player = player
+	add_child(touch)
+	get_viewport().size_changed.connect(_layout)
+	_layout()
 	var x := 4.0
 	for key: String in ["thirst", "hunger", "health"]:
 		var icon := TextureRect.new()
@@ -99,6 +106,14 @@ func _build_frames() -> void:
 		label.add_theme_constant_override("outline_size", 0)
 
 
+## Centres the strips on wide screens (aspect "expand" on phones); 320 wide keeps the PC layout.
+func _layout() -> void:
+	var margin := (get_viewport().get_visible_rect().size.x - 280.0) / 2.0
+	_toast_frame.position.x = margin
+	_toast.offset_left = margin + 6.0
+	_toast.offset_right = -(margin + 6.0)
+
+
 ## A themed strip placed just behind `label`.
 func _frame(rect: Rect2, label: Control) -> Panel:
 	var frame := Panel.new()
@@ -128,7 +143,7 @@ func _process(delta: float) -> void:
 	_status_left -= delta
 	_fade(_status_left, [_status, _status_frame])
 	_hints_left -= delta
-	_fade(_hints_left, [_hints])
+	_fade(0.0 if TouchControls.enabled else _hints_left, [_hints])
 	_blink += delta
 	var critical: Dictionary = GameState.critical()
 	for key: String in _critical_icons:
@@ -137,10 +152,10 @@ func _process(delta: float) -> void:
 		icon.modulate.a = 0.55 + 0.45 * sin(_blink * 2.0)
 	# Prompts change while focused (e.g. a counter in the text), so poll them.
 	if _target:
-		_prompt.text = "[%s] %s" % ["Quadrado" if _gamepad else "E", _target.prompt]
+		_prompt.text = _target.prompt if TouchControls.enabled else "[%s] %s" % ["Quadrado" if _gamepad else "E", _target.prompt]
 		var width := _prompt.get_theme_font("font").get_string_size(_prompt.text, HORIZONTAL_ALIGNMENT_LEFT, -1, UiKit.FONT_SIZE).x + 14.0
 		_prompt_frame.size.x = width
-		_prompt_frame.position.x = 160.0 - width / 2.0
+		_prompt_frame.position.x = get_viewport().get_visible_rect().size.x / 2.0 - width / 2.0
 
 
 ## Shows `items` while `left` > 0, fading out over the last second.

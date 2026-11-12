@@ -4,7 +4,7 @@ extends CanvasLayer
 ## A boatman ferries the keeper to the pier at dusk. Built in code: its own Camera3D, a low-poly
 ## boat from primitives, the dialogue box and title cards on this layer, procedural sound cues.
 ## The night clock does not run (GameState.in_game stays false) and the HUD steps aside
-## (`set_panel_open`). Holding interact for 1 s skips to shot 12. Emits `finished` on the
+## (`set_panel_open`). Holding interact (or a finger, with touch controls) for 1 s skips to shot 12. Emits `finished` on the
 ## first playable frame, with the keeper on the pier next to the chest.
 
 signal finished
@@ -288,7 +288,8 @@ func _update_dialog(delta: float, local: float) -> void:
 
 
 func _update_skip(delta: float) -> void:
-	if Input.is_action_pressed("interact"):
+	var touching := TouchControls.enabled and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	if Input.is_action_pressed("interact") or touching:
 		_skip_hold += delta
 		if _skip_hold >= SKIP_HOLD:
 			skip()
@@ -345,7 +346,8 @@ func _build_ui() -> void:
 	root.add_child(_title)
 	_dialog_frame = PanelContainer.new()
 	_dialog_frame.add_theme_stylebox_override("panel", UiKit.bar())
-	_dialog_frame.position = Vector2(30, 196)
+	var width := get_viewport().get_visible_rect().size.x
+	_dialog_frame.position = Vector2((width - 260.0) / 2.0, 196)
 	_dialog_frame.custom_minimum_size = Vector2(260, 30)
 	_dialog_frame.visible = false
 	root.add_child(_dialog_frame)
@@ -357,12 +359,12 @@ func _build_ui() -> void:
 	_dialog.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_dialog.size = Vector2(250, 24)
 	holder.add_child(_dialog)
-	_hint = UiKit.label("Segure E / Quadrado para pular", 0, Color(0.8, 0.82, 0.75, 0.8))
-	_hint.position = Vector2(170, 4)
+	_hint = UiKit.label("Segure o toque para pular" if TouchControls.enabled else "Segure E / Quadrado para pular", 0, Color(0.8, 0.82, 0.75, 0.8))
+	_hint.position = Vector2(width - 150.0, 4)
 	_hint.visible = false
 	root.add_child(_hint)
 	_ring = SkipRing.new()
-	_ring.position = Vector2(300, 6)
+	_ring.position = Vector2(width - 20.0, 6)
 	_ring.size = Vector2(12, 12)
 	_ring.visible = false
 	root.add_child(_ring)

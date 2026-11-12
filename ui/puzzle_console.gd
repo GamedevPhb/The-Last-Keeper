@@ -7,6 +7,7 @@ extends CanvasLayer
 ## Input: click an icon (hold for continuous actions); keys 1-N; A/D or arrows move the
 ## focus and E/Space use it; Q or Esc closes. Pad: d-pad/left stick + X or Square, Circle
 ## closes, Options closes and lets the overlay pause.
+## Touch (`TouchControls.enabled`): an X closes, the key help hides, icons are tapped or held.
 ## Subclasses fill `_build_body()`, `_action_count()`, `_on_press()` and `_refresh()`;
 ## hold actions call `_begin_hold()` and get `_hold_tick()` every frame while held.
 
@@ -42,6 +43,9 @@ var _buttons: Array[Button] = []
 var _dim: ColorRect
 var _help: Label
 var _panel: PanelContainer
+var _top: HBoxContainer
+## Buttons shown only with touch controls (the X, the inventory's USAR / LARGAR).
+var _touch_only: Array[Control] = []
 var _normal_box: StyleBox
 var _focus_box: StyleBox
 
@@ -71,6 +75,9 @@ func open(by: Player = null) -> void:
 	_toast_left = 0.0
 	_message.text = ""
 	_focus = clampi(_initial_focus(), 0, _action_count() - 1)
+	for button in _touch_only:
+		button.visible = TouchControls.enabled
+	_help.visible = not TouchControls.enabled
 	visible = true
 	GameState.set_panel_open(self, true)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -86,7 +93,7 @@ func close() -> void:
 	GameState.set_panel_open(self, false)
 	if _player:
 		_player.locked = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = TouchControls.game_mouse_mode()
 
 
 func _exit_tree() -> void:
@@ -233,6 +240,7 @@ func _build_frame() -> void:
 	_panel.add_child(box)
 
 	var top := HBoxContainer.new()
+	_top = top
 	_title = UiKit.label("", 0, UiKit.BRASS)
 	top.add_child(_title)
 	_header = UiKit.label("")
@@ -245,6 +253,7 @@ func _build_frame() -> void:
 	_body.add_theme_constant_override("separation", 3)
 	box.add_child(_body)
 	_build_body(_body)
+	_top.add_child(_touch_button("X", close))
 
 	_message = UiKit.label("", 270, UiKit.BONE)
 	_message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -269,6 +278,16 @@ func _icon_button(index: int, texture: Texture2D, tooltip: String) -> Button:
 	button.button_down.connect(func() -> void: press(index, func() -> bool: return button.button_pressed))
 	button.mouse_entered.connect(_hover.bind(index))
 	_buttons.append(button)
+	return button
+
+
+## A 24 px button (about 9 mm on a phone) that only shows with touch controls.
+func _touch_button(text: String, action: Callable) -> Button:
+	var button := UiKit.button(text, action)
+	button.custom_minimum_size = Vector2(24, 24)
+	button.focus_mode = Control.FOCUS_NONE
+	button.visible = false
+	_touch_only.append(button)
 	return button
 
 
