@@ -18,7 +18,22 @@ signal interacted(target: Interactable)
 @export var stride := 2.0 ## meters between footstep sounds
 ## Falling below this height (into the sea) respawns at the start position.
 @export var respawn_height := -10.0
+## Feet below this height are in the sea (the water plane sits at -1.2).
+@export var water_height := -1.0
+## Drops longer than this hurt: (height - safe_fall) * fall_damage.
+@export var safe_fall := 3.0
+@export var fall_damage := 12.0
 
+## True while a console holds the keeper's hands: no walking, looking or world interaction.
+## The world keeps running.
+var locked := false:
+	set(value):
+		locked = value
+		_wait_release = true
+		_set_hold(0.0)
+		if value and _focus:
+			_focus = null
+			focus_changed.emit(null)
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _spawn: Transform3D
 var _focus: Interactable
@@ -26,6 +41,7 @@ var _hold_elapsed := 0.0
 var _wait_release := false
 var _step_distance := 0.0
 var _was_on_floor := true
+var _air_peak := 0.0
 
 @onready var _head: Node3D = $Head
 @onready var _ray: RayCast3D = $Head/Camera3D/InteractRay
@@ -33,11 +49,15 @@ var _was_on_floor := true
 
 func _ready() -> void:
 	add_to_group("player")
+	GameState.player = self
 	_spawn = global_transform
+	_air_peak = global_position.y
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if locked:
+		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		# screen_relative ignores the 320x240 stretch, keeping sensitivity stable.
 		var motion: Vector2 = event.screen_relative
@@ -55,36 +75,50 @@ func apply_settings(mouse: float, stick: float, fov: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	var look := Input.get_vector("look_left", "look_right", "look_up", "look_down")
+	var look := Vector2.ZERO if locked else Input.get_vector("look_left", "look_right", "look_up", "look_down")
 	rotate_y(-look.x * stick_sensitivity * delta)
 	_head.rotate_x(-look.y * stick_sensitivity * delta)
 	_head.rotation.x = clampf(_head.rotation.x, deg_to_rad(-85.0), deg_to_rad(85.0))
 
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
-	elif Input.is_action_just_pressed("jump"):
+	elif Input.is_action_just_pressed("jump") and not locked:
 		velocity.y = jump_velocity
 		jumped.emit()
 
-	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var frozen := locked or GameState.dead
+	var input := Vector2.ZERO if frozen else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := (transform.basis * Vector3(input.x, 0.0, input.y)).normalized()
-	var speed := sprint_speed if Input.is_action_pressed("sprint") else walk_speed
+	var sprinting := Input.is_action_pressed("sprint") and input != Vector2.ZERO and GameState.can_sprint()
+	GameState.sprinting = sprinting
+	var speed := sprint_speed if sprinting else walk_speed
 	velocity.x = move_toward(velocity.x, direction.x * speed, acceleration * delta)
 	velocity.z = move_toward(velocity.z, direction.z * speed, acceleration * delta)
 	move_and_slide()
 	_emit_footsteps(delta)
 
+	GameState.in_water = global_position.y < water_height
 	if global_position.y < respawn_height:
 		global_transform = _spawn
 		velocity = Vector3.ZERO
+		_air_peak = global_position.y
 
-	_update_interaction(delta)
+	if not locked:
+		_update_interaction(delta)
 
 
 func _emit_footsteps(delta: float) -> void:
 	var on_floor := is_on_floor()
+	if not on_floor:
+		_air_peak = maxf(_air_peak, global_position.y)
 	if on_floor and not _was_on_floor:
 		landed.emit()
+		var drop := _air_peak - global_position.y
+		if drop > safe_fall:
+			GameState.damage((drop - safe_fall) * fall_damage, "A queda")
+			GameState.play("hurt")
+	if on_floor:
+		_air_peak = global_position.y
 	_was_on_floor = on_floor
 	if on_floor and Vector2(velocity.x, velocity.z).length() > 0.5:
 		_step_distance += Vector2(velocity.x, velocity.z).length() * delta

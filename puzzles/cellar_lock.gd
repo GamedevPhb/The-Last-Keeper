@@ -17,6 +17,23 @@ func _ready() -> void:
 		dial.interacted.connect(_on_dial.bind(i))
 		_dials.append(dial)
 	_refresh()
+	add_to_group("saveable")
+
+
+func save_state() -> Dictionary:
+	return {"open": _open, "digits": _digits}
+
+
+func load_state(data: Dictionary) -> void:
+	_digits = data.get("digits", _digits).map(func(d: float) -> int: return int(d))
+	_refresh()
+	if data.get("open", false) and not _open:
+		_open = true
+		var hatch := get_node_or_null("../../Props/CellarHatch")
+		if hatch:
+			hatch.queue_free()
+		for dial in _dials:
+			dial.enabled = false
 
 
 func _on_dial(_by: Node, index: int) -> void:
@@ -43,6 +60,8 @@ func _unlock() -> void:
 	for dial in _dials:
 		dial.enabled = false
 	GameState.play("bell", global_position)
-	GameState.oil_cans += 2
-	GameState.fuel_cans += 1
-	GameState.say("O porão guardava reservas: 2 latas de óleo e 1 de combustível.")
+	# The pantry: lamp reserves plus the food that rewards cracking the code (GDD 4.10).
+	var at := global_position + Vector3(0.0, 0.1, 0.6)
+	for entry: Array in [["oil", 2], ["fuel", 1], ["can", 3], ["water", 2], ["bandage", 1]]:
+		GameState.give(entry[0], entry[1], at)
+	GameState.say("O porão guardava reservas: 2 latas de óleo, 1 de combustível, 3 conservas, 2 garrafas d'água e 1 curativo.")

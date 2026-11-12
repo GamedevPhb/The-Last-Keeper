@@ -1,0 +1,19 @@
+# Config do framework Claude Code Game Studios (usada por /team-audio).
+# Ver .claude/docs/config-resolution.md.
+schema_version: 1
+
+engine:
+  name: Godot
+  version: "4.7"
+  language: GDScript
+  code_root: .
+  test_root: tests
+
+team:
+  size: small
+
+# Testes do projeto são SceneTree customizados, não GdUnit (ver CLAUDE.md).
+commands:
+  run: godot --path .
+  test: godot --headless --path . --script res://tests/puzzle_test.gd
+  smoke: godot --headless --path . --script res://tests/smoke_test.gd

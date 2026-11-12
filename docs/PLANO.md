@@ -1,111 +1,43 @@
 # Plano de Desenvolvimento: Demo Jogável
 
-> **The Last Keeper** · Início 2026-11-10 · Meta: demo em **~2027-01-05** (8 semanas) · Ritmo: 3–5 h/semana (~30 h no total)
+> **The Last Keeper** · Início 2026-11-10 · Plano revisto em 2026-11-12 (quinta)
+> **Lançamento da demo no itch.io: quinta 14/01/2027 (A CONFIRMAR)** · Build final congelado: quinta 07/01/2027 (a confirmar)
+> Ritmo: o código, as cenas e os modelos são feitos por agentes de IA. **O gargalo é a revisão e o playtest humano.** Hipótese de capacidade humana: 6–8 h/semana (revisar, jogar, decidir); 2–3 h nas semanas de Natal e Ano-Novo. Se a capacidade real for de 3–5 h/semana, aplique a linha de corte já na sprint 3.
 
-**A demo é o MVP do GDD (seção 12):** uma noite completa, do anoitecer ao amanhecer, com lâmpada, gerador, rádio e dois navios (um regular, um anômalo), no visual PS1, publicada no itch.io.
+**A demo é o MVP do GDD (§12):** uma noite completa, do anoitecer ao amanhecer, com lâmpada, gerador, rádio e dois navios (um regular, um anômalo), no visual PS1, publicada no itch.io. Tudo o que não serve a essa noite está abaixo da linha de corte.
 
-**Divisão do trabalho:** o Claude escreve código, cenas e modelos (Blender via MCP). Você testa, decide e aprende: cada semana tem uma tarefa sua de aprendizado ligada ao que foi construído.
-
----
-
-## Semana 1: Base técnica ✅ (concluída em 2026-11-10)
-
-- [x] Projeto configurado: 320×240 nativo, filtro *nearest*, inputs, camadas de física
-- [x] Shaders PS1: jitter de vértice, textura afim, mar com ondas, dithering 15-bit
-- [x] Jogador em primeira pessoa (andar, correr, olhar, respawn ao cair no mar)
-- [x] Sistema de interação (apertar e segurar, prompt e barra no HUD)
-- [x] Ilha *greybox*: farol com rampa em espiral, casa do vigia, galpão, píer, pedras
-- [x] Lâmpada giratória (*placeholder*) que acende e apaga segurando E
-- [x] Teste automático: sobe o farol e aciona a lâmpada (`tests/smoke_test.gd`)
-
-**Sua tarefa:** abrir o projeto no Godot, rodar com F5, andar pela ilha e subir o farol. Abrir `player/player.gd` e mudar `walk_speed` para sentir o efeito.
+**Como ler as estimativas:** "d" = dias de trabalho de agente (incluindo o teste headless). Cada tarefa precisa de uma revisão humana curta (15–45 min) antes de ser marcada como pronta. Não abra mais de 6 tarefas de revisão por semana.
 
 ---
 
-## Semana 2: Lâmpada completa
+## Histórico (o que já está pronto)
 
-- [ ] Óleo: consumo contínuo, medidor no mundo, abastecer com a lata (segurar E)
-- [ ] Corda da rotação: manivela, a rotação para quando a corda acaba
-- [ ] Lente suja: o alcance do feixe cai, limpar com pano (segurar E)
-- [ ] Som do mecanismo girando (o "relógio" sonoro)
+### Semana 1: base técnica ✅ (2026-11-10)
+- Projeto 320×240, shaders PS1 (jitter, afim, mar, dithering 15-bit), jogador em primeira pessoa, interação (apertar/segurar), ilha *greybox* com rampa em espiral, `tests/smoke_test.gd`.
 
-**Entregável:** dá pra manter a luz acesa por uma noite cuidando dos três recursos.
-**Sua tarefa:** ajustar os tempos de consumo no Inspector e ver o que deixa a noite tensa sem ficar chata.
+### Semana 2: sistemas e UI ✅ (2026-11-10 a 2026-11-12, além do plano original)
+- Puzzles: gerador com válvulas, disjuntores (capacidade 2), rádio fixo com navios que mentem sobre a carga, cadeado 8-3-5 com pistas, maré, tambor de óleo, baú.
+- Relógio 17:30 → 06:00 (~15 min reais), `progress()`/`tension()`, céu dia-noite, resumo da noite.
+- Console da lâmpada (queimador de vapor, GDD §4.1.1) e console dos disjuntores.
+- Rádio portátil (GDD §4.8), inventário de 32 slots estilo Minecraft (§4.9), vida/sede/fome (§4.10).
+- HUD limpo, tema de latão, abertura VKS Games + Porto Indie, menu principal, pausa, opções (`user://settings.cfg`), controle PS4.
+- Saves em 3 slots com autosave, cutscene de abertura ("A travessia", `docs/CUTSCENE_ABERTURA.md`).
+- Trilha adaptativa em 4 estágios com textura lo-fi PS1 e visual PS1 reforçado; todo o áudio é procedural.
+- `smoke_test.gd` e `puzzle_test.gd` passando no headless.
 
-## Semana 3: Gerador e carregar itens
+**O que falta para o MVP:** navios visíveis com decisão e consequência, a consequência da corda em 0 (criaturas), uma noite roteirizada e balanceada, arte P0 no lugar das caixas, localização PT/EN, exportação e página, playtests e polimento.
 
-- [ ] Gerador: diesel, liga/desliga, mostrador de estado
-- [ ] Uma falha (fusível queimado) com conserto curto
-- [ ] Carregar objetos (latas, peças): ocupa as mãos e deixa o jogador mais lento
-- [ ] Depósito na base do farol com estoque físico
-
-**Entregável:** o gerador falha e você corre até o galpão, pega a peça e conserta.
-
-## Semana 4: Rádio e diretor da noite
-
-- [ ] `NightDirector` (autoload): relógio da noite (anoitecer → amanhecer em ~12 min)
-- [ ] Roteiro da noite em `.tres`: lista de eventos com horário
-- [ ] Rádio: sintonizar o dial, ouvir a chamada, escolher a resposta
-- [ ] 3 chamadas roteirizadas (texto + áudio *placeholder*)
-
-**Entregável:** a noite tem começo, meio e fim, com eventos acontecendo sozinhos.
-
-## Semana 5: Navios e a decisão
-
-- [ ] Navio: modelo simples, rota pelo mar, luzes de navegação
-- [ ] Binóculo (botão direito): zoom da câmera
-- [ ] Manifesto na mesa (papel legível)
-- [ ] Decisão: guiar / alertar (sirene ou sinal de luz) / ignorar, com consequências
-- [ ] 1 navio regular + 1 anômalo na noite
-
-**Entregável:** o *loop* principal do GDD completo, ainda em *greybox*. **Marco: primeira versão jogável de ponta a ponta.**
-
-## Semana 6: Arte no Blender
-
-- [ ] Instalar o Blender e conectar o MCP (ver "Pendências")
-- [ ] *Style guide*: paleta, densidade de textura, limite de polígonos
-- [ ] Modelar: farol, casa do vigia, galpão, píer (com as skills `psx-horror-style`, `lowpoly-style`, `godot-export`)
-- [ ] Props-chave: lâmpada, gerador, rádio, lata de óleo, navio
-- [ ] Trocar o *greybox* pelos modelos mantendo as colisões
-
-**Sua tarefa:** acompanhar uma modelagem e fazer um prop simples sozinho (ex.: a lata de óleo).
-
-## Semana 7: Áudio, atmosfera e telas
-
-- [ ] Ambiente: mar, vento, chuva leve, rangidos
-- [ ] Vozes do rádio com filtro e estática
-- [ ] Relatório do amanhecer (navios salvos/perdidos)
-- [ ] Menu principal, pausa e opções (sensibilidade, intensidade do jitter, volume)
-
-## Semana 8: Polimento e lançamento da demo
-
-- [ ] Playtest com 2–3 pessoas e ajuste de dificuldade
-- [ ] Correções de bugs
-- [ ] Export: Linux, Windows e Web
-- [ ] Página no itch.io (capturas, GIF, descrição)
-
-**Entregável:** demo publicada.
+**Pendência imediata:** o trabalho da semana 2 está todo fora do git (ver `git status`). Commitar antes de começar a sprint 1.
 
 ---
 
-## Se atrasar: o que cortar (nesta ordem)
+## Sprints
 
-1. Sirene de neblina (fica só o sinal de luz)
-2. Lente suja (fica só óleo e corda)
-3. Export Web
-4. Arte final dos props pequenos (ficam em *greybox* texturizado)
-5. Menu de opções (fica só pausa)
+O cronograma detalhado (calendário, marcos, tarefas por sprint, checagem semanal, linha de corte e riscos) está em [`SPRINTS.md`](SPRINTS.md). Cada tarefa tem uma issue no GitHub, com a sprint como milestone.
 
-**Não cortar:** a decisão sobre o navio anômalo. É o coração do jogo.
-
-## Pendências
-
-- **Blender:** não está instalado. Antes da semana 6, rode `sudo snap install blender --classic`, depois instale o addon do MCP: em *Edit → Preferences → Add-ons → Install*, escolha o `addon.py` de <https://github.com/ahujasid/blender-mcp> e clique em *Connect* no painel lateral (N) do Blender. O MCP `blender` já está registrado no Claude Code.
-- **Git:** o projeto ainda não é um repositório. Recomendado antes da semana 2.
-- **Questões em aberto do GDD (seção 14):** nome final e idioma da demo.
-
-## Como rodar o teste
+## Como rodar os testes
 
 ```bash
-godot-4 --headless --path . --script res://tests/smoke_test.gd
+godot --headless --path . --script res://tests/smoke_test.gd
+godot --headless --path . --script res://tests/puzzle_test.gd
 ```

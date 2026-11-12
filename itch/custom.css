@@ -1,0 +1,89 @@
+/* The Last Keeper: CSS customizado para o itch.io (Edit theme > Custom CSS) */
+
+/* Coluna principal: painel escuro com moldura de latão */
+.inner_column {
+  background: #050806;
+  border: 1px solid #3a2f1a;
+  box-shadow: 0 0 0 1px #000, 0 0 40px rgba(0, 0, 0, 0.8);
+  color: #b9c4a8;
+}
+
+/* Descrição */
+.user_formatted {
+  color: #b9c4a8;
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.7;
+}
+.user_formatted p { margin: 0 0 14px; }
+.user_formatted b,
+.user_formatted strong { color: #d8d2b0; }
+.user_formatted i,
+.user_formatted em { color: #cfc9a8; }
+
+/* Títulos em letras espaçadas, com filete enferrujado */
+.user_formatted h2 {
+  color: #7fa07a;
+  font-size: 15px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #36260f;
+  padding-bottom: 6px;
+  margin: 32px 0 12px;
+}
+
+/* Listas e tabela de controles */
+.user_formatted ul { padding-left: 20px; }
+.user_formatted li::marker { color: #8a2a1c; }
+.user_formatted table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.user_formatted td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #141c15;
+}
+.user_formatted td:first-child { color: #d8d2b0; }
+
+/* Imagens da descrição: borda fina e pixels nítidos */
+.user_formatted img {
+  max-width: 100%;
+  border: 1px solid #1d2a1f;
+  image-rendering: pixelated;
+}
+
+/* Links */
+.user_formatted a,
+.more_information_toggle,
+.game_info_panel_widget a {
+  color: #c9a85a;
+}
+.user_formatted a:hover { color: #e6c877; }
+
+/* Painel de informações (lado direito/embaixo) */
+.game_info_panel_widget,
+.game_info_panel_widget td {
+  color: #9fae9c;
+}
+
+/* Botões: vermelho-sangue com borda de latão */
+.button,
+.button.buy_btn,
+.download_btn {
+  background: #4d0e0a;
+  border: 1px solid #8a6d32;
+  color: #efe3bd;
+  text-shadow: 1px 1px 0 #000;
+  border-radius: 0;
+}
+.button:hover,
+.download_btn:hover {
+  background: #7a1812;
+  border-color: #c9a85a;
+}
+
+/* Embed do jogo com moldura */
+.game_frame,
+.iframe_placeholder {
+  border: 1px solid #3a2f1a;
+}

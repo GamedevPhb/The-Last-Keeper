@@ -36,7 +36,7 @@ func apply() -> void:
 			var level: float = values["master"] if bus == "Master" else values["music" if bus == "Music" else "sfx"]
 			AudioServer.set_bus_volume_db(index, linear_to_db(maxf(level, 0.0001)))
 	RenderingServer.global_shader_parameter_set("psx_brightness", values["brightness"])
-	RenderingServer.global_shader_parameter_set("psx_vertex_snap", 1.0 if values["jitter"] else 0.0)
+	RenderingServer.global_shader_parameter_set("psx_vertex_snap", ProjectSettings.get_setting("shader_globals/psx_vertex_snap", {"value": 2.0})["value"] if values["jitter"] else 0.0)
 	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if values["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED
 	if DisplayServer.window_get_mode() != mode:
 		DisplayServer.window_set_mode(mode)

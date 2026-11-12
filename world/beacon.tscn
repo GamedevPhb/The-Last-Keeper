@@ -72,8 +72,7 @@ surface_material_override/0 = SubResource("beam_mat")
 
 [node name="Interactable" type="Area3D" parent="."]
 script = ExtResource("2_interactable")
-prompt = "Apagar a lâmpada"
-hold_time = 1.0
+prompt = "Console da lâmpada"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Interactable"]
 shape = SubResource("interact_shape")

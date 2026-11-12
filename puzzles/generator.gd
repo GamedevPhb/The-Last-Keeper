@@ -18,6 +18,7 @@ var _tank: Interactable
 
 func _ready() -> void:
 	add_to_group("generator")
+	add_to_group("saveable")
 	order.shuffle()
 	for i in LABELS.size():
 		_valves.append(_add_valve(i))
@@ -36,6 +37,25 @@ func _process(delta: float) -> void:
 		if fuel <= 0.0:
 			fuel = 0.0
 			_stop("acabou o combustível")
+
+
+func save_state() -> Dictionary:
+	var barrels: Array = []
+	for i in BARRELS.size():
+		barrels.append(get_node("Barrel%d" % i).enabled)
+	return {"order": order, "fuel": fuel, "running": running, "barrels": barrels}
+
+
+func load_state(data: Dictionary) -> void:
+	order = data.get("order", order).map(func(i: float) -> int: return int(i))
+	fuel = data.get("fuel", 0.0)
+	running = data.get("running", false)
+	var barrels: Array = data.get("barrels", [])
+	for i in mini(barrels.size(), BARRELS.size()):
+		get_node("Barrel%d" % i).enabled = barrels[i]
+	for mat in _lights:
+		mat.albedo_color = Color(0.2, 0.6, 0.2) if running else Color(0.6, 0.15, 0.1)
+	_progress = 0
 
 
 func valve_order_text() -> String:
@@ -128,7 +148,9 @@ func _on_refuel(_by: Node) -> void:
 
 
 func _on_barrel(_by: Node, barrel: Interactable) -> void:
+	if GameState.inventory.add("fuel", 1) > 0:
+		GameState.say("Inventário cheio. Abra espaço para a lata.")
+		return
 	barrel.enabled = false
-	GameState.fuel_cans += 1
 	GameState.play("clunk", barrel.global_position)
 	GameState.say("Você enche uma lata de combustível.")

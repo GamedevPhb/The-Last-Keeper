@@ -24,8 +24,8 @@ func _ready() -> void:
 	box.add_child(HSeparator.new())
 	for row: Array in SLIDERS:
 		var line := HBoxContainer.new()
-		var name := UiKit.label(row[0], 84)
-		line.add_child(name)
+		var caption := UiKit.label(row[0], 84)
+		line.add_child(caption)
 		var slider := HSlider.new()
 		slider.custom_minimum_size = Vector2(100, 8)
 		slider.min_value = row[2]
