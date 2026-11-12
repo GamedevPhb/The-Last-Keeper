@@ -263,29 +263,24 @@ Pressão de fundo, não uma segunda rotina: numa noite bem jogada, o jogador beb
 
 ## 8. Controles
 
-| Ação | Teclado / mouse | Controle PS4 |
-|---|---|---|
-| Mover / olhar | WASD / mouse | analógico esquerdo / direito |
-| Correr | Shift (bloqueado com sede ou fome em 0, ou 4+ latas) | L3 |
-| Pular | Espaço | X |
-| Interagir / pegar item no chão | E (segurar nas ações contínuas) | Quadrado |
-| Lanterna | F | R1 |
-| Rádio portátil | R | direcional para cima |
-| Inventário | Tab | Triângulo |
-| Livro de registros | J | L1 |
-| Pausa | Esc | Options |
+| Ação (`project.godot`) | Teclado / mouse | Controle PS4 | Toque |
+|---|---|---|---|
+| Mover (`move_*`) | WASD | analógico esquerdo | joystick virtual |
+| Olhar (`look_*`) | mouse | analógico direito | arrastar o dedo na tela |
+| Correr (`sprint`) | Shift (bloqueado com sede ou fome em 0, ou 4+ latas) | L3 | sem botão (joystick virtual pressionado até o limite) |
+| Pular (`jump`) | Espaço | X | botão pular |
+| Interagir / pegar item no chão (`interact`) | E (segurar nas ações contínuas) | Quadrado | botão interagir (segurar nas ações contínuas) |
+| Lanterna (`flashlight`) | F | R1 | botão lanterna |
+| Rádio portátil (`radio`) | R | direcional para cima | botão rádio |
+| Inventário (`inventory`) | Tab | Triângulo | botão inventário |
+| Livro de registros (`journal`) | J | L1 | botão livro |
+| Pausa (`pause`) | Esc | Options | botão pausa |
 
 **Consoles (lâmpada, quadro de força, rádio portátil):** clique no ícone (segure nas ações contínuas), `1`–`N` como atalho, `A`/`D` ou setas movem o foco, `E`/Espaço usa; fecha com `Q`, `Esc` (ou `R` no rádio). No PS4: direcional ou analógico move o foco, X ou Quadrado usa, Círculo fecha e Options fecha e pausa.
 
 **Inventário (como no Minecraft):** clique esquerdo pega a pilha inteira e a coloca, junta ou troca; clique direito pega metade ou coloca 1; Shift+clique usa; `Q`, ou clicar fora da grade segurando algo, larga no chão; passar o mouse mostra a descrição. Sem mouse: setas ou WASD movem o cursor de slot, Espaço pega/coloca, `E` usa, `F` divide, `Q` larga, `Tab` ou `Esc` fecha. No PS4: direcional ou analógico move, X pega/coloca, Quadrado usa, Círculo larga, R1 divide e Triângulo fecha.
 
----|---|
-| Mover / olhar | WASD / mouse |
-| Interagir | E (segurar para ações contínuas) |
-| Binóculo | Botão direito |
-| Livro de registros | Tab |
-| Lanterna de mão | F |
-| Correr | Shift (limitado ao carregar algo) |
+**Toque (`ui/touch_controls.gd`):** os botões de latão disparam as mesmas ações de input, então o resto do jogo não distingue a origem. Nos consoles e no inventário o toque equivale ao clique do mouse.
 
 ---
 
