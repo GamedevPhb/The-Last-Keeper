@@ -13,6 +13,7 @@ func _process(_delta: float) -> bool:
 		return true
 	_ran = true
 	_state = root.get_node("GameState")
+	_state.keepers_path = "user://keepers_test.cfg"
 	_reset()
 	_test_rates()
 	_test_zero_times()

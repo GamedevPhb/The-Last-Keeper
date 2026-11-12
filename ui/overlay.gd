@@ -14,7 +14,7 @@ const CONTROLS := "Teclado: WASD andar, Shift correr, Espaço pular, E interagir
 var _pause: Control
 var _pause_box: VBoxContainer
 var _settings: SettingsPanel
-var _controls: Label
+var _controls: ScrollContainer
 var _inventory: Node
 var _radio: Node
 var _book: Control
@@ -24,6 +24,12 @@ var _spread_text: Label
 var _spread := 0
 var _ending: Control
 var _ending_text: Label
+var _fate: Control
+var _fate_title: Label
+var _fate_text: Label
+var _fate_book: Label
+var _fate_buttons: Control
+var _fate_tween: Tween
 var _flashlight: SpotLight3D
 
 
@@ -39,6 +45,7 @@ func _ready() -> void:
 	add_child(_radio)
 	_book = _build_book()
 	_ending = _build_ending()
+	_fate = _build_fate()
 	GameState.book_requested.connect(open_book)
 	GameState.night_ended.connect(_show_ending)
 	GameState.player_died.connect(_show_death)
@@ -72,7 +79,7 @@ func _on_opening_finished() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _ending.visible:
+	if _ending.visible or _fate.visible:
 		return
 	var closing := event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause")
 	if closing:
@@ -150,6 +157,8 @@ func _toggle_flashlight() -> void:
 		camera.add_child(_flashlight)
 		_flashlight.visible = false
 	_flashlight.visible = not _flashlight.visible
+	GameState.flashlight_on = _flashlight.visible
+	GameState.flashlight_toggled.emit(_flashlight.visible)
 	GameState.play("switch")
 
 
@@ -179,7 +188,12 @@ func _build_pause() -> Control:
 	_pause_box.add_child(HSeparator.new())
 	_pause_box.add_child(UiKit.button("Continuar", resume))
 	_pause_box.add_child(UiKit.button("Opções", _open_settings))
-	_controls = UiKit.label(CONTROLS, 230)
+	# The key list is taller than the 240 px screen: it scrolls inside a fixed-height window.
+	_controls = ScrollContainer.new()
+	_controls.custom_minimum_size = Vector2(236, 78)
+	_controls.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_controls.follow_focus = true
+	_controls.add_child(UiKit.label(CONTROLS, 224))
 	_controls.visible = false
 	_pause_box.add_child(UiKit.button("Controles", func() -> void: _controls.visible = not _controls.visible))
 	_pause_box.add_child(_controls)
@@ -188,7 +202,7 @@ func _build_pause() -> Control:
 	_settings = SettingsPanel.new()
 	_settings.visible = false
 	_settings.closed.connect(_close_settings)
-	root.get_node("Center").add_child(_settings)
+	root.add_child(_settings)
 	return root
 
 
@@ -246,7 +260,10 @@ func _pages() -> Array[String]:
 		for ship: Dictionary in GameState.SHIPS.slice(from, to):
 			lines.append("%s: %s" % [ship.call, ship.register])
 		return "\n".join(lines)
-	var notes := "\n\n".join(GameState.notes) if not GameState.notes.is_empty() else "Nada anotado ainda. Leia placas, etiquetas e inscrições pela ilha."
+	var note_list: Array[String] = GameState.notes.duplicate()
+	if GameState.previous_keeper_line() != "":
+		note_list.push_front(GameState.previous_keeper_line())
+	var notes := "\n\n".join(note_list) if not note_list.is_empty() else "Nada anotado ainda. Leia placas, etiquetas e inscrições pela ilha."
 	return [
 		"ROTINA DO VIGIA\n\nDas 17:30 às 06:00: manter a luz acesa, atender o rádio e manter o gerador vivo.\n\nSem energia não há rádio. Sem luz os navios encalham.",
 		"MAPA DA ILHA\n\nNorte: farol, lâmpada no topo.\nLeste: esta casa, rádio e fusíveis.\nOeste: galpão do gerador.\nSul: píer e baú.\nIlhéu a leste: tambor de óleo.",
@@ -274,25 +291,120 @@ func _build_ending() -> Control:
 	return root
 
 
+## Death and failed-lighthouse screen: no brass frame, black with a vignette, text typed slowly.
+func _build_fate() -> Control:
+	var root := Control.new()
+	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	root.visible = false
+	var back := ColorRect.new()
+	back.name = "Back"
+	back.set_anchors_preset(Control.PRESET_FULL_RECT)
+	back.color = Color(0.05, 0.0, 0.0)
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(back)
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(0, 0, 0, 0))
+	gradient.set_color(1, Color(0, 0, 0, 1))
+	gradient.set_offset(0, 0.35)
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(0.5, 0.5)
+	texture.fill_to = Vector2(1.0, 0.5)
+	texture.width = 64
+	texture.height = 48
+	var vignette := TextureRect.new()
+	vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vignette.texture = texture
+	vignette.stretch_mode = TextureRect.STRETCH_SCALE
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(vignette)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(center)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	center.add_child(box)
+	_fate_title = UiKit.label("", 260, UiKit.BLOOD)
+	_fate_title.add_theme_font_size_override("font_size", UiKit.HEADING_SIZE)
+	_fate_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_fate_title)
+	_fate_text = UiKit.label("", 260, Color(0.7, 0.64, 0.56))
+	_fate_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_fate_text)
+	_fate_book = UiKit.label("", 260, Color(0.5, 0.45, 0.38))
+	_fate_book.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_fate_book)
+	_fate_buttons = VBoxContainer.new()
+	_fate_buttons.add_child(UiKit.button("Tentar de novo", _retry))
+	_fate_buttons.add_child(UiKit.button("Menu principal", _go_to_menu))
+	box.add_child(_fate_buttons)
+	add_child(root)
+	return root
+
+
 func _restart() -> void:
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
 
+## Starts the night again from the last save of the slot (autosave), or from 17:30 without one.
+func _retry() -> void:
+	get_tree().paused = false
+	GameState.play_intro = false
+	if GameState.save_slot > 0 and SAVE.exists(GameState.save_slot):
+		GameState.pending_load = SAVE.read(GameState.save_slot)
+	get_tree().reload_current_scene()
+
+
 func _show_death(cause: String) -> void:
+	var fate: Dictionary = GameState.fate(cause)
+	var tone := Color(0.05, 0.0, 0.0)
+	_show_fate(fate, "%s. %s." % [GameState.clock_text(), cause.to_upper() if cause != "" else "SEM CAUSA"], tone, UiKit.BLOOD, true)
+
+
+func _show_fate(fate: Dictionary, header: String, tone: Color, title_color: Color, died: bool) -> void:
 	_pause.visible = false
 	_book.visible = false
 	for panel: Node in [_inventory, _radio]:
 		panel.close()
-	_ending_text.text = "%s. %s\n\n%s levou o vigia.\n\nNavios salvos: %d\nNavios perdidos: %d" % [
-		GameState.clock_text(), "O FAROL FICOU SEM VIGIA", cause, GameState.ships_saved, GameState.ships_lost]
-	_ending.visible = true
-	_ending.modulate.a = 0.0
-	create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS).tween_property(_ending, "modulate:a", 1.0, 2.5)
+	_fate.get_node("Back").color = tone
+	_fate_title.text = fate["title"]
+	_fate_title.add_theme_color_override("font_color", title_color)
+	_fate_text.text = "%s\n\n%s\nNavios salvos: %d. Perdidos: %d." % [header, fate["text"], GameState.ships_saved, GameState.ships_lost]
+	var who := "Vigia %d" % (GameState.keeper_number() - 1 if died else GameState.keeper_number())
+	_fate_book.text = "Livro de registros, %s:\n«%s»" % [who, fate["book"]]
+	_fate_title.visible_ratio = 0.0
+	_fate_text.visible_ratio = 0.0
+	_fate_book.visible_ratio = 0.0
+	_fate_buttons.visible = false
+	_fate.modulate.a = 0.0
+	_fate.visible = true
 	_set_paused(true)
+	if _fate_tween:
+		_fate_tween.kill()
+	_fate_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_fate_tween.tween_property(_fate, "modulate:a", 1.0, 2.0).set_delay(0.8)
+	_fate_tween.tween_property(_fate_title, "visible_ratio", 1.0, 0.07 * fate["title"].length())
+	_fate_tween.tween_interval(0.6)
+	_fate_tween.tween_property(_fate_text, "visible_ratio", 1.0, 0.045 * _fate_text.text.length())
+	_fate_tween.tween_interval(0.8)
+	_fate_tween.tween_property(_fate_book, "visible_ratio", 1.0, 0.04 * _fate_book.text.length())
+	_fate_tween.tween_callback(func() -> void:
+		_fate_buttons.visible = true
+		(_fate_buttons.get_child(0) as Button).grab_focus())
+	if died:
+		get_tree().create_timer(1.6, true).timeout.connect(func() -> void: GameState.play("heart"))
+		get_tree().create_timer(2.5, true).timeout.connect(func() -> void: GameState.play("heart"))
 
 
 func _show_ending() -> void:
+	if GameState.lighthouse_failed():
+		_show_fate(GameState.FAILURE, "06:00. O FAROL FALHOU", Color(0.02, 0.04, 0.05), Color(0.55, 0.62, 0.62), false)
+		GameState.play("bell")
+		return
 	_pause.visible = false
 	_book.visible = false
 	for panel: Node in [_inventory, _radio]:
