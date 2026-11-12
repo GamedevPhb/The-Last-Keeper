@@ -261,6 +261,7 @@ func _build_frame() -> void:
 	box.add_child(_message)
 	_help = UiKit.label(_help_text(), 0, Color(0.7, 0.75, 0.7, 0.7))
 	_help.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_help)
 
 
@@ -305,6 +306,7 @@ func _style_buttons() -> void:
 static func plaque(text: String) -> Label:
 	var plate := UiKit.label(text, 0, UiKit.BRASS)
 	plate.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	plate.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART # wraps instead of widening the panel past the viewport
 	var plate_box := UiKit.style(Color(0.16, 0.1, 0.05), UiKit.RUST)
 	plate_box.set_content_margin_all(2)
 	plate.add_theme_stylebox_override("normal", plate_box)

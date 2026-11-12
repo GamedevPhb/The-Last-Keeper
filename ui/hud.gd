@@ -30,6 +30,10 @@ var _status_frame: Panel
 ## 8x8 critical-status icons, bottom-left, only while a status is critical (GDD 4.10).
 var _critical_icons := {}
 var _blink := 0.0
+## Phone icon + time bar, top-right. Lives outside `_root` so it stays while a panel hides the HUD.
+var _phone_box: Control
+var _phone_icon: TextureRect
+var _phone_bar: ColorRect
 
 @onready var _root: Control = $Root
 @onready var _prompt: Label = $Root/Prompt
@@ -57,6 +61,7 @@ func _ready() -> void:
 	_compass.visible = false # the heading now rides on the objective line
 	_refresh_status()
 	_update_hints()
+	_build_phone()
 	var touch := TouchControls.new()
 	touch.name = "TouchControls"
 	touch.player = player
@@ -74,6 +79,58 @@ func _ready() -> void:
 		_root.add_child(icon)
 		_critical_icons[key] = icon
 		x += 10.0
+
+
+func _build_phone() -> void:
+	var rows := [
+		"..kkkkkkkk..",
+		".kssssssssk.",
+		".kskkkkkksk.",
+		"..kk....kk..",
+		"..kk....kk..",
+		".kssk..kssk.",
+		".kssk..kssk.",
+		"..kk....kk..",
+	]
+	var image := Image.create(12, 8, false, Image.FORMAT_RGBA8)
+	for y in rows.size():
+		for x in 12:
+			var c: String = rows[y][x]
+			image.set_pixel(x, y, Color.BLACK if c == "k" else (Color(0.95, 0.85, 0.35) if c == "s" else Color(0, 0, 0, 0)))
+	_phone_box = Control.new()
+	_phone_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_phone_box.size = Vector2(16, 14)
+	_phone_box.visible = false
+	add_child(_phone_box)
+	_phone_icon = TextureRect.new()
+	_phone_icon.texture = ImageTexture.create_from_image(image)
+	_phone_icon.size = Vector2(12, 8)
+	_phone_icon.position = Vector2(2, 0)
+	_phone_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_phone_box.add_child(_phone_icon)
+	var back := ColorRect.new()
+	back.color = Color(0, 0, 0, 0.7)
+	back.position = Vector2(0, 10)
+	back.size = Vector2(16, 3)
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_phone_box.add_child(back)
+	_phone_bar = ColorRect.new()
+	_phone_bar.position = Vector2(1, 11)
+	_phone_bar.size = Vector2(14, 1)
+	_phone_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_phone_box.add_child(_phone_bar)
+
+
+## Blinks while the phone rings, steady once answered; the bar is the wait left.
+func _update_phone() -> void:
+	var call: Dictionary = GameState.active_call
+	_phone_box.visible = not call.is_empty() and GameState.in_game and not GameState.dead
+	if not _phone_box.visible:
+		return
+	var ratio := clampf(call.left / call.get("total", 30.0), 0.0, 1.0) if call.has("left") else 0.0
+	_phone_bar.size.x = 14.0 * ratio
+	_phone_bar.color = UiKit.BLOOD if ratio < 0.3 else UiKit.BRASS
+	_phone_icon.modulate.a = (1.0 if int(_blink * 3.0) % 2 == 0 else 0.25) if GameState.ringing else 1.0
 
 
 func _build_frames() -> void:
@@ -110,6 +167,7 @@ func _build_frames() -> void:
 func _layout() -> void:
 	var margin := (get_viewport().get_visible_rect().size.x - 280.0) / 2.0
 	_toast_frame.position.x = margin
+	_phone_box.position = Vector2(get_viewport().get_visible_rect().size.x - 20.0, 14.0)
 	_toast.offset_left = margin + 6.0
 	_toast.offset_right = -(margin + 6.0)
 
@@ -145,6 +203,7 @@ func _process(delta: float) -> void:
 	_hints_left -= delta
 	_fade(0.0 if TouchControls.enabled else _hints_left, [_hints])
 	_blink += delta
+	_update_phone()
 	var critical: Dictionary = GameState.critical()
 	for key: String in _critical_icons:
 		var icon: TextureRect = _critical_icons[key]

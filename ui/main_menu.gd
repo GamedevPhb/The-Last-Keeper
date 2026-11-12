@@ -15,6 +15,7 @@ var _settings: SettingsPanel
 var _logo: TextureRect
 var _slots ## SaveSlots panel (ui/save_slots.gd)
 var _continue: Button
+var _hint: Label
 
 
 func _ready() -> void:
@@ -95,21 +96,31 @@ func _build_ui() -> void:
 	_buttons.add_child(_continue)
 	_buttons.add_child(UiKit.button("Opções", _open_settings))
 	_buttons.add_child(UiKit.button("Sair", func() -> void: get_tree().quit()))
-	start.grab_focus()
+	start.grab_focus.call_deferred()
+	_hint = UiKit.label("", 0, Color(0.55, 0.65, 0.6))
+	_hint.position = Vector2(18, 218)
+	layer.add_child(_hint)
+	_update_hint()
+	Input.joy_connection_changed.connect(func(_d: int, _c: bool) -> void: _update_hint())
 	var footer := UiKit.label("pré-alpha  ·  Farol 7", 0, Color(0.45, 0.55, 0.5))
-	footer.position = Vector2(10, 228)
 	layer.add_child(footer)
+	footer.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 4)
+	footer.offset_left = 10
+	footer.offset_right = 200
 	_settings = SettingsPanel.new()
-	_settings.position = Vector2(8, 4)
 	_settings.visible = false
 	_settings.closed.connect(_close_settings)
 	layer.add_child(_settings)
+	# Slots are centred in whatever shape the viewport has; the CenterContainer lets clicks through.
+	var slot_center := CenterContainer.new()
+	slot_center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	slot_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(slot_center)
 	_slots = SAVE_SLOTS.new()
-	_slots.position = Vector2(34, 60)
 	_slots.visible = false
 	_slots.chosen.connect(_on_slot_chosen)
 	_slots.closed.connect(_close_slots)
-	layer.add_child(_slots)
+	slot_center.add_child(_slots)
 
 
 func _has_saves() -> bool:
@@ -155,3 +166,21 @@ func _close_settings() -> void:
 	_buttons.get_parent().visible = true
 	_logo.visible = true
 	(_buttons.get_child(0) as Button).grab_focus()
+
+
+## Small controller hint, shown only while a pad is connected (320x240 safe).
+func _update_hint() -> void:
+	_hint.text = "A/Cross: confirmar · B/Circle: voltar" if not Input.get_connected_joypads().is_empty() else ""
+
+
+## A pad press with nothing focused (e.g. after a mouse click) restores focus so navigation never gets stuck.
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventJoypadButton or event is InputEventJoypadMotion):
+		return
+	if get_viewport().gui_get_focus_owner() != null or _buttons == null or not _buttons.is_visible_in_tree():
+		return
+	for child in _buttons.get_children():
+		var button := child as Button
+		if button and not button.disabled:
+			button.grab_focus()
+			return
