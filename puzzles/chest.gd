@@ -43,9 +43,12 @@ func _on_open(_by: Node) -> void:
 	GameState.chest_opened = true
 	GameState.play("creak", _interactable.global_position)
 	var at := _interactable.global_position
-	GameState.give("flashlight", 1, at)
-	GameState.give("radio", 1, at)
+	# Night 1 hands over the kit (and four batteries); later nights only restock what runs out.
+	for id: String in ["flashlight", "radio", "axe"]:
+		if GameState.inventory.count(id) == 0 and not (id == "radio" and GameState.radio_docked):
+			GameState.give(id, 1, at)
 	GameState.give("oil", oil_cans, at)
 	GameState.give("fuel", fuel_cans, at)
+	GameState.give("battery", 4 if GameState.tutorial() else 2, at)
 	_lift_lid()
-	GameState.say("No baú: lanterna, rádio portátil, uma lata de óleo e uma de combustível. [Tab] inventário, [F] lanterna, [R] rádio.")
+	GameState.say("No baú: lanterna, rádio portátil, óleo, combustível, pilhas e um machado. [Tab] inventário, [F] lanterna, [R] rádio, [1] machado.")

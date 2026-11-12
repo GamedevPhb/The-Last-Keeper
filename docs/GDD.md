@@ -211,6 +211,26 @@ Pressão de fundo, não uma segunda rotina: numa noite bem jogada, o jogador beb
 
 ---
 
+### 4.11 Combate básico
+Escopo mínimo: defesa, não um jogo de tiro. Munição escassa, recarga lenta e **barulho que atrai** os Lavados (`GameState.make_noise`: eles viram para o som por 8 s e andam 25% mais rápido; a luz do farol ainda os congela).
+
+| Arma | Onde | Dano | Alcance | Munição | Barulho |
+|---|---|---|---|---|---|
+| Machado | baú do píer | 25 (3 golpes matam um Lavado de 60 hp) | 2 m | nenhuma | 7 m (14 se acerta) |
+| Pistola P38 | armário da casa | 35 (2 tiros) | 60 m | pente 6, recarga 2,4 s; 6 balas no armário + 3 na prateleira do galpão | 45 m |
+| Espingarda | porão (cadeado 8-3-5), a reserva do vigia 9 | 5 balins de 16 (80 de perto, cai até 40% a 25 m) | 25 m | pente 2, recarga 3,4 s; 4 cartuchos no porão | 70 m |
+
+- Lavados têm 60 hp, cambaleiam e recuam ao ser atingidos e tombam ao morrer; não renascem. Futuros inimigos entram pelo grupo `enemies` com `take_damage(dano, direção)`.
+- Equipar: pelo inventário (Shift+clique / Quadrado, marcador no slot), teclas 1-3, roda do mouse ou direcional para a direita (cicla mãos vazias, machado, pistola, espingarda). A lanterna continua na outra mão (a mão 2D espelha para a esquerda com arma equipada).
+- HUD discreto no canto inferior direito: "Pistola 6/12" (pente / reserva).
+- Impacto: quando um inimigo surge a menos de 45 m, flash branco de 0,12 s em 3 passos e tremor de 0,3 s (cooldown 1,5 s). Opção "Efeitos de impacto" nas configurações.
+
+- **Evento de invasão (02:30):** `world/invasion.gd`. Às 02:30 o mar "devolve algo": sino, buzina, mensagem, nota no livro e uma caixa de munição (12 balas de pistola e 4 cartuchos, uma única vez; a pistola também, se o vigia não tiver arma de fogo) aparece na casa, diante do armário. Depois de 12 s vêm três ondas de afogados pela praia sul (4, 6 e 8; a última com um Lavado resistente de vermelho, 132 hp e 30% mais veloz), com 10 s de pausa para recarregar (a onda seguinte também chega se a atual passar de 40 s). Eles caçam o jogador, tocam a −35 mesmo com a corda girando, o ruído de tiro os chama de 50% mais longe e a luz do farol ainda os congela. Acaba ao abater todos ("A maré recuou.", nota no livro) ou às 05:30; durante o evento a tensão da música sobe e depois a dificuldade (`progress()`) ganha +0,04. HUD discreto: "Onda 2/3 · restam N". O resumo da noite informa abatidos e tiros gastos. Save: `invasion_active/done/wave/kills/spent/crate`; carregar no meio reinicia a onda atual. `tests/invasion_test.gd`.
+
+**Critérios de pronto:** (1) sem munição o gatilho só estala; (2) recarga move balas da reserva para o pente; (3) arma e pentes persistem no save; (4) paredes bloqueiam tiros; (5) `tests/weapons_test.gd` cobre equipar, tiro, dano, falloff, ruído e save.
+
+---
+
 ## 5. Progressão (7 noites)
 
 | Noite | Novidade | Clima | Tom |
@@ -274,6 +294,9 @@ Pressão de fundo, não uma segunda rotina: numa noite bem jogada, o jogador beb
 | Pular (`jump`) | Espaço | Círculo / B (índice 1) | botão pular |
 | Interagir / pegar item no chão (`interact`) | E (segurar nas ações contínuas) | X ou Quadrado / A (índices 0 e 2) | botão interagir (segurar nas ações contínuas) |
 | Lanterna (`flashlight`) | F | R1 | botão lanterna |
+| Atacar / atirar (`attack`) | botão esquerdo do mouse | R2 (eixo 5) | sem botão ainda |
+| Recarregar (`reload`) | T | L2 (eixo 4) | sem botão ainda |
+| Equipar arma (`weapon_1`..`3`, `weapon_cycle`) | 1 / 2 / 3; roda do mouse ou X cicla | direcional para a direita cicla | |
 | Rádio portátil (`radio`) | R | direcional para cima | botão rádio |
 | Inventário (`inventory`) | Tab | Triângulo | botão inventário |
 | Livro de registros (`journal`) | J | L1 | botão livro |
@@ -345,7 +368,7 @@ Azul-petróleo e cinza para o mar e a noite, amarelo-âmbar para a luz do farol,
 - 7 noites, 3 finais, clima dinâmico, barco de suprimentos, livro de registros com narrativa, arte e áudio finais, menus e save.
 
 ### Fora do escopo
-- Multiplayer, mundo aberto, combate, crafting complexo, dublagem completa.
+- Multiplayer, mundo aberto, combate além do básico da seção 4.11 (sem mira por mira de ferro, sem corpo a corpo avançado), crafting complexo, dublagem completa.
 
 ---
 

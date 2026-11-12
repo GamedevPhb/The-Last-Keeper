@@ -241,7 +241,7 @@ Eixo 1: **dentro da noite** (de `GameState.progress()`). Eixo 2: **entre noites*
 | 0 | Presságio | Sons, gaivotas, objetos fora do lugar. Nada pode te ferir. | 18:00–23:45 | 1–2 |
 | 1 | Presença | Silhuetas distantes, vozes extras, pegadas. | 23:45–01:00 | 2–3 |
 | 2 | Interferência | Criaturas *interferem* no sistema: luzes falsas, bússola errada, rádio com voz dupla. | 01:00–02:30 | 3–4 |
-| 3 | Aproximação | Lavados avançam quando o feixe falha; o Casco se move. | 02:30–03:30 | 4–5 |
+| 3 | Aproximação | Lavados avançam quando o feixe falha; o Casco se move. Na demo, às 02:30, a **invasão** (GDD 4.11): três ondas de afogados vindas da praia sul. | 02:30–03:30 | 4–5 |
 | 4 | Contato | A Capitã chama; a Voz vira impostora; pode apagar o farol "sozinha". | 03:05–04:30 | 5–6 |
 | 5 | Passagem | Nada é inocente. A ilha *é* o navio. | 04:30–05:30 | 6–7 |
 
@@ -276,7 +276,7 @@ Registro canônico de cargas (livro, págs. 7–8). Cada um tem uma **verdade** 
 | # | Navio | Carga registrada | Quem é de verdade | Mentira (quando chama errado) | Pista para o jogador |
 |---|---|---|---|---|---|
 | 1 | **Marlin** | café | Cargueiro pequeno de cabotagem. Capitão pontual, cheiro de café na voz. | Um dos Lavados fala "Marlin": a voz está **molhada**, a carga que diz é sempre salgada ("sal", "peixe"). | Estática com **água** no fundo. |
-| 2 | **Aurora** | carvão | Carvoeiro velho, **homenagem** ao *Santa Aurora* (mesma companhia). | A Capitã usa este nome quando quer ser atendida: diz "café" (carga leve, "limpa"). | O jogador reconhece o tom de comando. |
+| 2 | **Aurora** | carvão | Carvoeiro velho, **homenagem** ao *Santa Aurora* (mesma companhia). | A Capitã usa este nome quando quer ser atendida: diz "café" (carga leve, "limpa"). **Cena (v0.3):** se o Aurora mentiroso for autorizado, ele atraca escuro e enferrujado como o Casco, as luzes âmbar pálido apagam, a Capitã encara o jogador e a tela diz, em vermelho: "VOCÊ NÃO DEVERIA TER AUTORIZADO... / O Aurora nunca foi o Aurora." (`ui/story_scene.gd`, cena `aurora`, uma vez por partida). | O jogador reconhece o tom de comando. |
 | 3 | **Gaivota** | sal | Barco-sal de Mossoró-style. | Quem chama é um Encalhado: **cansado**, pede só "descansar". Diz "lã". | Voz arrastada; faz pausas longas. |
 | 4 | **Tritão** | lã | Rebocador que leva fardos de lã para fiação. | Uma Luz-de-Vigia usa o nome (voz sintética, sem respiração). Diz "tijolos". | A voz repete a mesma frase cortada. |
 | 5 | **Estrela do Norte** | peixe | Traineira de pesca industrial. | Os do *Maria da Graça*; a voz fala de redes. Diz "carvão". | A voz fala em **pretérito**, nunca no presente. |

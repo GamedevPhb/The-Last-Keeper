@@ -7,8 +7,8 @@ const PICKUP := preload("res://items/pickup.gd")
 const CISTERN := Vector3(24.85, 0.0, 6.6)
 const DRINK := 35.0
 const SHELVES := [
-	{"name": "Cupboard", "at": Vector3(27.2, 0.0, 5.25), "size": Vector3(0.8, 1.0, 0.35), "items": [["can", 1], ["bandage", 1]]},
-	{"name": "ShedShelf", "at": Vector3(-19.0, 0.0, 13.2), "size": Vector3(0.9, 0.8, 0.35), "items": [["water", 1], ["biscuit", 2]]},
+	{"name": "Cupboard", "at": Vector3(27.2, 0.0, 5.25), "size": Vector3(1.0, 1.0, 0.35), "items": [["can", 1], ["bandage", 1], ["battery", 1], ["pistol", 1], ["ammo_pistol", 6]]},
+	{"name": "ShedShelf", "at": Vector3(-19.0, 0.0, 13.2), "size": Vector3(1.3, 0.8, 0.35), "items": [["water", 1], ["biscuit", 2], ["battery", 1], ["lens_cleaner", 1], ["ammo_pistol", 3]]},
 ]
 
 var _cistern: Interactable
@@ -32,13 +32,14 @@ func _ready() -> void:
 		shape.size = shelf.size
 		var body := _solid(shelf.name, shelf.at, box, shape, wood)
 		var x: float = -shelf.size.x / 2.0 + 0.2
+		var gap := minf(0.3, (shelf.size.x - 0.4) / maxf(shelf.items.size() - 1, 1))
 		for entry: Array in shelf.items:
 			var pickup: Node3D = PICKUP.new()
 			pickup.item = entry[0]
 			pickup.count = entry[1]
 			pickup.position = Vector3(x, shelf.size.y, 0.0)
 			body.add_child(pickup)
-			x += 0.3
+			x += gap
 
 
 ## The cistern: thirst +35, as often as the keeper likes.

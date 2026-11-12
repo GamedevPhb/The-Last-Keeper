@@ -12,15 +12,21 @@
 [ext_resource type="Material" path="res://materials/m_rock.tres" id="m_rock"]
 [ext_resource type="Material" path="res://materials/m_stone.tres" id="m_stone"]
 [ext_resource type="Material" path="res://materials/m_wood.tres" id="m_wood"]
+[ext_resource type="Script" uid="uid://cr4t2rwd2b1r8" path="res://world/santa_aurora.gd" id="s_aurora"]
+[ext_resource type="Script" uid="uid://cdgvq6ngvrgn5" path="res://world/boatman.gd" id="s_boatman"]
 [ext_resource type="Script" uid="uid://dyel2geje5rfv" path="res://puzzles/cellar_lock.gd" id="s_cellar_lock"]
 [ext_resource type="Script" uid="uid://ce6fffc8m6csj" path="res://puzzles/chest.gd" id="s_chest"]
 [ext_resource type="Script" uid="uid://dcp2hgf3nw2xj" path="res://puzzles/clue.gd" id="s_clue"]
 [ext_resource type="Script" uid="uid://s2n87no2axrl" path="res://puzzles/fuse_box.gd" id="s_fuse_box"]
 [ext_resource type="Script" uid="uid://cwdoykhferr30" path="res://puzzles/generator.gd" id="s_generator"]
+[ext_resource type="Script" uid="uid://dlxvrmf6dth4u" path="res://world/horizon_ship.gd" id="s_horizon"]
+[ext_resource type="Script" uid="uid://ij6yww5pb1av" path="res://world/lavados.gd" id="s_lavados"]
+[ext_resource type="Script" path="res://world/invasion.gd" id="s_invasion"]
 [ext_resource type="Script" uid="uid://wplk2gp3ydbc" path="res://puzzles/oil_drum.gd" id="s_oil_drum"]
 [ext_resource type="Script" uid="uid://ck7nylrr73a8b" path="res://puzzles/radio.gd" id="s_radio"]
+[ext_resource type="Script" uid="uid://csla1rmerycma" path="res://world/supplies.gd" id="s_supplies"]
 [ext_resource type="Script" uid="uid://m1grha16i7ek" path="res://puzzles/tide.gd" id="s_tide"]
-[ext_resource type="Script" path="res://world/supplies.gd" id="s_supplies"]
+[ext_resource type="Script" uid="uid://boltd7qtflogl" path="res://world/ship_traffic.gd" id="s_traffic"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_0"]
 size = Vector3(1.6, 0.04, 18.6)
@@ -2693,6 +2699,7 @@ light_color = Color(0.6, 0.75, 1, 1)
 light_energy = 0.5
 
 [node name="Wreck" type="Node3D" parent="." unique_id=1141593618]
+script = ExtResource("s_aurora")
 
 [node name="Hull" type="StaticBody3D" parent="Wreck" unique_id=1979468658]
 transform = Transform3D(0.8471, -0.1801, 0.5, 0.2079, 0.9781, 0, -0.4891, 0.104, 0.866, -40, -0.2, 24)
@@ -2910,24 +2917,26 @@ script = ExtResource("s_chest")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0.25, 47.2)
 
 [node name="Mesh" type="MeshInstance3D" parent="Chest/Body" unique_id=62636804]
+transform = Transform3D(0.92230713, 0, 0.3864577, 0, 1, 0, -0.3864577, 0, 0.92230713, 0, 0, 0)
 mesh = SubResource("BoxMesh_154")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Shape" type="CollisionShape3D" parent="Chest/Body" unique_id=1776807840]
+transform = Transform3D(0.92230713, 0, 0.3864577, 0, 1, 0, -0.3864577, 0, 0.92230713, 0, 0, 0)
 shape = SubResource("BoxShape3D_155")
 
 [node name="Lid" type="MeshInstance3D" parent="Chest" unique_id=1470456502]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0.57, 47.2)
+transform = Transform3D(0.92230713, 0, 0.3864577, 0, 1, 0, -0.3864577, 0, 0.92230713, -0.7, 0.57, 47.2)
 mesh = SubResource("BoxMesh_156")
 surface_material_override/0 = ExtResource("m_wood")
 
 [node name="BandA" type="MeshInstance3D" parent="Chest" unique_id=445533580]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.26, 47.2)
+transform = Transform3D(0.92230713, 0, 0.3864577, 0, 1, 0, -0.3864577, 0, 0.92230713, -0.97669214, 0.26, 47.315937)
 mesh = SubResource("BoxMesh_157")
 surface_material_override/0 = ExtResource("m_metal")
 
 [node name="BandB" type="MeshInstance3D" parent="Chest" unique_id=558402273]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0.26, 47.2)
+transform = Transform3D(0.92230713, 0, 0.3864577, 0, 1, 0, -0.3864577, 0, 0.92230713, -0.42330787, 0.26, 47.084064)
 mesh = SubResource("BoxMesh_157")
 surface_material_override/0 = ExtResource("m_metal")
 
@@ -4019,3 +4028,18 @@ surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Supplies" type="Node3D" parent="." unique_id=1730042219]
 script = ExtResource("s_supplies")
+
+[node name="Ships" type="Node3D" parent="." unique_id=1885938897]
+script = ExtResource("s_traffic")
+
+[node name="Boatman" type="Node3D" parent="." unique_id=536801841]
+script = ExtResource("s_boatman")
+
+[node name="Lavados" type="Node3D" parent="." unique_id=1799818331]
+script = ExtResource("s_lavados")
+
+[node name="Invasion" type="Node3D" parent="."]
+script = ExtResource("s_invasion")
+
+[node name="HorizonShip" type="Node3D" parent="." unique_id=1632111871]
+script = ExtResource("s_horizon")

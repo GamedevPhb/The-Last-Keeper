@@ -91,9 +91,14 @@ func _process(delta: float) -> bool:
 	# Cellar: dials spell 8-3-5.
 	var lock := stations.get_node("Station_Cellar")
 	var cans_before: int = state.oil_cans
+	lock.get_node("Lock").interact(null)
+	var lock_panel: Node = lock._console
+	_check(lock_panel.is_open(), "the padlock opens its console")
 	for i in 3:
-		for _n in lock.CODE[i]:
-			lock.get_node("Dial%d" % i).interact(null)
+		lock_panel.turn(i, lock.CODE[i])
+	lock_panel.confirm()
+	lock_panel.close()
+	lock.try_code(lock.digits())
 	_check(state.oil_cans == cans_before + 2, "cellar opens with the code")
 
 	_test_inventory(state, main)
@@ -245,6 +250,7 @@ func _touch_step() -> void:
 
 ## Lamp console (GDD 4.1.1): cold start, drowning, pressure limits, ratchet and night scaling.
 func _test_lamp(state: Node, main: Node, beacon: Node) -> void:
+	state.night = 2 # full wear; night 1 wears the lamp at about half (night_test.gd)
 	state.toast.connect(func(text: String) -> void: _last_toast = text)
 	beacon.set_process(false)
 

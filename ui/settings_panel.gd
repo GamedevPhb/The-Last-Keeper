@@ -19,7 +19,7 @@ const SLIDERS := [
 	["Filtro CRT", "crt", 0.0, 1.0, 0.1],
 	["Granulado", "grain", 0.0, 1.0, 0.1],
 ]
-const SWITCHES := [["Tela cheia", "fullscreen"], ["Tremor de vértices (PS1)", "jitter"], ["Mostrar mãos", "hands"]]
+const SWITCHES := [["Tela cheia", "fullscreen"], ["Tremor de vértices (PS1)", "jitter"], ["Mostrar mãos", "hands"], ["Efeitos de impacto", "impact"]]
 const TOUCH_MODES := ["Auto", "Ligados", "Desligados"]
 
 ## Layout the panel was built for, to rebuild when touch or the viewport shape changes.
@@ -129,6 +129,16 @@ func _build() -> void:
 		Settings.set_value("fps", 60 if int(Settings.values["fps"]) == 30 else 30)
 		fps.text = "Quadros: %d fps" % int(Settings.values["fps"]))
 	grid.add_child(fps)
+	var aspect := _cycle_button(func() -> String: return "Proporção: %s" % Settings.ASPECTS[int(Settings.values["aspect"])][0],
+		func() -> void: Settings.set_value("aspect", (int(Settings.values["aspect"]) + 1) % Settings.ASPECTS.size()))
+	grid.add_child(aspect)
+	var resolution := _cycle_button(func() -> String: return "Janela: %s" % Settings.values["resolution"],
+		func() -> void:
+			var sizes := Settings.resolutions()
+			var now := Settings.parse_resolution(str(Settings.values["resolution"]))
+			var next: Vector2i = sizes[(sizes.find(now) + 1) % sizes.size()]
+			Settings.set_value("resolution", "%dx%d" % [next.x, next.y]))
+	grid.add_child(resolution)
 	var mode := Button.new()
 	mode.text = _touch_text()
 	mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -144,6 +154,18 @@ func _build() -> void:
 	box.add_child(back)
 	if visible and _first:
 		_focus_first.call_deferred()
+
+
+## A button that runs `step` on press and shows `label` (re-read after every press).
+func _cycle_button(label: Callable, step: Callable) -> Button:
+	var button := Button.new()
+	button.text = label.call()
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.add_theme_font_size_override("font_size", UiKit.FONT_SIZE)
+	button.pressed.connect(func() -> void:
+		step.call()
+		button.text = label.call())
+	return button
 
 
 func _touch_text() -> String:

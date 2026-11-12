@@ -33,6 +33,98 @@ const ITEM_ICONS := {
 		".........kwwwk",
 		"..........kkk",
 	],
+	"battery": [
+		"",
+		"",
+		"......kk",
+		".....kyyk",
+		"....kkkkkk",
+		"....kgggbk",
+		"....kgggbk",
+		"....kgBgbk",
+		"....kgBgbk",
+		"....kgggbk",
+		"....krrrrk",
+		"....krrrrk",
+		"....kkkkkk",
+	],
+	"axe": [
+		"",
+		"........kkk",
+		".......kgggk",
+		"......kggwwk",
+		".....kkgwwwk",
+		"....kdkkwwk",
+		"...kdk.kkk",
+		"..kdk",
+		".kdk",
+		"kdk",
+	],
+	"pistol": [
+		"",
+		"",
+		"",
+		".kkkkkkkkkkk",
+		".kggggggggggk",
+		".kgggwwwwggk",
+		".kkkkkkgggk",
+		"......kdddk",
+		"......kddk",
+		"......kddk",
+		".......kkk",
+	],
+	"shotgun": [
+		"",
+		"",
+		"",
+		"",
+		"..kkkkkkkkkkkk",
+		".kggggggggggggk",
+		".kwwwwwwwwwwwwk",
+		".kkkkkkkkkkkddkk",
+		".........kdddddk",
+		"........kdddddk",
+		".......kdddk",
+		".......kkkk",
+	],
+	"ammo_pistol": [
+		"",
+		"",
+		"",
+		"..kk..kk",
+		".kyyk.kyyk",
+		".kbbk.kbbk",
+		".kbbk.kbbk",
+		".kbbk.kbbk",
+		".kbbk.kbbk",
+		".kkkk.kkkk",
+	],
+	"shells": [
+		"",
+		"",
+		"",
+		"..kkkk..kkkk",
+		"..krrk..krrk",
+		"..krrk..krrk",
+		"..krrk..krrk",
+		"..kbbk..kbbk",
+		"..kbbk..kbbk",
+		"..kkkk..kkkk",
+	],
+	"lens_cleaner": [
+		"",
+		"......kkk",
+		".....kwwwk",
+		".....kcck",
+		"....kkkkkk",
+		"....kcccck",
+		"...kcwcccck",
+		"...kcwccccck",
+		"...kccccccck",
+		"...kccccccck",
+		"....kcccccck",
+		".....kkkkkk",
+	],
 	"fuel": [
 		"",
 		"...kkkkk",
@@ -279,9 +371,15 @@ func use_slot(index: int) -> void:
 				GameState.play("inv_click")
 		"flashlight":
 			GameState.request_flashlight()
+		"battery":
+			GameState.use_battery()
+		"lens":
+			GameState.use_lens_cleaner()
 		"radio":
 			close()
 			GameState.request_radio()
+		"equip":
+			GameState.equip("" if GameState.equipped == slot.id else slot.id)
 		"console":
 			GameState.say(item.console)
 
@@ -453,6 +551,9 @@ func draw_stack(canvas: Control, rect: Rect2, stack: Dictionary) -> void:
 		return
 	var icon_rect := Rect2(rect.position + (rect.size - Vector2(16, 16)) / 2.0, Vector2(16, 16))
 	canvas.draw_texture_rect(texture_for(stack.id), icon_rect, false)
+	if stack.id == GameState.equipped:
+		# in hand: a brass pip in the top-left corner
+		canvas.draw_rect(Rect2(rect.position + Vector2(2, 2), Vector2(4, 4)), UiKit.BRASS)
 	if stack.count > 1:
 		var font := canvas.get_theme_default_font()
 		var text := str(stack.count)

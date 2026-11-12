@@ -43,6 +43,8 @@ var _step_distance := 0.0
 var _was_on_floor := true
 var _air_peak := 0.0
 
+const WEAPONS := preload("res://player/weapons.gd")
+
 @onready var _head: Node3D = $Head
 @onready var _ray: RayCast3D = $Head/Camera3D/InteractRay
 
@@ -53,6 +55,10 @@ func _ready() -> void:
 	_spawn = global_transform
 	_air_peak = global_position.y
 	Input.mouse_mode = TouchControls.game_mouse_mode()
+	var weapons: Node3D = WEAPONS.new()
+	weapons.name = "Weapons"
+	weapons.player = self
+	$Head/Camera3D.add_child(weapons)
 
 
 func _unhandled_input(event: InputEvent) -> void:

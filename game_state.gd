@@ -13,11 +13,21 @@ signal panel_changed(open: bool)
 signal player_died(cause: String)
 ## The inventory asks the overlay/radio to act (flashlight toggle, open the portable radio).
 signal flashlight_requested
+## A story scene is due (`ui/story_scene.gd`, id in its SCENES table); the overlay plays it.
+signal scene_requested(id: String)
 ## The flashlight beam was switched on or off (the hands animate it).
 signal flashlight_toggled(on: bool)
 ## Something went into the inventory (the hands reach for it).
 signal item_given(id: String)
 signal radio_requested
+## The weapon in hand changed (or its magazine did): viewmodel and HUD redraw.
+signal weapon_changed
+## Screen impact: a white flash and/or a camera shake (amplitude in meters of view offset).
+signal impact(flash: bool, shake: float)
+## A loud action (a shot, a swing) at a point; `radius` is how far it carries (enemies listen).
+signal noise_made(position: Vector3, radius: float)
+## A radio call was settled: outcome is "docked", "liar", "refused" or "wrecked" (the ships act it out).
+signal ship_event(ship: String, outcome: String)
 
 const SHIPS := [
 	{"call": "Marlin", "register": "café"},
@@ -38,6 +48,7 @@ const OIL_DRUM := Vector3(51.6, 0.0, -2.3)
 const INVENTORY := preload("res://items/inventory.gd")
 const PICKUP := preload("res://items/pickup.gd")
 const SAVE := preload("res://save_game.gd")
+const WEAPON_DEFS := preload("res://items/weapon_defs.gd")
 
 # Keeper status (GDD 4.10), per hour of game time unless noted.
 const THIRST_START := 80.0
@@ -61,6 +72,8 @@ const RADIO_IDLE_DRAIN := 0.05
 const RADIO_CHARGE := 2.0
 
 var in_game := false
+## Which night of the run this is (1 = the guided, gentler one); saved, survives `advance_night()`.
+var night := 1
 ## Session setup chosen in the menu; survives `reset()`.
 ## Active save slot (1-3, 0 = none: editor runs and tests never touch the disk).
 var save_slot := 0
@@ -94,6 +107,19 @@ var has_flashlight: bool:
 		_set_count("flashlight", 1 if value else 0)
 ## True while the flashlight beam is on (set by the overlay).
 var flashlight_on := false
+## True while a story scene plays: the night clock, status and radio wait for it.
+var scene_active := false
+## Weapon in hand ("" = bare hands) and the rounds loaded in each firearm's magazine.
+var equipped := ""
+const EMERGE_RANGE := 45.0
+var _last_impact := -100.0
+var mags := {"pistol": 0, "shotgun": 0}
+var scenes_seen := {}
+var _scene_hold := {}
+## Flashlight charge, 0-100. Drains while the beam is on; a battery adds BATTERY_CHARGE.
+var flashlight_battery := 100.0
+## Real seconds left of the lens-cleaner boost (stronger, longer beam); ends early with a dead battery.
+var lens_left := 0.0
 var has_radio: bool:
 	get:
 		return inventory.count("radio") > 0
@@ -144,19 +170,51 @@ var active_call := {}
 var ringing := false
 var call_log: Array[String] = []
 var breakers := {"radio": false, "house": false, "motor": false}
+## The tide's invasion (`world/invasion.gd`, GDD 4.11): running, finished, wave (0 = warning,
+## 1-3), foes left, kills, rounds spent and whether the resupply crate has been given.
+var invasion_active := false
+var invasion_done := false
+var invasion_wave := 0
+var invasion_left := 0
+var invasion_kills := 0
+var invasion_spent := 0
+var invasion_crate := false
+
+
+## Story scenes: fire once each (saved in `scenes_seen`). "cond" is a state that must hold for
+## "delay" seconds; "at" is a clock time in minutes (a scene missed by 10+ minutes is dropped).
+const SCENE_TRIGGERS := {
+	"house": {"cond": "house", "delay": 0.8},
+	"lamp": {"cond": "lamp", "delay": 1.5},
+	"bell": {"at": 23.0 * 60.0 + 45.0},
+	"lavado": {"at": 24.0 * 60.0},
+	"captain": {"at": 27.0 * 60.0 + 5.0},
+	"aurora": {"event": ["Aurora", ["liar", "docked"]]}, ## the Aurora authorized, honest or lying (radio.gd, ship_event)
+}
+## Night 1 is the tutorial: consumption and wear at a fraction; from night 2 it is the full 1.0 and grows.
+const NIGHT_ONE_FACTOR := 0.55
+const NIGHT_GROWTH := 0.15
+const NIGHT_MAX_FACTOR := 1.6
+const FLASH_DRAIN := 100.0 / 150.0 ## full charge = 150 s of beam (night 2+; night 1 lasts twice as long)
+const BATTERY_CHARGE := 50.0
+const LENS_TIME := 90.0 ## about 75 game minutes
+const FLASH_LOW := 20.0 ## below this the beam dims and flickers
 
 
 func _ready() -> void:
 	_load_keepers()
 	inventory.changed.connect(func() -> void: changed.emit())
+	ship_event.connect(_on_ship_event)
 
 
 func _process(delta: float) -> void:
-	if not in_game or finished:
+	if not in_game or finished or scene_active:
 		return
+	_check_scenes(delta)
 	minutes += delta / SECONDS_PER_MINUTE
 	if not dead:
 		tick_status(delta)
+	_tick_flashlight(delta)
 	_tick_radio(delta)
 	var hour := floori(minutes / 60.0)
 	if hour != _last_hour:
@@ -183,6 +241,7 @@ func begin_play() -> void:
 
 
 func reset() -> void:
+	night = 1
 	in_game = false
 	finished = false
 	_panels.clear()
@@ -190,6 +249,8 @@ func reset() -> void:
 	_last_hour = -1
 	minutes = START_MINUTES
 	inventory.clear()
+	equipped = ""
+	mags = {"pistol": 0, "shotgun": 0}
 	thirst = THIRST_START
 	hunger = HUNGER_START
 	health = 100.0
@@ -197,6 +258,11 @@ func reset() -> void:
 	death_cause = ""
 	sprinting = false
 	flashlight_on = false
+	flashlight_battery = 100.0
+	lens_left = 0.0
+	scene_active = false
+	scenes_seen = {}
+	_scene_hold = {}
 	in_water = false
 	cold_left = 0.0
 	_critical = {"thirst": false, "hunger": false, "health": false}
@@ -219,6 +285,64 @@ func reset() -> void:
 		play("ring_stop")
 	call_log.clear()
 	breakers = {"radio": false, "house": false, "motor": false}
+	invasion_active = false
+	invasion_done = false
+	invasion_wave = 0
+	invasion_left = 0
+	invasion_kills = 0
+	invasion_spent = 0
+	invasion_crate = false
+
+
+# ---- Weapons
+
+## Puts a weapon in hand ("" = holster). False if it is not in the inventory.
+func equip(id: String) -> bool:
+	if id != "" and (not WEAPON_DEFS.is_weapon(id) or inventory.count(id) <= 0):
+		return false
+	if id == equipped:
+		return true
+	equipped = id
+	if id != "":
+		say("%s na mão." % INVENTORY.item_name(id))
+	weapon_changed.emit()
+	return true
+
+
+## Cycles bare hands -> axe -> pistol -> shotgun over what the keeper carries.
+func cycle_weapon() -> void:
+	var owned: Array[String] = [""]
+	for id: String in WEAPON_DEFS.ORDER:
+		if inventory.count(id) > 0:
+			owned.append(id)
+	equip(owned[(owned.find(equipped) + 1) % owned.size()])
+
+
+## Rounds of the equipped firearm's ammo still in the inventory (0 for the axe / bare hands).
+func reserve_ammo(id := "") -> int:
+	var def: Dictionary = WEAPON_DEFS.get_def(equipped if id == "" else id)
+	return inventory.count(def.ammo) if def.get("ranged", false) else 0
+
+
+## Fires a flash/shake (`ui/impact.gd`). A `cooldown` > 0 drops it if one fired that recently.
+func impact_fx(flash := true, shake := 0.02, cooldown := 0.0) -> bool:
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - _last_impact < cooldown:
+		return false
+	_last_impact = now
+	impact.emit(flash, shake)
+	return true
+
+
+## An enemy surfaces: impact only if it appears within sight range of the keeper (1.5 s apart).
+func enemy_emerged(at: Vector3) -> bool:
+	if player == null or player.global_position.distance_to(at) > EMERGE_RANGE:
+		return false
+	return impact_fx(true, 0.025, 1.5)
+
+
+func make_noise(at: Vector3, radius: float) -> void:
+	noise_made.emit(at, radius)
 
 
 # ---- Inventory
@@ -285,6 +409,84 @@ func consume(id: String) -> bool:
 	return true
 
 
+## Fires the next due story scene (one at a time, never over a panel or after death).
+func _check_scenes(delta: float) -> void:
+	if panel_open or dead:
+		return
+	for id: String in SCENE_TRIGGERS:
+		if scenes_seen.get(id, false):
+			continue
+		var trigger: Dictionary = SCENE_TRIGGERS[id]
+		if trigger.has("event"):
+			continue
+		var due := false
+		if trigger.has("at"):
+			if minutes >= trigger.at + 10.0:
+				scenes_seen[id] = true # slept through it (a loaded game, a long panel)
+			due = minutes >= trigger.at
+		else:
+			var holds: bool = in_house() if trigger.cond == "house" else lamp_lit_once
+			_scene_hold[id] = _scene_hold.get(id, 0.0) + delta if holds else 0.0
+			due = _scene_hold[id] >= trigger.delay
+		if due and not scenes_seen.get(id, false):
+			play_scene(id)
+			return
+
+
+## Event-driven scenes: once per game, after the ship has begun its verdict.
+func _on_ship_event(ship: String, outcome: String) -> void:
+	for id: String in SCENE_TRIGGERS:
+		var event: Array = SCENE_TRIGGERS[id].get("event", [])
+		if event.size() == 2 and event[0] == ship and outcome in event[1] and not scenes_seen.get(id, false) and in_game:
+			scenes_seen[id] = true
+			scene_requested.emit.call_deferred(id)
+
+
+## Marks a story scene seen and asks the overlay to play it.
+func play_scene(id: String) -> void:
+	scenes_seen[id] = true
+	scene_requested.emit(id)
+
+
+## Flashlight drain while on; the lens boost counts down and dies with the battery.
+func _tick_flashlight(delta: float) -> void:
+	if flashlight_on:
+		flashlight_battery = maxf(flashlight_battery - FLASH_DRAIN * (0.5 if night <= 1 else 1.0) * delta, 0.0)
+	if lens_left > 0.0:
+		lens_left = 0.0 if flashlight_battery <= 0.0 else maxf(lens_left - delta, 0.0)
+
+
+## Charges the flashlight with a battery from the inventory. False (nothing spent) if it is already full.
+func use_battery() -> bool:
+	if flashlight_battery >= 99.5:
+		say("A lanterna já está com a pilha cheia.")
+		return false
+	if not inventory.remove("battery", 1):
+		return false
+	flashlight_battery = minf(flashlight_battery + BATTERY_CHARGE, 100.0)
+	play("switch")
+	say("Pilha nova na lanterna: %d%%." % roundi(flashlight_battery))
+	changed.emit()
+	return true
+
+
+## Wipes the lens: the beam is 1.5x stronger and reaches farther for LENS_TIME or until the battery dies.
+func use_lens_cleaner() -> bool:
+	if not has_flashlight:
+		say("Você não tem lanterna para limpar.")
+		return false
+	if lens_left > 0.0:
+		say("A lente ainda está limpa.")
+		return false
+	if not inventory.remove("lens_cleaner", 1):
+		return false
+	lens_left = LENS_TIME
+	play("paper")
+	say("Lente limpa: a luz da lanterna ficou mais forte e alcança mais longe.")
+	changed.emit()
+	return true
+
+
 func can_sprint() -> bool:
 	return thirst > 0.0 and hunger > 0.0 and oil_cans + fuel_cans < HEAVY_CANS
 
@@ -316,6 +518,12 @@ func tick_status(delta: float) -> void:
 
 
 ## Inside the house, the shed or the lighthouse tower.
+func in_house() -> bool:
+	if player == null:
+		return false
+	return Rect2(24.45, 4.95, 5.6, 4.6).has_point(Vector2(player.global_position.x, player.global_position.z))
+
+
 func is_indoors() -> bool:
 	if player == null:
 		return false
@@ -466,7 +674,7 @@ func autosave() -> void:
 
 func to_save() -> Dictionary:
 	return {
-		"minutes": minutes, "finished": finished,
+		"minutes": minutes, "finished": finished, "night": night,
 		"chest_opened": chest_opened, "book_read": book_read,
 		"generator_started": generator_started, "lamp_lit_once": lamp_lit_once,
 		"generator_on": generator_on, "lamp_lit": lamp_lit, "lamp_working": lamp_working,
@@ -474,12 +682,17 @@ func to_save() -> Dictionary:
 		"notes": notes.duplicate(), "call_log": call_log.duplicate(), "breakers": breakers.duplicate(),
 		"slots": inventory.slots.duplicate(true), "cursor": inventory.cursor.duplicate(),
 		"thirst": thirst, "hunger": hunger, "health": health, "dead": dead, "death_cause": death_cause,
+		"scenes_seen": scenes_seen.duplicate(), "flashlight_battery": flashlight_battery, "lens_left": lens_left,
 		"cold_left": cold_left, "radio_battery": radio_battery, "radio_docked": radio_docked,
+		"equipped": equipped, "mags": mags.duplicate(),
+		"invasion_active": invasion_active, "invasion_done": invasion_done, "invasion_wave": invasion_wave,
+		"invasion_kills": invasion_kills, "invasion_spent": invasion_spent, "invasion_crate": invasion_crate,
 	}
 
 
 func from_save(data: Dictionary) -> void:
 	minutes = data.get("minutes", START_MINUTES)
+	night = maxi(int(data.get("night", 1)), 1)
 	finished = data.get("finished", false)
 	chest_opened = data.get("chest_opened", false)
 	book_read = data.get("book_read", false)
@@ -494,12 +707,33 @@ func from_save(data: Dictionary) -> void:
 	for circuit: String in breakers:
 		breakers[circuit] = saved_breakers.get(circuit, false)
 	inventory.load_slots(data.get("slots", []), data.get("cursor", {}))
+	var saved_mags: Dictionary = data.get("mags", {})
+	for firearm: String in mags:
+		mags[firearm] = int(saved_mags.get(firearm, 0))
+	invasion_active = data.get("invasion_active", false)
+	invasion_done = data.get("invasion_done", false)
+	invasion_wave = int(data.get("invasion_wave", 0))
+	invasion_kills = int(data.get("invasion_kills", 0))
+	invasion_spent = int(data.get("invasion_spent", 0))
+	invasion_crate = data.get("invasion_crate", false)
+	invasion_left = 0
+	equipped = str(data.get("equipped", ""))
+	if equipped != "" and inventory.count(equipped) <= 0:
+		equipped = ""
+	weapon_changed.emit()
 	thirst = data.get("thirst", THIRST_START)
 	hunger = data.get("hunger", HUNGER_START)
 	health = data.get("health", 100.0)
 	dead = data.get("dead", false)
 	death_cause = data.get("death_cause", "")
 	cold_left = data.get("cold_left", 0.0)
+	scenes_seen = data.get("scenes_seen", {}).duplicate()
+	if lamp_lit_once:
+		scenes_seen["lamp"] = true # an old save: the lamp is already burning
+	scene_active = false
+	_scene_hold = {}
+	flashlight_battery = data.get("flashlight_battery", 100.0)
+	lens_left = data.get("lens_left", 0.0)
 	radio_battery = data.get("radio_battery", 100.0)
 	radio_docked = data.get("radio_docked", false)
 	active_call = {}
@@ -549,7 +783,76 @@ func clock_text() -> String:
 
 ## 0 at dusk, 1 at dawn. Drives how hard the night pushes back.
 func progress() -> float:
-	return clampf((minutes - START_MINUTES) / float(END_MINUTES - START_MINUTES), 0.0, 1.0)
+	var base := (minutes - START_MINUTES) / float(END_MINUTES - START_MINUTES)
+	return clampf(base + (0.04 if invasion_done else 0.0), 0.0, 1.0) # the tide left the island uneasy
+
+
+## Multiplier on oil / fuel use and on the lamp's wear (pressure, temperature, spring, gusts).
+func night_factor() -> float:
+	if night <= 1:
+		return NIGHT_ONE_FACTOR
+	return minf(1.0 + NIGHT_GROWTH * (night - 2), NIGHT_MAX_FACTOR)
+
+
+## Night 1 is the guided one: no lying ships before midnight, a friendlier first call and the tutorial objectives.
+func tutorial() -> bool:
+	return night <= 1
+
+
+## Moves the run to the next night: keeps the bag, the notes, the book and the story seen, and
+## resets the clock, needs and every station (the island itself reloads with the scene).
+func advance_night() -> void:
+	night += 1
+	if radio_docked:
+		radio_docked = false
+		inventory.add("radio", 1)
+	minutes = START_MINUTES
+	finished = false
+	thirst = THIRST_START
+	hunger = HUNGER_START
+	health = 100.0
+	dead = false
+	death_cause = ""
+	flashlight_on = false
+	flashlight_battery = 100.0
+	lens_left = 0.0
+	cold_left = 0.0
+	radio_battery = 100.0
+	radio_open = false
+	generator_on = false
+	lamp_lit = false
+	lamp_working = false
+	ships_saved = 0
+	ships_lost = 0
+	chest_opened = false
+	generator_started = false
+	lamp_lit_once = false
+	call_log.clear()
+	active_call = {}
+	breakers = {"radio": false, "house": false, "motor": false}
+	invasion_active = false
+	invasion_done = false
+	invasion_wave = 0
+	invasion_left = 0
+	invasion_kills = 0
+	invasion_spent = 0
+	invasion_crate = false
+	for id: String in ["bell", "lavado", "captain", "aurora"]:
+		scenes_seen.erase(id)
+	scene_active = false
+	_scene_hold = {}
+	_last_hour = -1
+
+
+## Save data for the start of the current night (after `advance_night`): GameState only, the
+## island rebuilds fresh. Written to the slot so "Continuar" in the menu resumes here.
+func night_start_data() -> Dictionary:
+	return {
+		"version": SAVE.VERSION,
+		"meta": {"minutes": minutes, "clock": clock_text(), "night": night, "lamp": "APAGADA", "finished": false,
+			"saved_at": Time.get_datetime_string_from_system(false, true)},
+		"state": to_save(), "nodes": {}, "pickups": [],
+	}
 
 
 ## 0 to 1: how tense the moment is, for the music.
@@ -557,6 +860,8 @@ func tension() -> float:
 	if not in_game:
 		return 0.12
 	var value := progress() * 0.65 + minf(ships_lost * 0.08, 0.25)
+	if invasion_active:
+		value += 0.2 + 0.05 * invasion_wave
 	if not active_call.is_empty():
 		value += 0.08
 	if not lamp_lit and minutes > 19 * 60:
@@ -596,9 +901,32 @@ func breakers_on() -> int:
 	return breakers.values().count(true)
 
 
+## One line for the dawn summary about the invasion ("" if it never came).
+func invasion_summary() -> String:
+	if not invasion_done and not invasion_active:
+		return ""
+	var line := "A maré: %d afogados abatidos" % invasion_kills
+	if invasion_spent > 0:
+		line += ", %d tiros gastos" % invasion_spent
+	return line + (". A maré recuou." if invasion_done else ". Ela não recuou.")
+
+
+## Firearm rounds the keeper holds (magazines plus spare ammo), for counting what was spent.
+func rounds_total() -> int:
+	return int(mags.pistol) + int(mags.shotgun) + inventory.count("ammo_pistol") + inventory.count("shells")
+
+
+## The three inscriptions around the island that spell the cellar padlock (puzzles/cellar_lock.gd, 8-3-5).
+const CODE_CLUES := ["OITO vigias", "LOTE 3", "CAPACIDADE 5"]
+const CODE_NOTE := "Cadeado do porão, somando as pistas: OITO vigias, LOTE 3, CAPACIDADE 5. O código deve ser 8 - 3 - 5."
+
+
 func add_note(text: String) -> void:
 	if not notes.has(text):
 		notes.append(text)
+		if not notes.has(CODE_NOTE) and CODE_CLUES.all(func(clue: String) -> bool: return notes.any(func(note: String) -> bool: return clue in note)):
+			notes.append(CODE_NOTE)
+			say("Anotado no livro: o código do cadeado do porão (8 - 3 - 5).")
 		changed.emit()
 
 
@@ -607,15 +935,17 @@ func objective() -> String:
 	if not chest_opened:
 		return "Abra o baú aqui no píer e pegue os suprimentos."
 	if not book_read:
-		return "Siga a trilha até a casa do vigia, a leste, e leia o livro de registros na mesa do rádio."
+		return "Siga a trilha até a casa do vigia, a leste. Na mesa do rádio, leia o livro de registros (E)."
 	if not generator_started:
-		return "Ligue o gerador no galpão, a oeste: abasteça o tanque e abra as válvulas na ordem do livro."
+		return "Ligue o gerador no galpão, a oeste: abasteça o tanque com combustível e abra as válvulas na ordem do livro."
 	if not breakers.values().has(true):
-		return "Ligue os disjuntores na caixa de fusíveis, dentro da casa."
+		return "Ligue os disjuntores na caixa de fusíveis, dentro da casa. O gerador aguenta só dois."
 	if not lamp_lit_once:
 		if oil_cans == 0:
 			return "Sem óleo! O tambor fica no ilhéu a leste: cruze as pedras na maré baixa."
-		return "Suba o farol, ao norte, e acenda a lâmpada no console: pressão e calor no verde, abra a válvula e dê corda."
+		return "Suba o farol, ao norte, e use o console da lâmpada:\n1) abasteça o óleo; 2) segure AQUECER e bombeie até temperatura e pressão ficarem NO VERDE; 3) só então abra a válvula (frio afoga!); 4) dê corda no ritmo."
+	if tutorial() and ships_saved + ships_lost == 0:
+		return "Lâmpada acesa! Agora atenda o rádio na casa: sintonize, compare a carga com o livro (J) e autorize ou recuse."
 	var line := "Mantenha a luz acesa e atenda o rádio até as 06:00."
 	if oil_cans == 0:
 		line += "\nSem óleo na mochila: o tambor fica no ilhéu a leste, na maré baixa."

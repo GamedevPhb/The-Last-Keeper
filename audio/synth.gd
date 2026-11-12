@@ -777,6 +777,50 @@ static func phone_ring(gain := 0.55) -> AudioStreamWAV:
 	return _wav(out, true)
 
 
+## A gunshot: a sharp crack, a falling boom and a low-passed tail (longer and lower for the shotgun).
+static func gunshot(seconds: float, boom_hz: float, gain: float) -> AudioStreamWAV:
+	var n := _count(seconds)
+	var out := PackedFloat32Array()
+	out.resize(n)
+	var last := 0.0
+	var phase := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		last = lerpf(last, randf_range(-1.0, 1.0), 0.5)
+		phase += TAU * lerpf(boom_hz, boom_hz * 0.3, minf(t * 7.0, 1.0)) / RATE
+		var crack := randf_range(-1.0, 1.0) * exp(-80.0 * t)
+		var boom := sin(phase) * exp(-12.0 * t)
+		var tail := last * 0.45 * exp(-7.0 * t)
+		out[i] = clampf((crack + boom + tail) * gain, -1.0, 1.0)
+	return _wav(out)
+
+
+## A blow on something: a short dull knock over a burst of noise (`hz` sets how hard and low).
+static func thud(hz: float, gain: float) -> AudioStreamWAV:
+	var n := _count(0.3)
+	var out := PackedFloat32Array()
+	out.resize(n)
+	var last := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		last = lerpf(last, randf_range(-1.0, 1.0), 0.35)
+		out[i] = (sin(TAU * hz * t) * exp(-20.0 * t) + last * 0.7 * exp(-35.0 * t)) * gain
+	return _wav(out)
+
+
+## Air cut by a blade: noise that swells and dies, rising in pitch.
+static func swoosh(seconds: float, gain: float) -> AudioStreamWAV:
+	var n := _count(seconds)
+	var out := PackedFloat32Array()
+	out.resize(n)
+	var last := 0.0
+	for i in n:
+		var k := float(i) / n
+		last = lerpf(last, randf_range(-1.0, 1.0), lerpf(0.1, 0.5, k))
+		out[i] = last * sin(PI * k) * sin(PI * k) * gain
+	return _wav(out)
+
+
 static func build_effects() -> Dictionary:
 	return {
 		"step": noise(0.16, 0.12, 22.0, 0.9),
@@ -830,5 +874,17 @@ static func build_effects() -> Dictionary:
 		"knob_click": tone(2400.0, 0.03, 160.0, 0.4),
 		"pier_creak": wood_creak(0.9, 0.35),
 		"rope_slap": noise(0.12, 0.7, 40.0, 0.7),
+		"axe_swing": swoosh(0.28, 0.55),
+		"axe_hit": thud(95.0, 0.9),
+		"bullet_hit": thud(140.0, 0.6),
+		"lavado_hurt": thud(70.0, 0.7),
+		"pistol_shot": gunshot(0.5, 160.0, 0.95),
+		"shotgun_shot": gunshot(0.9, 90.0, 1.0),
+		"gun_dry": tone(1400.0, 0.05, 90.0, 0.35, [[0.5, 0.5]]),
+		"reload_out": tone(700.0, 0.07, 60.0, 0.4, [[2.7, 0.5]]),
+		"reload_in": tone(520.0, 0.1, 40.0, 0.45, [[2.1, 0.4]]),
+		"reload_close": tone(300.0, 0.12, 30.0, 0.5, [[1.8, 0.5]]),
+		"gun_equip": noise(0.14, 0.5, 14.0, 0.35),
+		"unarmed": noise(0.12, 0.2, 20.0, 0.18),
 		"boat_bell": tone(523.0, 1.8, 2.0, 0.55, [[2.4, 0.4], [5.1, 0.2]]),
 	}

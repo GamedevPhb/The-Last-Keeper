@@ -27,6 +27,8 @@ Tudo que o jogo precisa daqui para frente, na ordem em que deve ser produzido. B
 
 ## 1. Criaturas
 
+> Armas (combate básico, GDD 4.11) já importadas em `assets/armas/`: machado, pistola P38, espingarda de cano duplo e cartucho calibre 12. Ver `LICENSE-ASSETS.md`.
+
 Conceito: os afogados e náufragos que o mar devolveu. Maioria marinha. O jogador nunca vê tudo de uma vez: primeiro o som, depois a silhueta, só no fim o corpo.
 
 | ID | Criatura | Descrição | Tam. | Tris | Animações | Prior. |

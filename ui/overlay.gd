@@ -6,8 +6,15 @@ extends CanvasLayer
 const INVENTORY_PANEL := preload("res://ui/inventory_panel.gd")
 const RADIO_PANEL := preload("res://ui/radio_panel.gd")
 const CUTSCENE := preload("res://ui/opening_cutscene.gd")
+const STORY_SCENE := preload("res://ui/story_scene.gd")
 const SAVE := preload("res://save_game.gd")
+const BOOK := preload("res://ui/book_layout.gd")
+const BOOK_PAGE := preload("res://ui/book_page.gd")
 
+const FLASH_ENERGY := 7.0
+const FLASH_RANGE := 20.0
+const LENS_ENERGY := 1.5 ## lens cleaner: stronger beam
+const LENS_RANGE := 1.6 ## and longer reach
 const MENU := "res://ui/main_menu.tscn"
 const CONTROLS := "Teclado: WASD andar, Shift correr, Espaço pular, E interagir, F lanterna, R rádio, Tab inventário, J livro, Esc pausa.\nControle PS4: analógico esquerdo anda, direito olha, L3 corre, X pula, Quadrado interage, R1 lanterna, direcional para cima rádio, Triângulo inventário, L1 livro, Options pausa."
 
@@ -18,12 +25,13 @@ var _controls: ScrollContainer
 var _inventory: Node
 var _radio: Node
 var _book: Control
-var _left: Label
-var _right: Label
+var _left: Node ## BOOK_PAGE
+var _right: Node ## BOOK_PAGE
 var _spread_text: Label
 var _spread := 0
 var _ending: Control
 var _ending_text: Label
+var _ending_buttons: VBoxContainer
 var _fate: Control
 var _fate_title: Label
 var _fate_text: Label
@@ -36,6 +44,9 @@ var _flashlight: SpotLight3D
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	layer = 20
+	var impact: CanvasLayer = load("res://ui/impact.gd").new()
+	impact.name = "Impact"
+	get_parent().add_child.call_deferred(impact)
 	_pause = _build_pause()
 	_inventory = INVENTORY_PANEL.new()
 	_inventory.process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -50,6 +61,7 @@ func _ready() -> void:
 	GameState.night_ended.connect(_show_ending)
 	GameState.player_died.connect(_show_death)
 	GameState.flashlight_requested.connect(_toggle_flashlight)
+	GameState.scene_requested.connect(_play_scene)
 	GameState.radio_requested.connect(open_radio)
 	# After every _ready (AudioDirector starts the night): load a save or play the opening.
 	_start_session.call_deferred()
@@ -71,6 +83,13 @@ func _start_session() -> void:
 		var cutscene: Node = CUTSCENE.new()
 		get_parent().add_child(cutscene)
 		cutscene.finished.connect(_on_opening_finished)
+
+
+## A story scene from the night (`GameState.SCENE_TRIGGERS`): same player as the opening.
+func _play_scene(id: String) -> void:
+	var scene: Node = STORY_SCENE.new()
+	scene.scene_id = id
+	get_parent().add_child(scene)
 
 
 func _on_opening_finished() -> void:
@@ -150,16 +169,39 @@ func _toggle_flashlight() -> void:
 	if _flashlight == null:
 		var camera: Camera3D = get_tree().get_first_node_in_group("player").get_node("Head/Camera3D")
 		_flashlight = SpotLight3D.new()
-		_flashlight.spot_range = 20.0
+		_flashlight.spot_range = FLASH_RANGE
 		_flashlight.spot_angle = 30.0
-		_flashlight.light_energy = 7.0
+		_flashlight.light_energy = FLASH_ENERGY
 		_flashlight.light_color = Color(1, 0.95, 0.8)
 		camera.add_child(_flashlight)
 		_flashlight.visible = false
+	if not _flashlight.visible and GameState.flashlight_battery <= 0.0:
+		GameState.say("A lanterna está sem pilha. Procure pilhas na casa, no galpão e no porão.")
+		return
 	_flashlight.visible = not _flashlight.visible
 	GameState.flashlight_on = _flashlight.visible
 	GameState.flashlight_toggled.emit(_flashlight.visible)
 	GameState.play("switch")
+
+
+## Beam strength follows the battery (dims and flickers when low, dies at 0) and the lens boost.
+func _process(_delta: float) -> void:
+	if _flashlight == null or not _flashlight.visible:
+		return
+	if GameState.flashlight_battery <= 0.0 or not GameState.has_flashlight:
+		_flashlight.visible = false
+		GameState.flashlight_on = false
+		GameState.flashlight_toggled.emit(false)
+		GameState.play("switch")
+		GameState.say("A pilha da lanterna acabou.")
+		return
+	var charge := GameState.flashlight_battery
+	var boost := GameState.lens_left > 0.0
+	var power := lerpf(0.3, 1.0, clampf(charge / GameState.FLASH_LOW, 0.0, 1.0))
+	if charge < GameState.FLASH_LOW and randf() < 0.08:
+		power *= 0.15
+	_flashlight.light_energy = FLASH_ENERGY * power * (LENS_ENERGY if boost else 1.0)
+	_flashlight.spot_range = FLASH_RANGE * (LENS_RANGE if boost else 1.0)
 
 
 func _go_to_menu() -> void:
@@ -225,8 +267,8 @@ func _build_book() -> Control:
 	var box: VBoxContainer = panel.get_node("Box")
 	var pages := HBoxContainer.new()
 	pages.add_theme_constant_override("separation", 3)
-	_left = _page_label()
-	_right = _page_label()
+	_left = BOOK_PAGE.new()
+	_right = BOOK_PAGE.new()
 	pages.add_child(_left)
 	pages.add_child(_right)
 	box.add_child(pages)
@@ -242,17 +284,20 @@ func _build_book() -> Control:
 
 
 func _turn(step: int) -> void:
-	var pages := _pages()
-	var spreads := ceili(pages.size() / 2.0)
+	var font: Font = _left.get_theme_font("font", "Label")
+	var sheets := BOOK.paginate(_entries(), font)
+	var spreads := ceili(sheets.size() / 2.0)
 	_spread = clampi(_spread + step, 0, spreads - 1)
-	_left.text = pages[_spread * 2]
-	_right.text = pages[_spread * 2 + 1] if _spread * 2 + 1 < pages.size() else ""
+	var blank := {"title": "", "stamp": "", "body": "", "number": 0}
+	_left.show_sheet(sheets[_spread * 2])
+	_right.show_sheet(sheets[_spread * 2 + 1] if _spread * 2 + 1 < sheets.size() else blank)
 	_spread_text.text = " %d/%d " % [_spread + 1, spreads]
 	if step != 0:
 		GameState.play("paper")
 
 
-func _pages() -> Array[String]:
+## The book's contents: {title, body, stamp}; `book_pages.gd` wraps and splits them into sheets.
+func _entries() -> Array[Dictionary]:
 	var generator := get_tree().get_first_node_in_group("generator")
 	var order: String = generator.valve_order_text() if generator else "?"
 	var register := func(from: int, to: int) -> String:
@@ -265,15 +310,22 @@ func _pages() -> Array[String]:
 		note_list.push_front(GameState.previous_keeper_line())
 	var notes := "\n\n".join(note_list) if not note_list.is_empty() else "Nada anotado ainda. Leia placas, etiquetas e inscrições pela ilha."
 	return [
-		"ROTINA DO VIGIA\n\nDas 17:30 às 06:00: manter a luz acesa, atender o rádio e manter o gerador vivo.\n\nSem energia não há rádio. Sem luz os navios encalham.",
-		"MAPA DA ILHA\n\nNorte: farol, lâmpada no topo.\nLeste: esta casa, rádio e fusíveis.\nOeste: galpão do gerador.\nSul: píer e baú.\nIlhéu a leste: tambor de óleo.",
-		"A LÂMPADA\n\nQueimador de vapor: o óleo só pega com o vaporizador quente e o tanque sob pressão.\nAqueça até o verde, pressão no verde, abra a válvula.\nAbrir frio afoga e trava a válvula.\n\nDê corda no ritmo da catraca. Limpe a lente.",
-		"ONDE PEGAR ÓLEO\n\nO tambor está no ilhéu a leste, depois da praia. Só se cruza pelas pedras na maré baixa. Há 3 latas.\n\nNa casa, o porão tem reservas e a despensa (cadeado de 3 números).\n\nÁgua: cisterna junto do rádio.",
-		"GERADOR E ENERGIA\n\nAbrir as válvulas na ordem: %s.\nCombustível: barris atrás do galpão. O tanque enche com uma lata.\n\nFusíveis: o gerador aguenta só dois circuitos por vez." % order,
-		"RÁDIO E CHAMADOS\n\nCom o rádio ligado, chega uma chamada. Gire a sintonia até o sinal ficar claro, ouça a carga e compare com o registro. Igual: autorize. Diferente: recuse.\n\nSem luz no farol, o navio encalha.",
-		"REGISTRO DE CARGAS\n\n" + register.call(0, 3),
-		"REGISTRO DE CARGAS\n\n" + register.call(3, 6) + "\n\nCarga diferente da registrada: não autorize.",
-		"ANOTAÇÕES\n\n" + notes,
+		{"title": "ROTINA DO VIGIA", "stamp": "Das 17:30 às 06:00",
+			"body": "Manter a luz acesa, atender o rádio e manter o gerador vivo.\n\nSem energia não há rádio. Sem luz os navios encalham."},
+		{"title": "MAPA DA ILHA", "stamp": "Farol 7",
+			"body": "Norte: farol, lâmpada no topo.\nLeste: esta casa, rádio e fusíveis.\nOeste: galpão do gerador.\nSul: píer e baú.\nIlhéu a leste: tambor de óleo."},
+		{"title": "A LÂMPADA", "stamp": "Queimador de vapor",
+			"body": "O óleo só pega com o vaporizador quente e o tanque sob pressão.\nAqueça até o verde, pressão no verde, abra a válvula.\nAbrir frio afoga e trava a válvula.\n\nDê corda no ritmo da catraca. Limpe a lente."},
+		{"title": "ONDE PEGAR ÓLEO", "stamp": "Reservas",
+			"body": "O tambor está no ilhéu a leste, depois da praia. Só se cruza pelas pedras na maré baixa. Há 3 latas.\n\nNa casa, o porão tem reservas e a despensa (cadeado de 3 números).\n\nÁgua: cisterna junto do rádio."},
+		{"title": "GERADOR E ENERGIA", "stamp": "Galpão do gerador",
+			"body": "Abrir as válvulas na ordem: %s.\nCombustível: barris atrás do galpão. O tanque enche com uma lata.\n\nFusíveis: o gerador aguenta só dois circuitos por vez." % order},
+		{"title": "RÁDIO E CHAMADOS", "stamp": "Mesa do rádio",
+			"body": "Com o rádio ligado, chega uma chamada. Gire a sintonia até o sinal ficar claro, ouça a carga e compare com o registro. Igual: autorize. Diferente: recuse.\n\nSem luz no farol, o navio encalha."},
+		{"title": "REGISTRO DE CARGAS", "stamp": "Navios 1 a 3", "body": register.call(0, 3)},
+		{"title": "REGISTRO DE CARGAS", "stamp": "Navios 4 a 6",
+			"body": register.call(3, 6) + "\n\nCarga diferente da registrada: não autorize."},
+		{"title": "ANOTAÇÕES", "stamp": "Noite %d · até as %s" % [GameState.night, GameState.clock_text()], "body": notes},
 	]
 
 
@@ -286,9 +338,45 @@ func _build_ending() -> Control:
 	box.add_child(HSeparator.new())
 	_ending_text = UiKit.label("", 180)
 	box.add_child(_ending_text)
-	box.add_child(UiKit.button("Recomeçar a noite", _restart))
-	box.add_child(UiKit.button("Menu principal", _go_to_menu))
+	_ending_buttons = box
+	box.add_child(UiKit.button("Continuar", _continue_night))
+	box.add_child(UiKit.button("Menu principal", _end_to_menu))
 	return root
+
+
+## "Continuar" at dawn: the boatman's scene, then the next night on a rebuilt island.
+func _continue_night() -> void:
+	_ending.visible = false
+	_set_paused(false)
+	var scene: Node = STORY_SCENE.new()
+	scene.scene_id = "dawn"
+	get_parent().add_child(scene)
+	scene.finished.connect(_start_next_night)
+
+
+## Next night: GameState moves on, the slot gets the new night's start and the scene reloads from it.
+func _start_next_night() -> void:
+	var data := _advance_and_save()
+	get_tree().paused = false
+	GameState.pending_load = data
+	GameState.play_intro = false
+	get_tree().reload_current_scene()
+
+
+## "Menu principal" at dawn: the progress is saved as the next night, so the menu's Continuar resumes it.
+func _end_to_menu() -> void:
+	_advance_and_save()
+	GameState.in_game = false
+	get_tree().paused = false
+	get_tree().change_scene_to_file(MENU)
+
+
+func _advance_and_save() -> Dictionary:
+	GameState.advance_night()
+	var data := GameState.night_start_data()
+	if GameState.save_slot > 0:
+		SAVE.store(GameState.save_slot, data)
+	return data
 
 
 ## Death and failed-lighthouse screen: no brass frame, black with a vignette, text typed slowly.
@@ -345,11 +433,6 @@ func _build_fate() -> Control:
 	return root
 
 
-func _restart() -> void:
-	get_tree().paused = false
-	get_tree().reload_current_scene()
-
-
 ## Starts the night again from the last save of the slot (autosave), or from 17:30 without one.
 func _retry() -> void:
 	get_tree().paused = false
@@ -374,6 +457,8 @@ func _show_fate(fate: Dictionary, header: String, tone: Color, title_color: Colo
 	_fate_title.text = fate["title"]
 	_fate_title.add_theme_color_override("font_color", title_color)
 	_fate_text.text = "%s\n\n%s\nNavios salvos: %d. Perdidos: %d." % [header, fate["text"], GameState.ships_saved, GameState.ships_lost]
+	if GameState.invasion_summary() != "":
+		_fate_text.text += "\n" + GameState.invasion_summary()
 	var who := "Vigia %d" % (GameState.keeper_number() - 1 if died else GameState.keeper_number())
 	_fate_book.text = "Livro de registros, %s:\n«%s»" % [who, fate["book"]]
 	_fate_title.visible_ratio = 0.0
@@ -410,8 +495,9 @@ func _show_ending() -> void:
 	for panel: Node in [_inventory, _radio]:
 		panel.close()
 	var verdict := "O farol resistiu." if GameState.ships_lost <= GameState.ships_saved else "Muitos não voltaram."
-	_ending_text.text = "06:00. AMANHECEU\n\nNavios salvos: %d\nNavios perdidos: %d\n\n%s" % [GameState.ships_saved, GameState.ships_lost, verdict]
+	_ending_text.text = "06:00. AMANHECEU (noite %d)\n\nNavios salvos: %d\nNavios perdidos: %d\n%s\n%s" % [GameState.night, GameState.ships_saved, GameState.ships_lost, GameState.invasion_summary(), verdict]
 	_ending.visible = true
+	(_ending_buttons.get_child(_ending_buttons.get_child_count() - 2) as Button).grab_focus.call_deferred()
 	GameState.play("bell")
 	_set_paused(true)
 
@@ -442,10 +528,3 @@ func _screen(blocks_mouse: bool) -> Control:
 	panel.add_child(box)
 	add_child(root)
 	return root
-
-
-func _page_label() -> Label:
-	var item := UiKit.label("", 120, Color(0.14, 0.09, 0.04))
-	item.custom_minimum_size.y = 125
-	item.add_theme_stylebox_override("normal", UiKit.style(Color(0.76, 0.7, 0.55), Color(0.4, 0.32, 0.2)))
-	return item

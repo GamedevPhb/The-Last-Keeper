@@ -54,6 +54,7 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_layout)
 	_layout()
 	GameState.flashlight_toggled.connect(func(on: bool) -> void: _play_once("lanterna_ligar" if on else "lanterna_desligar"))
+	GameState.weapon_changed.connect(_layout)
 	GameState.item_given.connect(func(_id: String) -> void: _play_once("pegar"))
 	GameState.panel_changed.connect(func(_open: bool) -> void: _refresh())
 	Settings.applied.connect(_refresh)
@@ -80,7 +81,11 @@ func _process(_delta: float) -> void:
 
 func _layout() -> void:
 	var size := get_viewport().get_visible_rect().size
-	_sprite.position = Vector2(size.x * HAND_CENTER_X - HAND_ANCHOR_X * HAND_SCALE, size.y - (120.0 - HAND_BOTTOM_CUT) * HAND_SCALE)
+	# With a weapon in the right hand (3D viewmodel) the flashlight hand mirrors to the left.
+	var armed: bool = GameState.equipped != ""
+	_sprite.flip_h = armed
+	var x := size.x * (1.0 - HAND_CENTER_X) - (160.0 - HAND_ANCHOR_X) * HAND_SCALE if armed else size.x * HAND_CENTER_X - HAND_ANCHOR_X * HAND_SCALE
+	_sprite.position = Vector2(x, size.y - (120.0 - HAND_BOTTOM_CUT) * HAND_SCALE)
 
 
 func _refresh() -> void:

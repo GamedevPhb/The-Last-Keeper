@@ -83,6 +83,7 @@ var _soot: CPUParticles3D
 
 func _ready() -> void:
 	add_to_group("saveable")
+	add_to_group("beacon")
 	_switch.prompt = "Console da lâmpada"
 	_switch.hold_time = 0.0
 	_bulb_mat = (_bulb.get_surface_override_material(0) as StandardMaterial3D).duplicate()
@@ -176,6 +177,23 @@ func beam_range() -> float:
 	return (1.0 - dirt / 100.0) * pressure_factor()
 
 
+## Lit and the clockwork turning: the beam really sweeps the dark.
+func is_sweeping() -> bool:
+	return lit and wound > 0.0
+
+
+## True when the sweeping beam is on `point` (the Lavados freeze under it).
+func beam_covers(point: Vector3) -> bool:
+	if not is_sweeping():
+		return false
+	var beam := -_head.global_transform.basis.z
+	var to := point - _head.global_position
+	var flat := Vector2(to.x, to.z)
+	if flat.length() > 90.0 * clampf(beam_range(), 0.1, 1.2):
+		return false
+	return absf(Vector2(beam.x, beam.z).angle_to(flat)) < deg_to_rad(10.0)
+
+
 func is_fixed() -> bool:
 	return wound <= 0.0
 
@@ -202,6 +220,7 @@ func can_refuel() -> bool:
 
 func simulate(delta: float) -> void:
 	var p := progress()
+	var nf := GameState.night_factor() ## night 1 wears the lamp at about half
 	_pump_wait = maxf(_pump_wait - delta, 0.0)
 	valve_lock = maxf(valve_lock - delta, 0.0)
 	_flicker = maxf(_flicker - delta, 0.0)
@@ -214,8 +233,8 @@ func simulate(delta: float) -> void:
 
 	if lit:
 		# The flame keeps the vaporiser at 80 (gusts and AQUECER only nudge it).
-		temp = move_toward(temp, LIT_TEMP, COOL_RATE * delta)
-		pressure = maxf(pressure - 0.25 * (1.0 + p) * delta, 0.0)
+		temp = move_toward(temp, LIT_TEMP, COOL_RATE * nf * delta)
+		pressure = maxf(pressure - 0.25 * (1.0 + p) * nf * delta, 0.0)
 		var oil_mult := 1.0
 		var dirt_mult := 1.0
 		if pressure > green_high():
@@ -226,10 +245,10 @@ func simulate(delta: float) -> void:
 			dirt_mult = 1.5
 		elif pressure < green_low():
 			oil_mult = 0.8
-		oil = maxf(oil - oil_burn * (1.0 + p) * oil_mult * delta, 0.0)
+		oil = maxf(oil - oil_burn * (1.0 + p) * oil_mult * nf * delta, 0.0)
 		dirt = minf(dirt + dirt_rate * (1.0 + p) * dirt_mult * delta, 100.0)
 		if not GameState.powered("motor"):
-			wound = maxf(wound - spring_unwind * delta, 0.0)
+			wound = maxf(wound - spring_unwind * nf * delta, 0.0)
 		if oil <= 0.0:
 			_go_out("o óleo acabou")
 		elif pressure < FLAME_MIN_PRESSURE:
@@ -255,7 +274,7 @@ func _update_gusts(delta: float, p: float) -> void:
 	_gust_in -= delta
 	if _gust_in > 0.0:
 		return
-	_gust_in = randf_range(60.0, 90.0) * lerpf(1.0, 0.5, (p - 0.5) * 2.0)
+	_gust_in = randf_range(60.0, 90.0) * lerpf(1.0, 0.5, (p - 0.5) * 2.0) / GameState.night_factor()
 	gusts += 1
 	pressure = maxf(pressure - 15.0, 0.0)
 	temp = maxf(temp - 20.0, 0.0)
