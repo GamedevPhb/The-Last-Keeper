@@ -5,8 +5,8 @@ shader_type canvas_item;
 
 global uniform float psx_brightness;
 uniform sampler2D screen_texture : hint_screen_texture, filter_nearest;
-uniform float color_levels = 32.0; // per channel; 32 = 15-bit color like the PS1
-uniform float dither_strength = 1.0;
+uniform float color_levels = 24.0; // per channel; 32 = 15-bit, lower = harsher PS1-style banding
+uniform float dither_strength = 1.25;
 // Grade: murky green-teal cast, crushed shadows and a heavy vignette.
 uniform vec3 tint : source_color = vec3(0.78, 1.0, 0.82);
 uniform float saturation = 0.65;
