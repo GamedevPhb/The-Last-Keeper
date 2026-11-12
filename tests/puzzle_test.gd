@@ -8,6 +8,10 @@ var _failures := 0
 var _elapsed := 0.0
 var _ran := false
 var _last_toast := ""
+## Touch HUD test, run over several frames after the one-frame tests: stage and its clock.
+var _touch_stage := -1
+var _stage_time := 0.0
+var _touch := {}
 
 
 func _initialize() -> void:
@@ -23,6 +27,9 @@ func _process(delta: float) -> bool:
 		quit(1)
 		return true
 	if _ran:
+		if _touch_stage >= 0:
+			_stage_time += delta
+			_touch_step()
 		return false
 	_ran = true
 	var state := root.get_node("GameState")
@@ -93,11 +100,147 @@ func _process(delta: float) -> bool:
 	_test_radio(state, main, stations)
 	_test_save(state, main)
 	_test_cutscene(state, main)
-	_test_status(state, main)
+	_start_touch(state, main)
+	return false
 
+
+func _finish() -> void:
+	_test_status(_touch.state, _touch.main)
 	print("PUZZLE TEST FAILED (%d)" % _failures if _failures else "PUZZLE TEST PASSED")
 	quit(1 if _failures else 0)
-	return true
+
+
+# ---- Touch HUD (ui/touch_controls.gd), forced on as on a phone
+
+func _start_touch(state: Node, main: Node) -> void:
+	var settings := root.get_node("Settings")
+	var touch: Node = main.get_node("Hud/TouchControls")
+	_touch = {"state": state, "main": main, "settings": settings, "touch": touch, "player": main.get_node("Player"),
+		"old": settings.values.get("touch", 0), "fired": 0}
+	_check(not touch.visible, "the touch HUD stays hidden on a PC without a touchscreen")
+	settings.values["touch"] = 1 # forced on, without writing user://settings.cfg
+	settings.apply()
+	_check(touch.update(), "the option forces the touch HUD on")
+	_next(0)
+
+
+func _next(stage: int) -> void:
+	_touch_stage = stage
+	_stage_time = 0.0
+
+
+func _touch_event(index: int, at: Vector2, pressed: bool) -> void:
+	var event := InputEventScreenTouch.new()
+	event.index = index
+	event.position = at
+	event.pressed = pressed
+	root.push_input(event, true)
+
+
+func _drag_event(index: int, at: Vector2, relative: Vector2) -> void:
+	var event := InputEventScreenDrag.new()
+	event.index = index
+	event.position = at
+	event.relative = relative
+	root.push_input(event, true)
+
+
+func _touch_step() -> void:
+	var touch: Node = _touch.touch
+	var player: Node3D = _touch.player
+	var size: Vector2 = root.get_visible_rect().size
+	match _touch_stage:
+		0: # one frame later the HUD shows; walk with the stick and look with a second finger
+			if _stage_time <= 0.0:
+				return
+			_check(touch.visible and _touch.state.panel_open == false, "the touch HUD shows during play")
+			_touch.start = player.global_position
+			_touch.yaw = player.rotation.y
+			var home: Vector2 = touch.stick_home()
+			_touch_event(0, home, true)
+			_drag_event(0, home + Vector2(0, -30), Vector2(0, -30))
+			_touch_event(1, Vector2(size.x * 0.75, 100), true)
+			_drag_event(1, Vector2(size.x * 0.75 + 20, 100), Vector2(20, 0))
+			_check(Input.get_action_strength("move_forward") > 0.9 and Input.is_action_pressed("sprint"), "the stick pushed to the rim walks forward and sprints")
+			_check(player.rotation.y < _touch.yaw - 0.1, "dragging on the right half turns the view while the stick is held")
+			_touch_event(1, Vector2(size.x * 0.75 + 20, 100), false)
+			_next(1)
+		1: # walk for a moment, then let go
+			if _stage_time < 0.6:
+				return
+			var moved: Vector3 = player.global_position - _touch.start
+			moved.y = 0.0
+			_check(moved.length() > 0.5, "the keeper walks with the touch stick (%.2f m)" % moved.length())
+			_touch_event(0, touch.stick_home(), false)
+			_check(not Input.is_action_pressed("move_forward") and not Input.is_action_pressed("sprint"), "lifting the finger stops the walk")
+			_next(2)
+		2: # stopped: put something to use right in front of the eyes
+			if _stage_time < 0.7:
+				return
+			var camera: Camera3D = player.get_node("Head/Camera3D")
+			var item: Area3D = load("res://interaction/interactable.gd").create("Teste do toque", 0.0, 0.5)
+			_touch.main.add_child(item)
+			item.global_position = camera.global_position - camera.global_transform.basis.z * 1.2
+			item.interacted.connect(func(_by: Node) -> void: _touch.fired += 1)
+			_touch.item = item
+			_next(3)
+		3: # tap Interagir
+			if _stage_time < 0.15:
+				return
+			_check(player._focus == _touch.item, "the keeper aims at the test interactable")
+			_touch_event(2, touch.button_center("interact"), true)
+			_next(4)
+		4:
+			if _stage_time < 0.1:
+				return
+			_check(_touch.fired == 1, "tapping Interagir fires the interaction")
+			_touch_event(2, touch.button_center("interact"), false)
+			_touch.item.hold_time = 0.4
+			_next(5)
+		5: # hold Interagir for a hold_time interactable
+			if _stage_time < 0.05:
+				return
+			_touch_event(2, touch.button_center("interact"), true)
+			_next(6)
+		6:
+			if _stage_time < 0.2:
+				return
+			_check(_touch.fired == 1 and player._hold_elapsed > 0.0, "holding Interagir fills the hold progress first")
+			_next(7)
+		7:
+			if _stage_time < 0.4:
+				return
+			_check(_touch.fired == 2, "holding Interagir for hold_time completes the interaction")
+			_touch_event(2, touch.button_center("interact"), false)
+			_touch.item.queue_free()
+			_touch_event(3, touch.button_center("inventory"), true)
+			_touch_event(3, touch.button_center("inventory"), false)
+			_next(8)
+		8: # the inventory button goes through the overlay's input path
+			if _stage_time < 0.1:
+				return
+			var inventory: Node = _touch.main.get_node("Overlay")._inventory
+			_check(inventory.is_open() and not touch.visible, "the inventory button opens the panel and the touch HUD steps aside")
+			_check(inventory._touch_only.all(func(b: Control) -> bool: return b.visible), "the inventory shows X, USAR and LARGAR with touch")
+			inventory.close()
+			touch.release_all()
+			_next(9)
+		9: # the HUD needs a frame to come back before the pause button works
+			if _stage_time < 0.1:
+				return
+			_touch_event(4, touch.button_center("pause"), true)
+			_touch_event(4, touch.button_center("pause"), false)
+			_next(10)
+		10: # the pause button opens the pause menu (resumed through its own button)
+			if _stage_time < 0.1:
+				return
+			_check(_touch.main.get_tree().paused and not touch.visible, "the pause button pauses and the touch HUD steps aside")
+			_touch.main.get_node("Overlay").resume()
+			touch.release_all()
+			_touch.settings.values["touch"] = _touch.old
+			_touch.settings.apply()
+			_touch_stage = -1
+			_finish()
 
 
 ## Lamp console (GDD 4.1.1): cold start, drowning, pressure limits, ratchet and night scaling.

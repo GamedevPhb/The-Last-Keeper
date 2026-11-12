@@ -1,8 +1,9 @@
 # Plano de Desenvolvimento: Demo Jogável
 
 > **The Last Keeper** · Início 2026-11-10 · Plano revisto em 2026-11-12 (quinta)
-> **Lançamento da demo no itch.io: quinta 14/01/2027 (A CONFIRMAR)** · Build final congelado: quinta 07/01/2027 (a confirmar)
-> Ritmo: o código, as cenas e os modelos são feitos por agentes de IA. **O gargalo é a revisão e o playtest humano.** Hipótese de capacidade humana: 6–8 h/semana (revisar, jogar, decidir); 2–3 h nas semanas de Natal e Ano-Novo. Se a capacidade real for de 3–5 h/semana, aplique a linha de corte já na sprint 3.
+> **Lançamento da demo no itch.io: quinta 07/01/2027** · Build final congelado: segunda 04/01/2027 · RC1: segunda 28/12/2026
+> Plataformas: Web, Windows, Linux e **Android (APK, HUD de toque, meta de 30 fps num celular intermediário)**. O Android passa por um portão de performance em 06/12 (ver `SPRINTS.md`).
+> Ritmo: o código, as cenas e os modelos são feitos por agentes de IA. **O gargalo é a revisão e o playtest humano.** Hipótese de capacidade humana: 6–8 h/semana (revisar, jogar, decidir); 2–3 h nas semanas de Natal e Ano-Novo. Se a capacidade real for de 3–5 h/semana, aplique a linha de corte já na sprint 3. Não há semana de folga entre o congelamento e o lançamento: qualquer atraso sai da linha de corte, não da data.
 
 **A demo é o MVP do GDD (§12):** uma noite completa, do anoitecer ao amanhecer, com lâmpada, gerador, rádio e dois navios (um regular, um anômalo), no visual PS1, publicada no itch.io. Tudo o que não serve a essa noite está abaixo da linha de corte.
 

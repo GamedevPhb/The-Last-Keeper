@@ -7,6 +7,8 @@ const PATH := "user://settings.cfg"
 const DEFAULTS := {
 	"master": 0.8, "music": 0.7, "sfx": 0.9, "brightness": 1.0,
 	"mouse": 0.0025, "stick": 3.2, "fov": 75.0, "fullscreen": false, "jitter": true,
+	"touch": 0, ## touch HUD: 0 auto (phones / touchscreens), 1 always, 2 never (TouchControls)
+	"touch_look": 0.012, ## radians per viewport pixel dragged on the right half
 }
 
 var values := DEFAULTS.duplicate()
@@ -42,4 +44,5 @@ func apply() -> void:
 		DisplayServer.window_set_mode(mode)
 	if is_inside_tree():
 		get_tree().call_group("player", "apply_settings", values["mouse"], values["stick"], values["fov"])
+	TouchControls.update()
 	applied.emit()

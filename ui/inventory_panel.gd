@@ -6,6 +6,7 @@ extends "res://ui/puzzle_console.gd"
 ## Mouse: left picks up / places / merges / swaps, right takes half or places one,
 ## Shift+left uses, Q or a click off the grid drops. Pad: stick/d-pad moves, X picks/places,
 ## Square uses, Circle drops, R1 splits, Triangle closes. Keys: arrows/WASD, Space, E, Q, F, Tab.
+## Touch: tap picks up / places, holding a slot splits it, USAR / LARGAR act on the selected slot.
 
 const LAMP := preload("res://ui/lamp_console.gd")
 const FUSE := preload("res://ui/fuse_console.gd")
@@ -14,6 +15,7 @@ const GAP := 2
 const COLUMNS := 8
 const ROWS := 4
 const HELP_KEYS := "Clique pega · Dir. divide · Shift usa · Q larga · Tab fecha"
+const SPLIT_HOLD := 0.45 ## seconds a finger stays on a slot to split it
 const HELP_PAD := "X pega · R1 divide · Quadrado usa · Círculo larga · Triângulo fecha"
 
 const ITEM_ICONS := {
@@ -152,6 +154,9 @@ var _bar: ProgressBar
 var _hover_slot := -1
 var _mouse_mode := true
 var _pad := false
+## Slot under a finger that has not lifted yet (tap = left, hold = split), and for how long.
+var _press_slot := -1
+var _press_time := 0.0
 ## A consumable being eaten / drunk / applied: {id, left, total}.
 var _using := {}
 
@@ -186,6 +191,8 @@ func _help_text() -> String:
 
 func _build_body(body: VBoxContainer) -> void:
 	_title.text = "INVENTÁRIO"
+	_top.add_child(_touch_button("USAR", func() -> void: use_slot(_focus)))
+	_top.add_child(_touch_button("LARGAR", func() -> void: drop(_focus)))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	_grid = Grid.new()
@@ -232,6 +239,7 @@ func _ready() -> void:
 func open(by: Player = null) -> void:
 	super(by)
 	_hover_slot = -1
+	_press_slot = -1
 	_using = {}
 
 
@@ -315,6 +323,11 @@ func _hold_tick(_delta: float) -> void:
 
 func _refresh() -> void:
 	tick_use(get_process_delta_time())
+	if _press_slot >= 0:
+		_press_time += get_process_delta_time()
+		if _press_time >= SPLIT_HOLD:
+			right(_press_slot)
+			_press_slot = -1
 	var heavy: bool = GameState.oil_cans + GameState.fuel_cans >= GameState.HEAVY_CANS
 	_header.text = "PESADO: sem corrida" if heavy else ""
 	_header.add_theme_color_override("font_color", Color(1.0, 0.65, 0.2))
@@ -344,7 +357,7 @@ func _input(event: InputEvent) -> void:
 	if not visible:
 		return
 	if event is InputEventMouse:
-		if event is InputEventMouseMotion:
+		if event is InputEventMouseMotion and not TouchControls.enabled:
 			_mouse_mode = true
 		return
 	var pad := event is InputEventJoypadButton or event is InputEventJoypadMotion
@@ -409,6 +422,21 @@ func _on_grid_click(index: int, button: MouseButton, shift: bool) -> void:
 		right(index)
 
 
+## Touch: a finger lands on a slot; it becomes the selection and waits to see tap or hold.
+func touch_down(index: int) -> void:
+	_mouse_mode = false
+	_focus = index
+	_press_slot = index
+	_press_time = 0.0
+
+
+## The finger lifted before the split: a tap picks up or places, like a left click.
+func touch_up() -> void:
+	if _press_slot >= 0:
+		left(_press_slot)
+		_press_slot = -1
+
+
 func _on_off_grid(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton
 	if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT and not GameState.inventory.cursor.is_empty():
@@ -439,10 +467,19 @@ class Grid extends Control:
 
 	func _gui_input(event: InputEvent) -> void:
 		var index := _index_at(get_local_mouse_position())
-		if event is InputEventMouseMotion:
+		if event is InputEventMouseMotion and not TouchControls.enabled:
 			panel._mouse_mode = true
 			panel._hover_slot = index
 		var click := event as InputEventMouseButton
+		if click and TouchControls.enabled and click.button_index == MOUSE_BUTTON_LEFT and not click.shift_pressed:
+			if not click.pressed:
+				panel.touch_up()
+			elif index < 0:
+				panel._on_off_grid(event)
+			else:
+				panel.touch_down(index)
+			accept_event()
+			return
 		if click and click.pressed:
 			if index < 0:
 				panel._on_off_grid(event)
