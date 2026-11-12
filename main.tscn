@@ -7,9 +7,21 @@
 [ext_resource type="Script" path="res://ui/overlay.gd" id="5_overlay"]
 [ext_resource type="Script" path="res://world/day_night.gd" id="6_daynight"]
 [ext_resource type="Script" path="res://audio/audio_director.gd" id="7_director"]
+[ext_resource type="Shader" path="res://shaders/psx_sky.gdshader" id="8_sky"]
+
+[ext_resource type="Script" path="res://ui/hands.gd" id="hands_script"]
+
+[sub_resource type="ShaderMaterial" id="sky_mat"]
+shader = ExtResource("8_sky")
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_mat")
+process_mode = 3
+radiance_size = 0
 
 [sub_resource type="Environment" id="night"]
-background_mode = 1
+background_mode = 2
+sky = SubResource("sky")
 background_color = Color(0.015, 0.03, 0.025, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.2, 0.3, 0.26, 1)
@@ -17,6 +29,7 @@ ambient_light_energy = 0.32
 fog_enabled = true
 fog_light_color = Color(0.02, 0.04, 0.03, 1)
 fog_mode = 1
+fog_sky_affect = 0.0
 fog_density = 1.0
 fog_depth_begin = 3.0
 fog_depth_end = 45.0
@@ -52,6 +65,10 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Hud" parent="." node_paths=PackedStringArray("player") instance=ExtResource("3_hud")]
+player = NodePath("../Player")
+
+[node name="Hands" type="CanvasLayer" parent="." node_paths=PackedStringArray("player")]
+script = ExtResource("hands_script")
 player = NodePath("../Player")
 
 [node name="Overlay" type="CanvasLayer" parent="."]
