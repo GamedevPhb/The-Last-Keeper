@@ -6,6 +6,7 @@ const LAMP_AT := Vector3(0.0, 17.0, -12.0)
 
 var _hum: AudioStreamPlayer3D
 var _ticking: AudioStreamPlayer3D
+var _phone: AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -14,6 +15,11 @@ func _ready() -> void:
 	GameState.changed.connect(_sync_loops)
 	_hum = _spatial_loop(Synth.hum(0.8), GENERATOR_AT, 12.0)
 	_ticking = _spatial_loop(Synth.ticking(0.6), LAMP_AT, 14.0)
+	_phone = AudioStreamPlayer.new()
+	_phone.stream = Synth.phone_ring()
+	_phone.bus = "SFX"
+	_phone.volume_db = -2.0
+	add_child(_phone)
 	# The player is a sibling that may not be ready yet.
 	var player := get_parent().get_node_or_null("Player") as Player
 	if player:
@@ -47,7 +53,18 @@ func _set_playing(player: AudioStreamPlayer3D, on: bool) -> void:
 		player.stop()
 
 
+func is_phone_ringing() -> bool:
+	return _phone.playing
+
+
 func _on_sound(sound_name: String, position: Vector3) -> void:
+	if sound_name == "ring_start":
+		if not _phone.playing:
+			_phone.play()
+		return
+	if sound_name == "ring_stop":
+		_phone.stop()
+		return
 	if position == Vector3.INF:
 		Audio.play(sound_name)
 	else:
