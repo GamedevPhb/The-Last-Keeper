@@ -10,8 +10,8 @@
 [ext_resource type="Material" path="res://materials/m_plaster.tres" id="8_plaster"]
 [ext_resource type="Material" path="res://materials/m_wood.tres" id="9_wood"]
 [ext_resource type="Material" path="res://materials/m_water.tres" id="10_water"]
-[ext_resource type="PackedScene" path="res://world/island_details.tscn" id="11_details"]
-[ext_resource type="Script" path="res://puzzles/power_light.gd" id="12_light"]
+[ext_resource type="PackedScene" uid="uid://byqimq8l45v2e" path="res://world/island_details.tscn" id="11_details"]
+[ext_resource type="Script" uid="uid://by73718tchmi2" path="res://puzzles/power_light.gd" id="12_light"]
 
 [sub_resource type="PlaneMesh" id="sea_mesh"]
 size = Vector2(300, 300)
@@ -284,4 +284,4 @@ height = 3.0
 sides = 6
 material = ExtResource("9_wood")
 
-[node name="Details" parent="." instance=ExtResource("11_details")]
+[node name="Details" parent="." unique_id=636149627 instance=ExtResource("11_details")]

@@ -1,16 +1,22 @@
 extends CanvasLayer
-## Pause menu, options, inventory, the logbook and the dawn summary, built in code.
-## Pause, the book and the summary stop the tree; the inventory is a glance that keeps the night running.
+## Pause menu, options, the logbook and the dawn / death summary, built in code. It also owns
+## the inventory and portable-radio panels (`ui/inventory_panel.gd`, `ui/radio_panel.gd`), which
+## keep the night running. Pause, the book and the summary stop the tree.
+
+const INVENTORY_PANEL := preload("res://ui/inventory_panel.gd")
+const RADIO_PANEL := preload("res://ui/radio_panel.gd")
+const CUTSCENE := preload("res://ui/opening_cutscene.gd")
+const SAVE := preload("res://save_game.gd")
 
 const MENU := "res://ui/main_menu.tscn"
-const CONTROLS := "Teclado: WASD andar, Shift correr, Espaço pular, E interagir, F lanterna, Tab inventário, J livro, Esc pausa.\nControle PS4: analógico esquerdo anda, direito olha, L3 corre, X pula, Quadrado interage, R1 lanterna, Triângulo inventário, L1 livro, Options pausa."
+const CONTROLS := "Teclado: WASD andar, Shift correr, Espaço pular, E interagir, F lanterna, R rádio, Tab inventário, J livro, Esc pausa.\nControle PS4: analógico esquerdo anda, direito olha, L3 corre, X pula, Quadrado interage, R1 lanterna, direcional para cima rádio, Triângulo inventário, L1 livro, Options pausa."
 
 var _pause: Control
 var _pause_box: VBoxContainer
 var _settings: SettingsPanel
 var _controls: Label
-var _inventory: Control
-var _inventory_text: Label
+var _inventory: Node
+var _radio: Node
 var _book: Control
 var _left: Label
 var _right: Label
@@ -25,12 +31,44 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	layer = 20
 	_pause = _build_pause()
-	_inventory = _build_inventory()
+	_inventory = INVENTORY_PANEL.new()
+	_inventory.process_mode = Node.PROCESS_MODE_PAUSABLE
+	add_child(_inventory)
+	_radio = RADIO_PANEL.new()
+	_radio.process_mode = Node.PROCESS_MODE_PAUSABLE
+	add_child(_radio)
 	_book = _build_book()
 	_ending = _build_ending()
 	GameState.book_requested.connect(open_book)
-	GameState.changed.connect(_refresh_inventory)
 	GameState.night_ended.connect(_show_ending)
+	GameState.player_died.connect(_show_death)
+	GameState.flashlight_requested.connect(_toggle_flashlight)
+	GameState.radio_requested.connect(open_radio)
+	# After every _ready (AudioDirector starts the night): load a save or play the opening.
+	_start_session.call_deferred()
+
+
+## A loaded slot restores the night (a finished one opens its summary); a new game plays the
+## opening cutscene and only then starts the clock.
+func _start_session() -> void:
+	if not GameState.pending_load.is_empty():
+		var data: Dictionary = GameState.pending_load
+		GameState.pending_load = {}
+		SAVE.apply(data, get_parent())
+		if GameState.dead:
+			_show_death(GameState.death_cause)
+		elif GameState.finished:
+			_show_ending()
+	elif GameState.play_intro:
+		GameState.play_intro = false
+		var cutscene: Node = CUTSCENE.new()
+		get_parent().add_child(cutscene)
+		cutscene.finished.connect(_on_opening_finished)
+
+
+func _on_opening_finished() -> void:
+	GameState.begin_play()
+	GameState.autosave()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -44,17 +82,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			close_book()
 		elif _pause.visible:
 			resume()
-		elif _inventory.visible:
-			_inventory.visible = false
 		elif event.is_action_pressed("pause"):
 			open_pause()
 		else:
 			return
 	elif _pause.visible:
 		return
-	elif event.is_action_pressed("inventory") and not _book.visible:
-		_inventory.visible = not _inventory.visible
-		_refresh_inventory()
+	elif event.is_action_pressed("inventory") and not _book.visible and not GameState.panel_open and not GameState.dead:
+		_inventory.open()
+	elif event.is_action_pressed("radio") and not _book.visible and not GameState.panel_open and not GameState.dead:
+		open_radio()
 	elif event.is_action_pressed("journal") and GameState.book_read:
 		if _book.visible:
 			close_book()
@@ -72,7 +109,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func open_pause() -> void:
-	_inventory.visible = false
 	_controls.visible = false
 	_pause.visible = true
 	_set_paused(true)
@@ -85,7 +121,6 @@ func resume() -> void:
 
 func open_book() -> void:
 	GameState.book_read = true
-	_inventory.visible = false
 	_book.visible = true
 	_turn(0)
 	_set_paused(true)
@@ -98,7 +133,7 @@ func close_book() -> void:
 
 func _set_paused(paused: bool) -> void:
 	get_tree().paused = paused
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if paused else Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if paused or GameState.panel_open else Input.MOUSE_MODE_CAPTURED
 
 
 func _toggle_flashlight() -> void:
@@ -119,28 +154,20 @@ func _toggle_flashlight() -> void:
 
 
 func _go_to_menu() -> void:
+	GameState.autosave()
 	get_tree().paused = false
 	get_tree().change_scene_to_file(MENU)
 
 
-# ---- Inventory
+# ---- Portable radio
 
-func _refresh_inventory() -> void:
-	if not _inventory.visible:
-		return
-	_inventory_text.text = "Lata de óleo: %d\nLata de combustível: %d\nLanterna: %s\nLivro de registros: %s\n\n— OBJETIVO —\n%s" % [
-		GameState.oil_cans, GameState.fuel_cans, "sim" if GameState.has_flashlight else "não",
-		"na mesa da casa" if not GameState.book_read else "lido (J abre)", GameState.objective()]
-
-
-func _build_inventory() -> Control:
-	var root := _screen(false)
-	var box: VBoxContainer = root.get_node("Center/Panel/Box")
-	box.add_child(UiKit.heading("INVENTÁRIO"))
-	box.add_child(HSeparator.new())
-	_inventory_text = UiKit.label("", 170)
-	box.add_child(_inventory_text)
-	return root
+func open_radio() -> void:
+	if GameState.radio_docked:
+		GameState.say("O portátil está na base, carregando. Pegue-o no rádio da casa.")
+	elif not GameState.has_radio:
+		GameState.say("Você não tem um rádio portátil.")
+	else:
+		_radio.open()
 
 
 # ---- Pause and options
@@ -223,8 +250,8 @@ func _pages() -> Array[String]:
 	return [
 		"ROTINA DO VIGIA\n\nDas 17:30 às 06:00: manter a luz acesa, atender o rádio e manter o gerador vivo.\n\nSem energia não há rádio. Sem luz os navios encalham.",
 		"MAPA DA ILHA\n\nNorte: farol, lâmpada no topo.\nLeste: esta casa, rádio e fusíveis.\nOeste: galpão do gerador.\nSul: píer e baú.\nIlhéu a leste: tambor de óleo.",
-		"A LÂMPADA\n\nPara acender, na ordem:\n1. Óleo (lata)\n2. Corda (manivela)\n3. Lente (limpar)\nDepois, segure o botão no centro.\n\nErrar a ordem emperra tudo.",
-		"ONDE PEGAR ÓLEO\n\nO tambor está no ilhéu a leste, depois da praia. Só se cruza pelas pedras na maré baixa. Há 3 latas.\n\nNa casa, o porão tem 2 latas reserva (cadeado de 3 números).",
+		"A LÂMPADA\n\nQueimador de vapor: o óleo só pega com o vaporizador quente e o tanque sob pressão.\nAqueça até o verde, pressão no verde, abra a válvula.\nAbrir frio afoga e trava a válvula.\n\nDê corda no ritmo da catraca. Limpe a lente.",
+		"ONDE PEGAR ÓLEO\n\nO tambor está no ilhéu a leste, depois da praia. Só se cruza pelas pedras na maré baixa. Há 3 latas.\n\nNa casa, o porão tem reservas e a despensa (cadeado de 3 números).\n\nÁgua: cisterna junto do rádio.",
 		"GERADOR E ENERGIA\n\nAbrir as válvulas na ordem: %s.\nCombustível: barris atrás do galpão. O tanque enche com uma lata.\n\nFusíveis: o gerador aguenta só dois circuitos por vez." % order,
 		"RÁDIO E CHAMADOS\n\nCom o rádio ligado, chega uma chamada. Gire a sintonia até o sinal ficar claro, ouça a carga e compare com o registro. Igual: autorize. Diferente: recuse.\n\nSem luz no farol, o navio encalha.",
 		"REGISTRO DE CARGAS\n\n" + register.call(0, 3),
@@ -242,14 +269,34 @@ func _build_ending() -> Control:
 	box.add_child(HSeparator.new())
 	_ending_text = UiKit.label("", 180)
 	box.add_child(_ending_text)
+	box.add_child(UiKit.button("Recomeçar a noite", _restart))
 	box.add_child(UiKit.button("Menu principal", _go_to_menu))
 	return root
+
+
+func _restart() -> void:
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+
+func _show_death(cause: String) -> void:
+	_pause.visible = false
+	_book.visible = false
+	for panel: Node in [_inventory, _radio]:
+		panel.close()
+	_ending_text.text = "%s. %s\n\n%s levou o vigia.\n\nNavios salvos: %d\nNavios perdidos: %d" % [
+		GameState.clock_text(), "O FAROL FICOU SEM VIGIA", cause, GameState.ships_saved, GameState.ships_lost]
+	_ending.visible = true
+	_ending.modulate.a = 0.0
+	create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS).tween_property(_ending, "modulate:a", 1.0, 2.5)
+	_set_paused(true)
 
 
 func _show_ending() -> void:
 	_pause.visible = false
 	_book.visible = false
-	_inventory.visible = false
+	for panel: Node in [_inventory, _radio]:
+		panel.close()
 	var verdict := "O farol resistiu." if GameState.ships_lost <= GameState.ships_saved else "Muitos não voltaram."
 	_ending_text.text = "06:00. AMANHECEU\n\nNavios salvos: %d\nNavios perdidos: %d\n\n%s" % [GameState.ships_saved, GameState.ships_lost, verdict]
 	_ending.visible = true

@@ -7,7 +7,6 @@
 [ext_resource type="Script" path="res://ui/overlay.gd" id="5_overlay"]
 [ext_resource type="Script" path="res://world/day_night.gd" id="6_daynight"]
 [ext_resource type="Script" path="res://audio/audio_director.gd" id="7_director"]
-[ext_resource type="Script" path="res://ui/calls_panel.gd" id="8_calls"]
 
 [sub_resource type="Environment" id="night"]
 background_mode = 1
@@ -17,7 +16,10 @@ ambient_light_color = Color(0.2, 0.3, 0.26, 1)
 ambient_light_energy = 0.32
 fog_enabled = true
 fog_light_color = Color(0.02, 0.04, 0.03, 1)
-fog_density = 0.045
+fog_mode = 1
+fog_density = 1.0
+fog_depth_begin = 3.0
+fog_depth_end = 45.0
 
 [sub_resource type="ShaderMaterial" id="post_mat"]
 shader = ExtResource("4_post")
@@ -63,5 +65,3 @@ moon = NodePath("../Moon")
 [node name="AudioDirector" type="Node" parent="."]
 script = ExtResource("7_director")
 
-[node name="Calls" type="CanvasLayer" parent="."]
-script = ExtResource("8_calls")

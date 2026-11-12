@@ -2,6 +2,8 @@ extends Node3D
 ## Title screen: buttons on the left, the lit lighthouse island slowly turning on the right.
 
 const GAME := "res://main.tscn"
+const SAVE := preload("res://save_game.gd")
+const SAVE_SLOTS := preload("res://ui/save_slots.gd")
 const ORBIT_CENTER := Vector3(0.0, 4.0, -6.0)
 const ORBIT_RADIUS := 52.0
 const ORBIT_HEIGHT := 24.0
@@ -11,6 +13,8 @@ var _angle := 2.2
 var _buttons: VBoxContainer
 var _settings: SettingsPanel
 var _logo: TextureRect
+var _slots ## SaveSlots panel (ui/save_slots.gd)
+var _continue: Button
 
 
 func _ready() -> void:
@@ -30,11 +34,7 @@ func _build_world() -> void:
 	var island: Node3D = load("res://world/island.tscn").instantiate()
 	add_child(island)
 	var beacon: Beacon = island.get_node("Lighthouse/Beacon")
-	beacon.oil = 1.0
-	beacon.wound = 1.0
-	beacon.oil_burn = 0.0
-	beacon.spring_unwind = 0.0
-	beacon.lit = true
+	beacon.showcase()
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.04, 0.07, 0.06)
@@ -88,8 +88,11 @@ func _build_ui() -> void:
 	_buttons = VBoxContainer.new()
 	_buttons.add_theme_constant_override("separation", 5)
 	left.add_child(_buttons)
-	var start := UiKit.button("Iniciar", _start)
+	var start := UiKit.button("Novo jogo", _open_slots.bind("new"))
 	_buttons.add_child(start)
+	_continue = UiKit.button("Continuar", _open_slots.bind("load"))
+	_continue.disabled = not _has_saves()
+	_buttons.add_child(_continue)
 	_buttons.add_child(UiKit.button("Opções", _open_settings))
 	_buttons.add_child(UiKit.button("Sair", func() -> void: get_tree().quit()))
 	start.grab_focus()
@@ -101,6 +104,40 @@ func _build_ui() -> void:
 	_settings.visible = false
 	_settings.closed.connect(_close_settings)
 	layer.add_child(_settings)
+	_slots = SAVE_SLOTS.new()
+	_slots.position = Vector2(34, 60)
+	_slots.visible = false
+	_slots.chosen.connect(_on_slot_chosen)
+	_slots.closed.connect(_close_slots)
+	layer.add_child(_slots)
+
+
+func _has_saves() -> bool:
+	for slot in range(1, SAVE.SLOTS + 1):
+		if SAVE.exists(slot):
+			return true
+	return false
+
+
+func _open_slots(mode: String) -> void:
+	_buttons.get_parent().visible = false
+	_logo.visible = false
+	_slots.open(mode)
+
+
+func _close_slots() -> void:
+	_buttons.get_parent().visible = true
+	_logo.visible = true
+	_continue.disabled = not _has_saves()
+	(_buttons.get_child(0) as Button).grab_focus()
+
+
+## A new game plays the opening; a saved one is applied once main.tscn is ready.
+func _on_slot_chosen(slot: int, data: Dictionary) -> void:
+	GameState.save_slot = slot
+	GameState.pending_load = data
+	GameState.play_intro = data.is_empty()
+	_start()
 
 
 func _start() -> void:
