@@ -1,3 +1,4 @@
+@tool
 extends Node3D
 ## Terreno organico da ilha: monta em runtime uma malha (normais suaves, cor de vertice) e a colisao (camada 1 `world`)
 ## a partir de world/terrain_height.res (gerado por tools/gen_heightmap.py + tools/pack_heightmap.gd).
@@ -48,6 +49,8 @@ static func height_at(x: float, z: float) -> float:
 
 
 func _ready() -> void:
+	for c in get_children():
+		c.queue_free()
 	var mesh := _build_mesh()
 	var mi := MeshInstance3D.new()
 	mi.name = "Mesh"
@@ -56,6 +59,8 @@ func _ready() -> void:
 		mi.material_override = material
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(mi)
+	if Engine.is_editor_hint():
+		return # no editor so a malha; a colisao so em jogo
 	var body := StaticBody3D.new()
 	body.name = "Body"
 	body.collision_layer = 1 # world

@@ -1,3 +1,4 @@
+@tool
 extends Node3D
 ## Monta os MultiMesh de pinheiros (tronco + copa) a partir de `spots` (x, z, escala, giro); a altura vem do terreno.
 
@@ -9,6 +10,9 @@ const Terrain := preload("res://world/terrain.gd")
 
 
 func _ready() -> void:
+	for c in get_children():
+		if c is MultiMeshInstance3D and c.owner == null:
+			c.queue_free()
 	var n := spots.size() / 4
 	var trunk := CylinderMesh.new()
 	trunk.top_radius = 0.14
