@@ -38,7 +38,7 @@ O cronograma detalhado (calendário, marcos, tarefas por sprint, checagem semana
 
 ## Backlog (pós-demo)
 
-- **Expansão da ilha: fábrica de óleo/combustível a partir de madeira/recursos naturais, estruturas novas desbloqueadas por noite.** Hoje óleo e combustível são finitos (tambor do ilhéu, barris, porão). A ideia é transformar lenha, algas e carvão em óleo e combustível numa fábrica na ilha, e liberar uma estrutura nova a cada noite vencida (`GameState.night`), para a dificuldade crescente (`night_factor()`) ter uma resposta do jogador. Fora do escopo da demo de uma noite.
+- ~~Expansão da ilha~~ ✅ (2026-11-12): terreno orgânico, fábricas de óleo/combustível, coleta, pesca, oficina, horta, torre de vigia, cerca e cenas de tutorial. Falta validar em jogo (FPS, navegação em declives, câmeras das cenas `tut_*`).
 
 ## Como rodar os testes
 

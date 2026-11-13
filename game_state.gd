@@ -179,16 +179,36 @@ var invasion_left := 0
 var invasion_kills := 0
 var invasion_spent := 0
 var invasion_crate := false
+## Fence/door reinforcement level (0-2, `puzzles/fence.gd`): lasts the whole run, slows and thins the waves.
+var fence_level := 0
 
+
+## Night from which each structure / activity exists. The only table with night numbers.
+## "gather_basic" = wood, algae and fat (feed the night-1 factories); "gather" = coal and scrap.
+const UNLOCKS := {"oil_factory": 1, "fuel_factory": 1, "gather_basic": 1, "gather": 2, "fishing": 2, "workshop": 2,
+	"cistern": 3, "garden": 3, "watchtower": 3, "fortify": 3}
 
 ## Story scenes: fire once each (saved in `scenes_seen`). "cond" is a state that must hold for
-## "delay" seconds; "at" is a clock time in minutes (a scene missed by 10+ minutes is dropped).
+## "delay" seconds; "at" is a clock time in minutes (a scene missed by 10+ minutes is dropped);
+## "near" is [center, radius] in XZ around the keeper, held for "delay" seconds, and an optional
+## "unlock" (a UNLOCKS id) keeps it from firing before that night. `tut_*` scenes are never erased
+## by `advance_night()`, so each plays once per game.
 const SCENE_TRIGGERS := {
 	"house": {"cond": "house", "delay": 0.8},
 	"lamp": {"cond": "lamp", "delay": 1.5},
 	"bell": {"at": 23.0 * 60.0 + 45.0},
 	"lavado": {"at": 24.0 * 60.0},
 	"captain": {"at": 27.0 * 60.0 + 5.0},
+	"tut_lamp": {"near": [Vector3(0.0, 0.0, -12.0), 7.0], "delay": 0.6},
+	"tut_generator": {"near": [Vector3(-20.4, 0.9, 14.7), 5.0], "delay": 0.6},
+	"tut_oil_factory": {"near": [Vector3(-12.0, 0.0, 21.5), 5.0], "delay": 0.6, "unlock": "oil_factory"},
+	"tut_fuel_factory": {"near": [Vector3(-8.5, 0.0, 21.5), 5.0], "delay": 0.6, "unlock": "fuel_factory"},
+	"tut_fishing": {"near": [Vector3(7.0, 0.0, -55.0), 5.0], "delay": 0.6, "unlock": "fishing"},
+	"tut_workshop": {"near": [Vector3(-27.0, 0.0, 8.0), 5.0], "delay": 0.6, "unlock": "workshop"},
+	"tut_garden": {"near": [Vector3(22.0, 0.0, 18.0), 5.0], "delay": 0.6, "unlock": "garden"},
+	"tut_watchtower": {"near": [Vector3(-67.0, 0.0, -19.0), 5.0], "delay": 0.6, "unlock": "watchtower"},
+	"tut_fence": {"near": [Vector3(27.0, 0.0, 7.0), 5.0], "delay": 0.6, "unlock": "fortify"},
+	"tut_cave": {"near": [Vector3(31.0, 0.0, -60.0), 6.0], "delay": 0.6, "unlock": "gather"},
 	"aurora": {"event": ["Aurora", ["liar", "docked"]]}, ## the Aurora authorized, honest or lying (radio.gd, ship_event)
 }
 ## Night 1 is the tutorial: consumption and wear at a fraction; from night 2 it is the full 1.0 and grows.
@@ -292,6 +312,7 @@ func reset() -> void:
 	invasion_kills = 0
 	invasion_spent = 0
 	invasion_crate = false
+	fence_level = 0
 
 
 # ---- Weapons
@@ -424,6 +445,14 @@ func _check_scenes(delta: float) -> void:
 			if minutes >= trigger.at + 10.0:
 				scenes_seen[id] = true # slept through it (a loaded game, a long panel)
 			due = minutes >= trigger.at
+		elif trigger.has("near"):
+			var holds := false
+			if player and player.is_inside_tree() and (not trigger.has("unlock") or unlocked(trigger.unlock)):
+				var center: Vector3 = trigger.near[0]
+				var here: Vector3 = player.global_position
+				holds = Vector2(here.x - center.x, here.z - center.z).length() <= float(trigger.near[1])
+			_scene_hold[id] = _scene_hold.get(id, 0.0) + delta if holds else 0.0
+			due = _scene_hold[id] >= trigger.delay
 		else:
 			var holds: bool = in_house() if trigger.cond == "house" else lamp_lit_once
 			_scene_hold[id] = _scene_hold.get(id, 0.0) + delta if holds else 0.0
@@ -687,6 +716,7 @@ func to_save() -> Dictionary:
 		"equipped": equipped, "mags": mags.duplicate(),
 		"invasion_active": invasion_active, "invasion_done": invasion_done, "invasion_wave": invasion_wave,
 		"invasion_kills": invasion_kills, "invasion_spent": invasion_spent, "invasion_crate": invasion_crate,
+		"fence_level": fence_level,
 	}
 
 
@@ -716,6 +746,7 @@ func from_save(data: Dictionary) -> void:
 	invasion_kills = int(data.get("invasion_kills", 0))
 	invasion_spent = int(data.get("invasion_spent", 0))
 	invasion_crate = data.get("invasion_crate", false)
+	fence_level = int(data.get("fence_level", 0))
 	invasion_left = 0
 	equipped = str(data.get("equipped", ""))
 	if equipped != "" and inventory.count(equipped) <= 0:
@@ -782,6 +813,11 @@ func clock_text() -> String:
 
 
 ## 0 at dusk, 1 at dawn. Drives how hard the night pushes back.
+## Whether a structure / activity of the `UNLOCKS` table exists on the current night.
+func unlocked(id: String) -> bool:
+	return night >= int(UNLOCKS.get(id, 1))
+
+
 func progress() -> float:
 	var base := (minutes - START_MINUTES) / float(END_MINUTES - START_MINUTES)
 	return clampf(base + (0.04 if invasion_done else 0.0), 0.0, 1.0) # the tide left the island uneasy
@@ -951,6 +987,8 @@ func objective() -> String:
 		line += "\nSem óleo na mochila: o tambor fica no ilhéu a leste, na maré baixa."
 	elif fuel_cans == 0 and not generator_on:
 		line += "\nGerador parado: há combustível nos barris atrás do galpão."
+	if tutorial() and generator_started and unlocked("oil_factory"):
+		line += "\nDica: as fábricas, perto do galpão, viram lenha, gordura e algas em óleo, e lenha, carvão e restos em combustível."
 	return line
 
 

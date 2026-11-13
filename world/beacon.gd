@@ -37,7 +37,7 @@ const PFFT_OIL := 2.0
 const MIN_RANGE := 0.4
 
 @export var rotation_speed := 0.6 ## radians per second at full spring
-@export var oil_burn := 100.0 / 240.0 ## per second, before progress and pressure
+@export var oil_burn := 100.0 / 600.0 ## per second, before progress, pressure and night factor (lit all night: night 1 ~2.5 cans, night 2 ~4.5)
 @export var spring_unwind := 100.0 / 150.0 ## per second, unless the motor circuit is powered
 @export var dirt_rate := 100.0 / 360.0 ## per second, before progress and pressure
 ## Off for the menu showcase: gauges freeze but the head keeps turning.

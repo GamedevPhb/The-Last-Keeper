@@ -16,6 +16,7 @@ var _call := {}
 var _contact := false
 var _ringing := false
 var _until_next := 20.0
+var _next_bearing := "" ## rolled ahead so the watchtower can announce it
 var _count := 0
 var _queue: Array = []
 var _tune: Interactable
@@ -81,6 +82,8 @@ func _spawn_call() -> void:
 		_queue = GameState.SHIPS.duplicate()
 		_queue.shuffle()
 	var ship: Dictionary = _queue.pop_back()
+	var bearing: String = _next_bearing if _next_bearing != "" else BEARINGS.pick_random()
+	_next_bearing = ""
 	_count += 1
 	var claim: String = ship.register
 	if _anomaly_every() > 0 and _count > 1 and _count % _anomaly_every() == 0:
@@ -90,7 +93,7 @@ func _spawn_call() -> void:
 	var timeout := CALL_TIMEOUT * (1.5 if GameState.tutorial() and _count == 1 else 1.0)
 	# Never the frequency the desk is on, so every call rings before it is answered.
 	_call = {"call": ship.call, "register": ship.register, "claim": claim, "freq": (_freq + 1 + randi() % (FREQS.size() - 1)) % FREQS.size(),
-		"status": "incoming", "left": timeout, "total": timeout, "answered": false, "extended": false, "bearing": BEARINGS.pick_random(), "seed": randi()}
+		"status": "incoming", "left": timeout, "total": timeout, "answered": false, "extended": false, "bearing": bearing, "seed": randi()}
 	_until_next = randf_range(60.0, 90.0) * (1.0 - 0.45 * GameState.progress())
 	GameState.active_call = _call
 	_sync_ring(GameState.powered("radio"))
@@ -100,6 +103,21 @@ func _spawn_call() -> void:
 	elif not GameState.has_radio:
 		GameState.say("Rádio: há uma chamada na linha. Sintonize.")
 	_check_contact()
+
+
+## What the watchtower binoculars see: {"call", "bearing", "eta" (game minutes, 0 = on the line now)},
+## or {} when no ship is coming (no radio power, so the schedule does not run).
+func forecast() -> Dictionary:
+	if not _call.is_empty():
+		return {"call": _call.call, "bearing": _call.bearing, "eta": 0.0}
+	if not GameState.powered("radio"):
+		return {}
+	if _queue.is_empty():
+		_queue = GameState.SHIPS.duplicate()
+		_queue.shuffle()
+	if _next_bearing == "":
+		_next_bearing = BEARINGS.pick_random() as String
+	return {"call": _queue.back().call, "bearing": _next_bearing, "eta": maxf(_until_next, 0.0) / GameState.SECONDS_PER_MINUTE}
 
 
 func _on_tune(_by: Node) -> void:

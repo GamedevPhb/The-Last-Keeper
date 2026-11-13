@@ -16,6 +16,12 @@ const COLORS := {
 	"can": Color(0.6, 0.62, 0.6),
 	"biscuit": Color(0.78, 0.65, 0.4),
 	"bandage": Color(0.9, 0.88, 0.8),
+	"wood": Color(0.45, 0.3, 0.15),
+	"algae": Color(0.2, 0.45, 0.25),
+	"fat": Color(0.85, 0.8, 0.6),
+	"coal": Color(0.1, 0.1, 0.12),
+	"scrap": Color(0.5, 0.35, 0.25),
+	"fish": Color(0.55, 0.65, 0.7),
 }
 
 @export var item := "oil"

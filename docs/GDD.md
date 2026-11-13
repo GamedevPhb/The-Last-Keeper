@@ -229,6 +229,28 @@ Escopo mínimo: defesa, não um jogo de tiro. Munição escassa, recarga lenta e
 
 **Critérios de pronto:** (1) sem munição o gatilho só estala; (2) recarga move balas da reserva para o pente; (3) arma e pentes persistem no save; (4) paredes bloqueiam tiros; (5) `tests/weapons_test.gd` cobre equipar, tiro, dano, falloff, ruído e save.
 
+### 4.12 Economia por noite
+
+Premissas: noite = 900 s reais; a dificuldade média `(1 + progress())` é ~1,5; `night_factor` (nf) = 0,55 / 1,0 / 1,15 / 1,3 / 1,45 (noites 1, 2, 3, 4, 5) e 1,6 de teto. Pior caso: lâmpada e gerador ligados a noite toda. Lâmpada: `oil_burn` 100/600 por s, 50 de óleo por lata. Gerador: 1/480 de lata por s. Lata = 3 insumos (`INPUTS_PER_OUTPUT`); fábrica de óleo 60 s/lata, de combustível 75 s/lata (capacidade 4, não é o gargalo).
+
+Fórmulas: latas de óleo = 900 × (100/600) × 1,5 × nf / 50 = 4,5 × nf; latas de combustível = 900 × 1,5 × nf / 480 = 2,8 × nf. O baú dá 1 óleo + 1 combustível por noite (o tambor do ilhéu, 3 latas, só uma vez).
+
+| Noite | nf | Óleo (latas) | Combustível (latas) | Do baú | Das fábricas | Insumos (x3) | Reserva de insumos* | Comida/água |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0,55 | 2,5 | 1,5 | 2 | ~2 | 6-7 (1-2 viagens) | 34 | 1 água + 1 peixe/2 bolachas (prateleira do galpão) |
+| 2 | 1,0 | 4,5 | 2,8 | 2 | ~5,3 | ~16 | 46 | pesca: 3 peixes, ~1 água por noite; 1 água e 2 bolachas na prateleira |
+| 3 | 1,15 | 5,2 | 3,2 | 2 | ~6,4 | ~19 (+4 de cerca) | 46 | + horta: 2 bolachas e 1 água |
+| 5 | 1,45 | 6,5 | 4,1 | 2 | ~8,6 | ~26 | 46 | idem; pesca e horta obrigatórias para regenerar |
+| 7 | 1,6 | 7,2 | 4,5 | 2 | ~9,7 | ~29 | 46 | idem |
+
+*Reserva por noite (re-arma a cada noite): madeira 8x3 = 24, algas 3x2 = 6, gordura 2x2 = 4 (básicos, noite 1+ = 34); carvão 3x2 = 6 e sucata 3x2 = 6 (noite 2+, também alimentam a fábrica de combustível e a oficina). Da noite 5 em diante o jogador usa quase tudo o que há: cerca (10 madeira no total) e oficina competem com as fábricas.
+
+Sobrevivência: sede cai 8/h e fome 5/h de jogo (noite = 12,5 h; fome x1,5 ao ar livre depois das 02:00). Sem comer nem beber chega-se a ~0 pela madrugada; 1 água (35) e 1 peixe (30) mantêm o jogador vivo, 2 de cada mantêm acima de 50 (regeneração). Pesca: 2 usos/noite, 1-2 peixes, 50% de garrafa; horta: 1 uso/noite.
+
+Pilhas da lanterna (carga 100 = 150 s de feixe na noite 2+, 300 s na noite 1; pilha = +50): noite 1 o baú dá 4 pilhas (cobre a noite); da noite 2 em diante o baú dá 2 e o déficit de ~2-4 pilhas vem da oficina (1 sucata + 1 carvão cada).
+
+Custos: cerca nível 1 = 4 madeira, nível 2 (porta) = 6 (máximo 10, ~3 latas de óleo); oficina: munição 2 sucata + 1 carvão (6 balas), cartuchos 2 sucata + 1 carvão (2), pilha 1 + 1, pano 2 sucata. Reproduzir o balanço com a fórmula acima ao mexer em `night_factor`, `oil_burn` ou `FUEL_BURN`.
+
 ---
 
 ## 5. Progressão (7 noites)
@@ -276,7 +298,9 @@ Escopo mínimo: defesa, não um jogo de tiro. Munição escassa, recarga lenta e
    [Pedras / costa] — destroços, itens, lugar dos eventos estranhos
 ```
 
-- A ilha tem ~76 m de diâmetro (~25 s de ponta a ponta andando). Ir e voltar entre o rádio, a lâmpada e o gerador é a principal tensão de tempo.
+- **Terreno orgânico:** a ilha não é mais um disco plano. Costa irregular com enseada (píer em x≈0), colina e penhasco a nordeste (~10 m, gruta no pé), mata do oeste em morros (~7 m), faixa norte, ilhota da maré e ilhéu sul por pedras de maré. Farol, casa, galpão, fábricas, píer e trilhas ficam em platôs planos (y=0). Esquema: `docs/shots/mapa_ilha_organica.png`.
+- **Expansão (noites 2+):** mata (madeira), costa norte (algas, gordura, pesca), gruta (carvão, perigosa), cabana do vigia 6 (torre de vigia), ilhéu sul (horta). Fábricas de óleo e combustível na noite 1; coleta, pesca e oficina na 2; horta, torre e cerca na 3 (`GameState.UNLOCKS`). Cada estrutura tem uma cena de tutorial (`tut_*`) na primeira vez.
+- A ilha original tinha ~76 m de diâmetro (~25 s de ponta a ponta andando); com a expansão são ~180 m de leste a oeste. Ir e voltar entre o rádio, a lâmpada e o gerador é a principal tensão de tempo.
 - **Escada do farol:** rampa em espiral de 16 m, ~14 s para subir. É deliberadamente longa e é onde acontecem vários eventos. O rádio fica na casa, ao pé do farol, para que atender uma chamada exija descer.
 
 ---

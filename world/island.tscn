@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://doukhbfgrasw7" path="res://world/spiral_ramp.gd" id="1_ramp"]
 [ext_resource type="PackedScene" path="res://world/beacon.tscn" id="2_beacon"]
-[ext_resource type="Material" path="res://materials/m_ground.tres" id="3_ground"]
 [ext_resource type="Material" path="res://materials/m_rock.tres" id="4_rock"]
 [ext_resource type="Material" path="res://materials/m_stone.tres" id="5_stone"]
 [ext_resource type="Material" path="res://materials/m_concrete.tres" id="6_concrete"]
@@ -12,6 +11,9 @@
 [ext_resource type="Material" path="res://materials/m_water.tres" id="10_water"]
 [ext_resource type="PackedScene" uid="uid://byqimq8l45v2e" path="res://world/island_details.tscn" id="11_details"]
 [ext_resource type="Script" uid="uid://by73718tchmi2" path="res://puzzles/power_light.gd" id="12_light"]
+
+[ext_resource type="PackedScene" path="res://world/expansion.tscn" id="13_expansion"]
+[ext_resource type="PackedScene" path="res://world/terrain.tscn" id="14_terrain"]
 
 [sub_resource type="PlaneMesh" id="sea_mesh"]
 size = Vector2(300, 300)
@@ -25,38 +27,33 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.2, 0)
 mesh = SubResource("sea_mesh")
 surface_material_override/0 = ExtResource("10_water")
 
-[node name="Terrain" type="CSGCombiner3D" parent="." unique_id=862570562]
+[node name="Terrain" parent="." instance=ExtResource("14_terrain")]
+
+[node name="Rocks" type="CSGCombiner3D" parent="." unique_id=862570562]
 use_collision = true
 
-[node name="Ground" type="CSGCylinder3D" parent="Terrain" unique_id=413715163]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3, 0)
-radius = 38.0
-height = 6.0
-sides = 24
-material = ExtResource("3_ground")
-
-[node name="RockA" type="CSGBox3D" parent="Terrain" unique_id=1131847109]
-transform = Transform3D(0.8, 0, -0.6, 0.12, 0.98, 0.16, 0.59, -0.2, 0.78, 35, 0.4, -10)
+[node name="RockA" type="CSGBox3D" parent="Rocks" unique_id=1131847109]
+transform = Transform3D(0.8, 0, -0.6, 0.12, 0.98, 0.16, 0.59, -0.2, 0.78, 35, 0.452, -10)
 size = Vector3(5, 3, 4)
 material = ExtResource("4_rock")
 
-[node name="RockB" type="CSGBox3D" parent="Terrain" unique_id=1152627409]
-transform = Transform3D(0.94, -0.2, 0.28, 0.17, 0.98, 0.1, -0.29, -0.05, 0.96, -30, 0.8, -22)
+[node name="RockB" type="CSGBox3D" parent="Rocks" unique_id=1152627409]
+transform = Transform3D(0.94, -0.2, 0.28, 0.17, 0.98, 0.1, -0.29, -0.05, 0.96, -30, 3.526, -22)
 size = Vector3(6, 4, 5)
 material = ExtResource("4_rock")
 
-[node name="RockC" type="CSGBox3D" parent="Terrain" unique_id=684728770]
-transform = Transform3D(0.71, 0, 0.71, 0, 1, 0, -0.71, 0, 0.71, -36, 0, 8)
+[node name="RockC" type="CSGBox3D" parent="Rocks" unique_id=684728770]
+transform = Transform3D(0.71, 0, 0.71, 0, 1, 0, -0.71, 0, 0.71, -36, 1.211, 8)
 size = Vector3(4, 2.5, 4)
 material = ExtResource("4_rock")
 
-[node name="RockD" type="CSGBox3D" parent="Terrain" unique_id=1492676858]
-transform = Transform3D(0.97, 0.24, 0, -0.24, 0.97, 0, 0, 0, 1, 14, 0.2, -36)
+[node name="RockD" type="CSGBox3D" parent="Rocks" unique_id=1492676858]
+transform = Transform3D(0.97, 0.24, 0, -0.24, 0.97, 0, 0, 0, 1, 14, 5.433, -36)
 size = Vector3(7, 3, 4)
 material = ExtResource("4_rock")
 
-[node name="RockE" type="CSGBox3D" parent="Terrain" unique_id=35632383]
-transform = Transform3D(0.5, 0, -0.87, 0, 1, 0, 0.87, 0, 0.5, 30, -0.6, 26)
+[node name="RockE" type="CSGBox3D" parent="Rocks" unique_id=35632383]
+transform = Transform3D(0.5, 0, -0.87, 0, 1, 0, 0.87, 0, 0.5, 30, -0.634, 26)
 size = Vector3(5, 3, 3)
 material = ExtResource("4_rock")
 
@@ -285,3 +282,5 @@ sides = 6
 material = ExtResource("9_wood")
 
 [node name="Details" parent="." unique_id=636149627 instance=ExtResource("11_details")]
+
+[node name="Expansion" parent="." instance=ExtResource("13_expansion")]

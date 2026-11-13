@@ -10,6 +10,8 @@ const TRIGGER := 26.0 * 60.0 + 30.0 ## 02:30
 const LATEST := 29.0 * 60.0 + 30.0 ## 05:30: the tide ebbs by itself at first light
 const WAVES := [4, 6, 8] ## night 2; see `waves()`
 const LEAD := 12.0 ## real seconds from the warning to the first wave
+const FENCE_LEAD := 8.0 ## extra real seconds of warning per fence level
+const FENCE_CUT := 1 ## foes fewer per wave per fence level (never under 2)
 const REST := 10.0 ## real seconds of rest after a cleared wave
 const FORCE := 40.0 ## a wave that lingers this long (real s) is followed by the next anyway
 const SPAWN_GAP := 0.45
@@ -41,10 +43,11 @@ func _ready() -> void:
 
 ## Foes per wave: 3-4-5 on the tutorial night, 4-6-8 on night 2, two more per wave for each night after.
 func waves() -> Array:
+	var cut := FENCE_CUT * GameState.fence_level
 	if GameState.tutorial():
-		return [3, 4, 5]
+		return [maxi(3 - cut, 2), maxi(4 - cut, 2), maxi(5 - cut, 2)]
 	var extra := 2 * mini(GameState.night - 2, 3)
-	return [WAVES[0] + extra, WAVES[1] + extra, WAVES[2] + extra]
+	return [maxi(WAVES[0] + extra - cut, 2), maxi(WAVES[1] + extra - cut, 2), maxi(WAVES[2] + extra - cut, 2)]
 
 
 func foes() -> Array[Node3D]:
@@ -95,7 +98,7 @@ func _physics_process(delta: float) -> void:
 func _begin() -> void:
 	GameState.invasion_active = true
 	GameState.invasion_wave = 0
-	_lead = LEAD
+	_lead = LEAD + FENCE_LEAD * GameState.fence_level
 	_last_rounds = GameState.rounds_total()
 	GameState.play("bell")
 	GameState.play("horn")

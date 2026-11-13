@@ -3,7 +3,7 @@ extends Marker3D
 ## then the tank keeps it alive until the fuel runs out.
 
 const LABELS := ["A", "B", "C", "D"]
-const FUEL_BURN := 1.0 / 360.0 ## per second, times the night factor (night 1: about 11 real minutes per can)
+const FUEL_BURN := 1.0 / 480.0 ## per second, times the night factor (night 1: about 14.5 real minutes per can)
 const BARRELS := [Vector3(-23.3, 0.9, 13.4), Vector3(-23.3, 0.9, 14.6), Vector3(-23.3, 0.9, 15.8)]
 
 var order: Array = [0, 1, 2, 3]
