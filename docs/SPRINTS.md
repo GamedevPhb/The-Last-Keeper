@@ -362,3 +362,24 @@ Blocos independentes, feitos um de cada vez, em ordem. Fora do plano até o huma
 | 6 | Presença observadora (inimigo gigante; ver `HISTORIA.md`, "o nono ainda vigia") e terror psicológico | pendente, decisão de escopo |
 
 **Bloco 3 (escopo ajustado):** ao aumentar a ilha, entram mais estruturas e **tarefas pequenas e repetitivas** para o jogador cumprir ao longo da noite (manutenção, abastecer, conferir), e **eventos especiais** não previstos no roteiro da noite, mas já descritos no GDD (§4.6 clima: neblina, tempestade que quebra a janela da lanterna; rajadas; falhas do gerador). Eles entram no `.tres` do roteiro da 2.1. As texturas "com cara de ar" ficam na arte P0 da S3.
+
+## Feedback de um testador (versão Web alpha, 12/11)
+
+Triagem do relato de um jogador que testou em dois navegadores. Nada foi corrigido ainda.
+
+| # | Relato | Tipo | Prioridade | Observação |
+|---|---|---|---|---|
+| 1 | Sem som em dois navegadores, embora o menu de opções permita configurar | bug provável | Must | Todo o áudio é procedural (`audio/synth.gd`, `AudioStreamGenerator`). Investigar o build Web: `AudioContext` só inicia após gesto do usuário e o gerador pode exigir configuração de threads ou latência. Testar `export` Web com o bus ligado |
+| 2 | Texto e fontes ilegíveis na viewport 320×240, a ponto de apertar os olhos | UX | Must | Baixa resolução não deveria baixar a legibilidade: aumentar a fonte mínima, contraste e plaquetas atrás do texto de HUD, dicas e prompts; revisar `ui/ui_kit.gd` e o `ui_fit_test` |
+| 3 | Os 3 barris atrás da casa foram pegos de uma vez, mas não ficou claro que a posse foi registrada; só deu para usar um no farol | feedback de ação | Must | Mostrar contagem na mochila/HUD ao pegar ("óleo ×3") e ao usar ("lata colocada, restam 2"); o farol aceita uma lata por vez, então avisar isso |
+| 4 | Sem feedback claro ao usar cada barril; não deu para saber se houve progresso | feedback de ação | Must | Indicador visível de nível de óleo na lâmpada e mensagem de quanto cada lata acrescentou |
+| 5 | Válvulas do gerador continuam interativas quando as condições já foram satisfeitas | puzzle | Should | Desabilitar o `Interactable` (ou trocar o prompt) quando a válvula já está correta/concluída |
+| 6 | Hints de objetivo dão trabalho; seria melhor distribuí-los perto de cada puzzle | UX | Should | Dicas contextuais no próprio puzzle (placas, notas, cenas `tut_*`), mantendo o objetivo do HUD enxuto; o jogador já gerencia o farol e os monstros |
+| 7 | Sugestão: mecânica de stamina na corrida | design | Could | Hoje `GameState.can_sprint()` só bloqueia por sede, fome e carga. Avaliar barra de fôlego no combate/terror (decisão do `game-designer`) |
+| 8 | Mood bom, mas melhorar contrastes em vez de só escurecer | arte | Should | Mais variação de luz (pontos de luz quente, silhuetas, lua) e menos preto chapado; revisar fog, ambiente e `psx_post` |
+| 9 | Não deu para avaliar o jitter de vértices e os modelos, pois a geometria era simples demais | arte | Could | O terreno e os modelos novos (psx) ajudam; checar `psx_vertex_snap` em modelos com mais vértices |
+
+**Pontos positivos citados:** controles responsivos; mood de terror (comparado aos jogos da Puppet Combo); textura do efeito de câmera agradável; lore simples mas convidativa.
+
+**Observação:** os itens 3, 4 e 6 se sobrepõem às cenas de tutorial da expansão (`tut_lamp`, `tut_generator`), que ainda não foram jogadas por um humano; vale rodar a nova versão com o testador antes de mudar o HUD.
+
