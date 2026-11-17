@@ -309,7 +309,7 @@ func _entries() -> Array[Dictionary]:
 	if GameState.previous_keeper_line() != "":
 		note_list.push_front(GameState.previous_keeper_line())
 	var notes := "\n\n".join(note_list) if not note_list.is_empty() else "Nada anotado ainda. Leia placas, etiquetas e inscrições pela ilha."
-	return [
+	var entries: Array[Dictionary] = [
 		{"title": "ROTINA DO VIGIA", "stamp": "Das 17:30 às 06:00",
 			"body": "Manter a luz acesa, atender o rádio e manter o gerador vivo.\n\nSem energia não há rádio. Sem luz os navios encalham."},
 		{"title": "MAPA DA ILHA", "stamp": "Farol 7",
@@ -327,6 +327,10 @@ func _entries() -> Array[Dictionary]:
 			"body": register.call(3, 6) + "\n\nCarga diferente da registrada: não autorize."},
 		{"title": "ANOTAÇÕES", "stamp": "Noite %d · até as %s" % [GameState.night, GameState.clock_text()], "body": notes},
 	]
+	if GameState.scenes_seen.get("portinho_friend", false):
+		entries.append({"title": "O BONEQUINHO", "stamp": "Mesa do rádio",
+			"body": "Achei no fundo do armário do rádio um bonequinho de lata, um farol com chapéu azul, polegar levantado. Não sei de quem era. Anselmo? Algum filho de vigia? Tem ferrugem só nas juntas, como se alguém o tivesse segurado por décadas. Pus na mesa, junto ao rádio. Não pedi companhia, mas o polegar parece saber de algo que eu não sei."})
+	return entries
 
 
 # ---- Dawn summary

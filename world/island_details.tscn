@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://byqimq8l45v2e"]
 
 [ext_resource type="Material" path="res://materials/m_bush.tres" id="m_bush"]
 [ext_resource type="Material" path="res://materials/m_concrete.tres" id="m_concrete"]
@@ -12,22 +12,25 @@
 [ext_resource type="Material" path="res://materials/m_rock.tres" id="m_rock"]
 [ext_resource type="Material" path="res://materials/m_stone.tres" id="m_stone"]
 [ext_resource type="Material" path="res://materials/m_wood.tres" id="m_wood"]
-[ext_resource type="Script" path="res://world/santa_aurora.gd" id="s_aurora"]
-[ext_resource type="Script" path="res://world/boatman.gd" id="s_boatman"]
-[ext_resource type="Script" path="res://puzzles/cellar_lock.gd" id="s_cellar_lock"]
-[ext_resource type="Script" path="res://puzzles/chest.gd" id="s_chest"]
-[ext_resource type="Script" path="res://puzzles/clue.gd" id="s_clue"]
-[ext_resource type="Script" path="res://puzzles/factory.gd" id="s_factory"]
-[ext_resource type="Script" path="res://puzzles/fuse_box.gd" id="s_fuse_box"]
-[ext_resource type="Script" path="res://puzzles/generator.gd" id="s_generator"]
-[ext_resource type="Script" path="res://world/horizon_ship.gd" id="s_horizon"]
-[ext_resource type="Script" path="res://world/invasion.gd" id="s_invasion"]
-[ext_resource type="Script" path="res://world/lavados.gd" id="s_lavados"]
-[ext_resource type="Script" path="res://puzzles/oil_drum.gd" id="s_oil_drum"]
-[ext_resource type="Script" path="res://puzzles/radio.gd" id="s_radio"]
-[ext_resource type="Script" path="res://world/supplies.gd" id="s_supplies"]
-[ext_resource type="Script" path="res://puzzles/tide.gd" id="s_tide"]
-[ext_resource type="Script" path="res://world/ship_traffic.gd" id="s_traffic"]
+[ext_resource type="Script" uid="uid://cr4t2rwd2b1r8" path="res://world/santa_aurora.gd" id="s_aurora"]
+[ext_resource type="Script" uid="uid://cdgvq6ngvrgn5" path="res://world/boatman.gd" id="s_boatman"]
+[ext_resource type="Script" uid="uid://dyel2geje5rfv" path="res://puzzles/cellar_lock.gd" id="s_cellar_lock"]
+[ext_resource type="Script" uid="uid://ce6fffc8m6csj" path="res://puzzles/chest.gd" id="s_chest"]
+[ext_resource type="Script" uid="uid://dcp2hgf3nw2xj" path="res://puzzles/clue.gd" id="s_clue"]
+[ext_resource type="Script" uid="uid://bofh51r7ir5l3" path="res://puzzles/factory.gd" id="s_factory"]
+[ext_resource type="Script" uid="uid://s2n87no2axrl" path="res://puzzles/fuse_box.gd" id="s_fuse_box"]
+[ext_resource type="Script" uid="uid://cwdoykhferr30" path="res://puzzles/generator.gd" id="s_generator"]
+[ext_resource type="Script" uid="uid://dlxvrmf6dth4u" path="res://world/horizon_ship.gd" id="s_horizon"]
+[ext_resource type="Script" path="res://world/portinho_giant.gd" id="s_pgiant"]
+[ext_resource type="Script" path="res://world/supply_crate.gd" id="s_pcrate"]
+[ext_resource type="Script" path="res://world/portinho_doll.gd" id="s_pdoll"]
+[ext_resource type="Script" uid="uid://b2owp6ix5cgm6" path="res://world/invasion.gd" id="s_invasion"]
+[ext_resource type="Script" uid="uid://ij6yww5pb1av" path="res://world/lavados.gd" id="s_lavados"]
+[ext_resource type="Script" uid="uid://wplk2gp3ydbc" path="res://puzzles/oil_drum.gd" id="s_oil_drum"]
+[ext_resource type="Script" uid="uid://ck7nylrr73a8b" path="res://puzzles/radio.gd" id="s_radio"]
+[ext_resource type="Script" uid="uid://csla1rmerycma" path="res://world/supplies.gd" id="s_supplies"]
+[ext_resource type="Script" uid="uid://m1grha16i7ek" path="res://puzzles/tide.gd" id="s_tide"]
+[ext_resource type="Script" uid="uid://boltd7qtflogl" path="res://world/ship_traffic.gd" id="s_traffic"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_0"]
 size = Vector3(1.6, 0.04, 18.6)
@@ -4067,3 +4070,12 @@ script = ExtResource("s_invasion")
 
 [node name="HorizonShip" type="Node3D" parent="." unique_id=1632111871]
 script = ExtResource("s_horizon")
+
+[node name="PortinhoGiant" type="Node3D" parent="."]
+script = ExtResource("s_pgiant")
+
+[node name="SupplyCrate" type="Node3D" parent="."]
+script = ExtResource("s_pcrate")
+
+[node name="PortinhoDoll" type="Node3D" parent="."]
+script = ExtResource("s_pdoll")

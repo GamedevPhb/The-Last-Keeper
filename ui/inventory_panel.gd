@@ -380,6 +380,8 @@ func use_slot(index: int) -> void:
 			GameState.request_radio()
 		"equip":
 			GameState.equip("" if GameState.equipped == slot.id else slot.id)
+		"portinho":
+			GameState.portinho_hint()
 		"console":
 			GameState.say(item.console)
 

@@ -33,3 +33,9 @@ Informado pelo responsável do projeto como CC0 / domínio público; autor e URL
 | Hatchet | `assets/armas/machado.glb` | CC0 / public domain | autor: não informado |
 | low-poly double barrel shotgun (and the 12-gauge shell) | `assets/armas/espingarda.glb`, `assets/armas/cartucho_12.glb` | CC0 / public domain | autor: não informado |
 | p_38 pistol | `assets/armas/pistola/` | CC0 / public domain | autor: não informado |
+
+## Mascot / Mascote
+
+| Asset | File / Arquivo | Status |
+|---|---|---|
+| Low-poly 3D model based on the Portinho mascot (Porto Indie); easter egg: the giant on the horizon and the tin doll / Modelo 3D low-poly baseado no mascote Portinho (Porto Indie) | `assets/portinho/portinho.glb` (reference art: `assets/portinho/ref.png`) | Used with permission of the partner Porto Indie; the character and its art belong to Porto Indie and are not under CC BY-NC. / Usado com permissão da parceira Porto Indie; o personagem e a arte pertencem à Porto Indie e não estão sob CC BY-NC. |

@@ -37,6 +37,8 @@ const ITEMS := {
 		"desc": "Pistola velha do vigia anterior. Pente de 6, 35 de dano, estampido alto. Usar equipa (2). Recarrega com T / L2."},
 	"shotgun": {"name": "Espingarda", "stack": 1, "use": "equip",
 		"desc": "Cano duplo, 2 tiros. De perto derruba qualquer um (80 de dano), de longe quase nada. O barulho vai longe. Usar equipa (3)."},
+	"portinho": {"name": "Portinho", "stack": 1, "use": "portinho",
+		"desc": "Bonequinho de lata: um farol com chapéu azul, polegar para cima. Usar pede uma dica sobre o que está perto."},
 	"wood": {"name": "Lenha", "stack": 8,
 		"desc": "Toras secas. Entram nas fábricas de óleo e de combustível."},
 	"algae": {"name": "Algas", "stack": 8,

@@ -49,6 +49,7 @@ const INVENTORY := preload("res://items/inventory.gd")
 const PICKUP := preload("res://items/pickup.gd")
 const SAVE := preload("res://save_game.gd")
 const WEAPON_DEFS := preload("res://items/weapon_defs.gd")
+const PORTINHO_HINTS := preload("res://puzzles/portinho_hints.gd")
 
 # Keeper status (GDD 4.10), per hour of game time unless noted.
 const THIRST_START := 80.0
@@ -115,6 +116,24 @@ const EMERGE_RANGE := 45.0
 var _last_impact := -100.0
 var mags := {"pistol": 0, "shotgun": 0}
 var scenes_seen := {}
+## Portinho easter egg: sweeps of the beam over the giant (3 solve it), solved, crate pickups spawned, doll taken.
+const PORTINHO_SWEEPS := 3
+const PORTINHO_POINT := Vector3(56.0, 13.0, -51.0)
+## Where each hint context lives (XZ); the keeper's nearest one within PORTINHO_NEAR wins, else "idle".
+const PORTINHO_SPOTS := {
+	"lamp": Vector3(0.0, 0.0, -12.0), "generator": Vector3(-20.4, 0.0, 14.7), "fuses": Vector3(28.5, 0.0, 5.1),
+	"oil_factory": Vector3(-12.0, 0.0, 21.5), "fuel_factory": Vector3(-8.5, 0.0, 21.5),
+	"radio": Vector3(25.25, 0.0, 5.4), "fishing": Vector3(7.0, 0.0, -55.0), "workshop": Vector3(-27.0, 0.0, 8.0),
+	"garden": Vector3(22.0, 0.0, 18.0), "watchtower": Vector3(-67.0, 0.0, -19.0), "fence": Vector3(27.0, 0.0, 7.0),
+}
+const PORTINHO_NEAR := 7.0
+var portinho_sweeps := 0
+var portinho_solved := false
+var portinho_crate_given := false
+var portinho_doll_taken := false
+var portinho_hinted := false
+var _portinho_reach_said := false
+var _portinho_last := ""
 var _scene_hold := {}
 ## Flashlight charge, 0-100. Drains while the beam is on; a battery adds BATTERY_CHARGE.
 var flashlight_battery := 100.0
@@ -199,6 +218,7 @@ const SCENE_TRIGGERS := {
 	"bell": {"at": 23.0 * 60.0 + 45.0},
 	"lavado": {"at": 24.0 * 60.0},
 	"captain": {"at": 27.0 * 60.0 + 5.0},
+	"portinho": {"at": 21.0 * 60.0 + 45.0, "night": 1}, ## the giant Portinho waves from the horizon (night 1 only)
 	"tut_lamp": {"near": [Vector3(0.0, 0.0, -12.0), 7.0], "delay": 0.6},
 	"tut_generator": {"near": [Vector3(-20.4, 0.9, 14.7), 5.0], "delay": 0.6},
 	"tut_oil_factory": {"near": [Vector3(-12.0, 0.0, 21.5), 5.0], "delay": 0.6, "unlock": "oil_factory"},
@@ -231,6 +251,7 @@ func _process(delta: float) -> void:
 	if not in_game or finished or scene_active:
 		return
 	_check_scenes(delta)
+	_portinho_tick()
 	minutes += delta / SECONDS_PER_MINUTE
 	if not dead:
 		tick_status(delta)
@@ -282,6 +303,12 @@ func reset() -> void:
 	lens_left = 0.0
 	scene_active = false
 	scenes_seen = {}
+	portinho_sweeps = 0
+	portinho_solved = false
+	portinho_crate_given = false
+	portinho_doll_taken = false
+	portinho_hinted = false
+	_portinho_reach_said = false
 	_scene_hold = {}
 	in_water = false
 	cold_left = 0.0
@@ -438,7 +465,7 @@ func _check_scenes(delta: float) -> void:
 		if scenes_seen.get(id, false):
 			continue
 		var trigger: Dictionary = SCENE_TRIGGERS[id]
-		if trigger.has("event"):
+		if trigger.has("event") or (trigger.has("night") and night != int(trigger.night)):
 			continue
 		var due := false
 		if trigger.has("at"):
@@ -469,6 +496,74 @@ func _on_ship_event(ship: String, outcome: String) -> void:
 		if event.size() == 2 and event[0] == ship and outcome in event[1] and not scenes_seen.get(id, false) and in_game:
 			scenes_seen[id] = true
 			scene_requested.emit.call_deferred(id)
+
+
+## The giant Portinho stands on the horizon: night 1, after he appeared and until the beam solves it.
+func portinho_active() -> bool:
+	return night <= 1 and scenes_seen.get("portinho", false) and not portinho_solved
+
+
+## One-time nudge when he appears and the lighthouse is dark.
+func _portinho_tick() -> void:
+	if portinho_active() and not portinho_hinted and not panel_open:
+		portinho_hinted = true
+		if not lamp_working:
+			say("Alguém acena no horizonte. Acenda o farol.")
+
+
+## The beam has just started covering the giant. It counts only with the lamp working and the
+## reach (`reaches`) long enough; otherwise says once that the light falls short. Returns true if it counted.
+func portinho_sweep(lamp_ok: bool, reaches: bool) -> bool:
+	if not portinho_active():
+		return false
+	if not reaches:
+		if not _portinho_reach_said:
+			_portinho_reach_said = true
+			say("A luz não chega lá.")
+		return false
+	if not lamp_ok:
+		return false
+	portinho_sweeps += 1
+	play("lamp_valve")
+	if portinho_sweeps >= PORTINHO_SWEEPS:
+		portinho_solved = true
+		play_scene("portinho_friend")
+	else:
+		say("O gigante responde ao feixe (%d/%d)." % [portinho_sweeps, PORTINHO_SWEEPS])
+	return true
+
+
+## True once the tin doll sits on the radio desk (the lore note was found).
+func portinho_doll_present() -> bool:
+	return scenes_seen.get("portinho_friend", false) and not portinho_doll_taken
+
+
+## Hint context for a keeper position: the nearest station within PORTINHO_NEAR, else "idle".
+func portinho_context(at: Vector3) -> String:
+	var best := "idle"
+	var best_distance := PORTINHO_NEAR
+	for key: String in PORTINHO_SPOTS:
+		var spot: Vector3 = PORTINHO_SPOTS[key]
+		var distance := Vector2(at.x - spot.x, at.z - spot.z).length()
+		if distance < best_distance:
+			best_distance = distance
+			best = key
+	return best
+
+
+## Says a hint line for where the keeper is, never the same line twice in a row.
+func portinho_hint(at := Vector3.INF) -> String:
+	if at == Vector3.INF:
+		at = player.global_position if player and player.is_inside_tree() else Vector3(1000, 0, 1000)
+	var lines: Array = PORTINHO_HINTS.HINTS[portinho_context(at)]
+	var line: String = lines.pick_random()
+	for i in 6:
+		if line != _portinho_last or lines.size() < 2:
+			break
+		line = lines.pick_random()
+	_portinho_last = line
+	say(line)
+	return line
 
 
 ## Marks a story scene seen and asks the overlay to play it.
@@ -717,6 +812,8 @@ func to_save() -> Dictionary:
 		"invasion_active": invasion_active, "invasion_done": invasion_done, "invasion_wave": invasion_wave,
 		"invasion_kills": invasion_kills, "invasion_spent": invasion_spent, "invasion_crate": invasion_crate,
 		"fence_level": fence_level,
+		"portinho": {"sweeps": portinho_sweeps, "solved": portinho_solved, "crate": portinho_crate_given,
+			"doll": portinho_doll_taken, "hinted": portinho_hinted},
 	}
 
 
@@ -747,6 +844,13 @@ func from_save(data: Dictionary) -> void:
 	invasion_spent = int(data.get("invasion_spent", 0))
 	invasion_crate = data.get("invasion_crate", false)
 	fence_level = int(data.get("fence_level", 0))
+	var saved_portinho: Dictionary = data.get("portinho", {})
+	portinho_sweeps = int(saved_portinho.get("sweeps", 0))
+	portinho_solved = saved_portinho.get("solved", false)
+	portinho_crate_given = saved_portinho.get("crate", false)
+	portinho_doll_taken = saved_portinho.get("doll", false)
+	portinho_hinted = saved_portinho.get("hinted", false)
+	_portinho_reach_said = false
 	invasion_left = 0
 	equipped = str(data.get("equipped", ""))
 	if equipped != "" and inventory.count(equipped) <= 0:
@@ -968,6 +1072,13 @@ func add_note(text: String) -> void:
 
 ## What the keeper should do next, derived from what has already happened.
 func objective() -> String:
+	var text := _base_objective()
+	if portinho_active() and lamp_lit_once:
+		text += "\nUm farol gigante acena no horizonte a nordeste: varra-o com o feixe da lâmpada (%d/%d)." % [portinho_sweeps, PORTINHO_SWEEPS]
+	return text
+
+
+func _base_objective() -> String:
 	if not chest_opened:
 		return "Abra o baú aqui no píer e pegue os suprimentos."
 	if not book_read:

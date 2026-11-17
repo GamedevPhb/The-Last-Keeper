@@ -165,6 +165,42 @@ const SCENES := {
 			"lines": [[3.0, "Lá longe, o cargueiro piscou as luzes."], [0.4, "— Alguém viu."]]},
 		{"t": 17.0, "len": 0.6, "black": true},
 	]},
+	# Portinho, first contact: a giant lighthouse waving in the fog at the NE horizon. Uneasy, nearly "o nono".
+	# Needs a node in group "portinho_giant" with `set_mood(String)` ("wave", "happy", "thumbs_up") and `point()`.
+	"portinho": {"shots": [
+		{"t": 0.0, "len": 6.0, "from": Vector3(0.0, 17.5, -12.0), "to": Vector3(0.6, 17.5, -12.6),
+			"look_from": Vector3(60, 9, -48), "look_to": Vector3(58, 11, -50), "cue": "gust",
+			"do": [["portinho_giant", "set_mood", ["wave"]]],
+			"lines": [[1.5, "— Lá no horizonte, na neblina. Um farol. Outro."],
+				[0.4, "— Maior que o meu. Não devia estar ali."]]},
+		{"t": 6.0, "len": 6.0, "from": Vector3(0.6, 17.5, -12.6), "to": Vector3(1.2, 17.6, -13.0), "fov": 48.0,
+			"look_from": Vector3(58, 11, -50), "look_to": Vector3(56, 13, -51),
+			"look_call": ["portinho_giant", "point"], "cue": "static",
+			"do": [["portinho_giant", "set_mood", ["happy"]]],
+			"lines": [[0.8, "— Está acenando. Devagar, como quem conhece a casa."],
+				[0.5, "— O feixe passa por ele. E ele gosta."]]},
+		{"t": 12.0, "len": 5.0, "from": Vector3(1.2, 17.6, -13.0), "to": Vector3(1.2, 17.5, -12.4), "fov": 40.0,
+			"look_from": Vector3(56, 13, -51), "look_to": Vector3(56, 14, -51),
+			"look_call": ["portinho_giant", "point"], "cue": "boat_bell",
+			"lines": [[0.8, "— Nenhum nono, nenhum afogado. Só um sorriso."],
+				[0.6, "— Isso é o que me assusta."]]},
+		{"t": 17.0, "len": 0.6, "black": true},
+	]},
+	# Portinho, resolution: thumbs up, then a crate on the pier. Warm, unexpected. Needs "supply_crate".appear().
+	"portinho_friend": {"shots": [
+		{"t": 0.0, "len": 6.0, "from": Vector3(0.0, 17.5, -12.0), "to": Vector3(0.8, 17.5, -12.5), "fov": 45.0,
+			"look_from": Vector3(56, 13, -51), "look_to": Vector3(56, 14, -51),
+			"look_call": ["portinho_giant", "point"], "cue": "lamp_valve",
+			"do": [["portinho_giant", "set_mood", ["thumbs_up"]]],
+			"lines": [[1.2, "O gigante ergue um polegar para a ilha. Ficou assim, parado."],
+				[0.6, "— Quarenta metros de aprovação."]]},
+		{"t": 6.0, "len": 7.0, "from": Vector3(1.0, 2.0, 40.0), "to": Vector3(1.8, 1.9, 42.0),
+			"look_from": Vector3(2.5, 0.6, 47.0), "look_to": Vector3(2.5, 0.6, 47.0),
+			"do": [["supply_crate", "appear", []]], "cues": [[0.6, "clunk"], [2.0, "splash"]],
+			"lines": [[1.5, "No píer, uma caixa que não estava. Seca, sem maré."],
+				[0.5, "— Presente. Do mar não costuma vir."]]},
+		{"t": 13.0, "len": 0.6, "black": true},
+	]},
 	# 23:45: the Sineiro rings three times, nobody there.
 	"bell": {"shots": [
 		{"t": 0.0, "len": 11.0, "from": Vector3(2.5, 1.6, 41.0), "to": Vector3(2.0, 1.5, 43.5),

@@ -9,9 +9,9 @@
 [ext_resource type="Material" path="res://materials/m_plaster.tres" id="8_plaster"]
 [ext_resource type="Material" path="res://materials/m_wood.tres" id="9_wood"]
 [ext_resource type="Material" path="res://materials/m_water.tres" id="10_water"]
+[ext_resource type="Material" path="res://materials/m_lighthouse.tres" id="lh_mat"]
 [ext_resource type="PackedScene" uid="uid://byqimq8l45v2e" path="res://world/island_details.tscn" id="11_details"]
 [ext_resource type="Script" uid="uid://by73718tchmi2" path="res://puzzles/power_light.gd" id="12_light"]
-
 [ext_resource type="PackedScene" path="res://world/expansion.tscn" id="13_expansion"]
 [ext_resource type="PackedScene" path="res://world/terrain.tscn" id="14_terrain"]
 
@@ -20,6 +20,13 @@ size = Vector2(300, 300)
 subdivide_width = 60
 subdivide_depth = 60
 
+[sub_resource type="CylinderMesh" id="CylinderMesh_lh"]
+top_radius = 3.25
+bottom_radius = 4.6
+height = 17.0
+radial_segments = 12
+rings = 1
+
 [node name="Island" type="Node3D" unique_id=569083668]
 
 [node name="Sea" type="MeshInstance3D" parent="." unique_id=1380502972]
@@ -27,7 +34,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.2, 0)
 mesh = SubResource("sea_mesh")
 surface_material_override/0 = ExtResource("10_water")
 
-[node name="Terrain" parent="." instance=ExtResource("14_terrain")]
+[node name="Terrain" parent="." unique_id=1679196412 instance=ExtResource("14_terrain")]
 
 [node name="Rocks" type="CSGCombiner3D" parent="." unique_id=862570562]
 use_collision = true
@@ -63,12 +70,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
 [node name="Tower" type="CSGCombiner3D" parent="Lighthouse" unique_id=275794211]
 use_collision = true
 
-[node name="Wall" type="CSGCylinder3D" parent="Lighthouse/Tower" unique_id=741162237]
+[node name="Wall" type="CSGMesh3D" parent="Lighthouse/Tower" unique_id=741162237]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.5, 0)
-radius = 3.2
-height = 17.0
-sides = 12
-material = ExtResource("5_stone")
+mesh = SubResource("CylinderMesh_lh")
+material = ExtResource("lh_mat")
 
 [node name="InnerCut" type="CSGCylinder3D" parent="Lighthouse/Tower" unique_id=551668306]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.5, 0)
@@ -81,7 +86,7 @@ material = ExtResource("5_stone")
 [node name="DoorCut" type="CSGBox3D" parent="Lighthouse/Tower" unique_id=1893640447]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.68, 1.1, -1.55)
 operation = 2
-size = Vector3(1.4, 2.2, 1.4)
+size = Vector3(3.9, 2.2, 1.4)
 material = ExtResource("5_stone")
 
 [node name="Column" type="CSGCylinder3D" parent="Lighthouse/Tower" unique_id=153750957]
@@ -283,4 +288,4 @@ material = ExtResource("9_wood")
 
 [node name="Details" parent="." unique_id=636149627 instance=ExtResource("11_details")]
 
-[node name="Expansion" parent="." instance=ExtResource("13_expansion")]
+[node name="Expansion" parent="." unique_id=1970665054 instance=ExtResource("13_expansion")]
