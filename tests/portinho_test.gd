@@ -41,6 +41,13 @@ func _process(_delta: float) -> bool:
 	_check(giant != null and crate != null, "giant and crate exist in the island")
 	_check(not giant.visible, "giant hidden by default")
 
+	# Gated by the 1-in-100 roll of the new game.
+	_state.portinho_rolled = false
+	_state.minutes = 21.0 * 60.0 + 46.0
+	_state._check_scenes(0.1)
+	_check(not _asked.has("portinho"), "no scene when the roll failed")
+	_state.portinho_rolled = true
+
 	# Trigger: 21:45 on night 1, once.
 	_state.minutes = 21.0 * 60.0 + 30.0
 	_state._check_scenes(0.1)
