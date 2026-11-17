@@ -36,6 +36,10 @@
 
 O cronograma detalhado (calendário, marcos, tarefas por sprint, checagem semanal, linha de corte e riscos) está em [`SPRINTS.md`](SPRINTS.md). Cada tarefa tem uma issue no GitHub, com a sprint como milestone.
 
+## Backlog (pós-demo)
+
+- ~~Expansão da ilha~~ ✅ (2026-11-12): terreno orgânico, fábricas de óleo/combustível, coleta, pesca, oficina, horta, torre de vigia, cerca e cenas de tutorial. Falta validar em jogo (FPS, navegação em declives, câmeras das cenas `tut_*`).
+
 ## Como rodar os testes
 
 ```bash

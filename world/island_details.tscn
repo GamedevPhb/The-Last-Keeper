@@ -12,15 +12,25 @@
 [ext_resource type="Material" path="res://materials/m_rock.tres" id="m_rock"]
 [ext_resource type="Material" path="res://materials/m_stone.tres" id="m_stone"]
 [ext_resource type="Material" path="res://materials/m_wood.tres" id="m_wood"]
+[ext_resource type="Script" uid="uid://cr4t2rwd2b1r8" path="res://world/santa_aurora.gd" id="s_aurora"]
+[ext_resource type="Script" uid="uid://cdgvq6ngvrgn5" path="res://world/boatman.gd" id="s_boatman"]
 [ext_resource type="Script" uid="uid://dyel2geje5rfv" path="res://puzzles/cellar_lock.gd" id="s_cellar_lock"]
 [ext_resource type="Script" uid="uid://ce6fffc8m6csj" path="res://puzzles/chest.gd" id="s_chest"]
 [ext_resource type="Script" uid="uid://dcp2hgf3nw2xj" path="res://puzzles/clue.gd" id="s_clue"]
+[ext_resource type="Script" uid="uid://bofh51r7ir5l3" path="res://puzzles/factory.gd" id="s_factory"]
 [ext_resource type="Script" uid="uid://s2n87no2axrl" path="res://puzzles/fuse_box.gd" id="s_fuse_box"]
 [ext_resource type="Script" uid="uid://cwdoykhferr30" path="res://puzzles/generator.gd" id="s_generator"]
+[ext_resource type="Script" uid="uid://dlxvrmf6dth4u" path="res://world/horizon_ship.gd" id="s_horizon"]
+[ext_resource type="Script" path="res://world/portinho_giant.gd" id="s_pgiant"]
+[ext_resource type="Script" path="res://world/supply_crate.gd" id="s_pcrate"]
+[ext_resource type="Script" path="res://world/portinho_doll.gd" id="s_pdoll"]
+[ext_resource type="Script" uid="uid://b2owp6ix5cgm6" path="res://world/invasion.gd" id="s_invasion"]
+[ext_resource type="Script" uid="uid://ij6yww5pb1av" path="res://world/lavados.gd" id="s_lavados"]
 [ext_resource type="Script" uid="uid://wplk2gp3ydbc" path="res://puzzles/oil_drum.gd" id="s_oil_drum"]
 [ext_resource type="Script" uid="uid://ck7nylrr73a8b" path="res://puzzles/radio.gd" id="s_radio"]
+[ext_resource type="Script" uid="uid://csla1rmerycma" path="res://world/supplies.gd" id="s_supplies"]
 [ext_resource type="Script" uid="uid://m1grha16i7ek" path="res://puzzles/tide.gd" id="s_tide"]
-[ext_resource type="Script" path="res://world/supplies.gd" id="s_supplies"]
+[ext_resource type="Script" uid="uid://boltd7qtflogl" path="res://world/ship_traffic.gd" id="s_traffic"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_0"]
 size = Vector3(1.6, 0.04, 18.6)
@@ -1431,6 +1441,7 @@ radial_segments = 6
 rings = 3
 
 [node name="IslandDetails" type="Node3D" unique_id=394941668]
+metadata/terrain_migrated = true
 
 [node name="Paths" type="Node3D" parent="." unique_id=1804128738]
 
@@ -1855,12 +1866,12 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_22")
 
 [node name="Branch0_0" type="MeshInstance3D" parent="Trees" unique_id=2064086042]
-transform = Transform3D(0.804, -0.4158, -0.425, 0.4594, 0.8882, 0, 0.3775, -0.1952, 0.9052, -25.5145, 3.2646, -5.7721)
+transform = Transform3D(0.804, -0.4158, -0.425, 0.4594, 0.8882, 0, 0.3775, -0.1952, 0.9052, -25.5145, 3.2643847, -5.7721)
 mesh = SubResource("BoxMesh_23")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch0_1" type="MeshInstance3D" parent="Trees" unique_id=2063377005]
-transform = Transform3D(0.6179, -0.3546, -0.7018, 0.4978, 0.8673, 0, 0.6086, -0.3493, 0.7124, -25.5802, 4.0113, -5.5865)
+transform = Transform3D(0.6179, -0.3546, -0.7018, 0.4978, 0.8673, 0, 0.6086, -0.3493, 0.7124, -25.5802, 4.0109353, -5.5865)
 mesh = SubResource("BoxMesh_24")
 surface_material_override/0 = ExtResource("m_deadwood")
 
@@ -1875,7 +1886,7 @@ mesh = SubResource("BoxMesh_26")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Trunk1" type="StaticBody3D" parent="Trees" unique_id=1532467870]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 2.0883, -22)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 3.2105815, -22)
 
 [node name="Mesh" type="MeshInstance3D" parent="Trees/Trunk1" unique_id=2138091388]
 mesh = SubResource("CylinderMesh_27")
@@ -1885,27 +1896,27 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_28")
 
 [node name="Branch1_0" type="MeshInstance3D" parent="Trees" unique_id=2077276369]
-transform = Transform3D(0.3511, -0.1991, 0.9149, 0.4932, 0.8699, 0, -0.7959, 0.4513, 0.4036, 20.231, 3.1757, -22.5236)
+transform = Transform3D(0.3511, -0.1991, 0.9149, 0.4932, 0.8699, 0, -0.7959, 0.4513, 0.4036, 20.231, 4.4473896, -22.5236)
 mesh = SubResource("BoxMesh_29")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch1_1" type="MeshInstance3D" parent="Trees" unique_id=372721587]
-transform = Transform3D(-0.677, 0.159, -0.7186, 0.2286, 0.9735, 0, 0.6996, -0.1642, -0.6955, 19.4999, 3.6135, -21.4833)
+transform = Transform3D(-0.677, 0.159, -0.7186, 0.2286, 0.9735, 0, 0.6996, -0.1642, -0.6955, 19.4999, 4.7100964, -21.4833)
 mesh = SubResource("BoxMesh_30")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch1_2" type="MeshInstance3D" parent="Trees" unique_id=1731415210]
-transform = Transform3D(0.257, -0.0926, -0.962, 0.339, 0.9408, 0, 0.905, -0.3261, 0.2732, 20.211, 2.6825, -21.2572)
+transform = Transform3D(0.257, -0.0926, -0.962, 0.339, 0.9408, 0, 0.905, -0.3261, 0.2732, 20.211, 3.8050148, -21.2572)
 mesh = SubResource("BoxMesh_31")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch1_3" type="MeshInstance3D" parent="Trees" unique_id=2121085811]
-transform = Transform3D(-0.8102, 0.2853, 0.5121, 0.3322, 0.9432, 0, -0.483, 0.1701, -0.8589, 19.4148, 3.1013, -22.3489)
+transform = Transform3D(-0.8102, 0.2853, 0.5121, 0.3322, 0.9432, 0, -0.483, 0.1701, -0.8589, 19.4148, 4.334385, -22.3489)
 mesh = SubResource("BoxMesh_32")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Trunk2" type="StaticBody3D" parent="Trees" unique_id=1374556071]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31, 2.5958, -12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31, 2.5548363, -12)
 
 [node name="Mesh" type="MeshInstance3D" parent="Trees/Trunk2" unique_id=85124684]
 mesh = SubResource("CylinderMesh_33")
@@ -1915,27 +1926,27 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_34")
 
 [node name="Branch2_0" type="MeshInstance3D" parent="Trees" unique_id=453698237]
-transform = Transform3D(0.0342, -0.0144, -0.9993, 0.3884, 0.9215, 0, 0.9209, -0.3881, 0.0371, 31.0271, 4.7233, -11.2707)
+transform = Transform3D(0.0342, -0.0144, -0.9993, 0.3884, 0.9215, 0, 0.9209, -0.3881, 0.0371, 31.0271, 4.631754, -11.2707)
 mesh = SubResource("BoxMesh_35")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch2_1" type="MeshInstance3D" parent="Trees" unique_id=1187350075]
-transform = Transform3D(-0.1044, 0.0754, 0.9917, 0.5853, 0.8108, 0, -0.8041, 0.5804, -0.1288, 30.9208, 5.2531, -12.6101)
+transform = Transform3D(-0.1044, 0.0754, 0.9917, 0.5853, 0.8108, 0, -0.8041, 0.5804, -0.1288, 30.9208, 5.4223533, -12.6101)
 mesh = SubResource("BoxMesh_36")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch2_2" type="MeshInstance3D" parent="Trees" unique_id=2092581355]
-transform = Transform3D(-0.8458, 0.2061, -0.4921, 0.2367, 0.9716, 0, 0.4781, -0.1165, -0.8706, 30.3011, 3.3145, -11.6049)
+transform = Transform3D(-0.8458, 0.2061, -0.4921, 0.2367, 0.9716, 0, 0.4781, -0.1165, -0.8706, 30.3011, 3.2237365, -11.6049)
 mesh = SubResource("BoxMesh_37")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch2_3" type="MeshInstance3D" parent="Trees" unique_id=730180119]
-transform = Transform3D(0.8694, -0.4298, -0.2439, 0.4432, 0.8964, 0, 0.2186, -0.1081, 0.9698, 31.7441, 4.3263, -11.8129)
+transform = Transform3D(0.8694, -0.4298, -0.2439, 0.4432, 0.8964, 0, 0.2186, -0.1081, 0.9698, 31.7441, 4.323323, -11.8129)
 mesh = SubResource("BoxMesh_38")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Trunk3" type="StaticBody3D" parent="Trees" unique_id=579846755]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2.4298, 31)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2.633762, 31)
 
 [node name="Mesh" type="MeshInstance3D" parent="Trees/Trunk3" unique_id=869862924]
 mesh = SubResource("CylinderMesh_39")
@@ -1945,22 +1956,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_40")
 
 [node name="Branch3_0" type="MeshInstance3D" parent="Trees" unique_id=887697493]
-transform = Transform3D(-0.3592, 0.1516, -0.9209, 0.3887, 0.9213, 0, 0.8484, -0.358, -0.3899, -6.3034, 4.8305, 31.7165)
+transform = Transform3D(-0.3592, 0.1516, -0.9209, 0.3887, 0.9213, 0, 0.8484, -0.358, -0.3899, -6.3034, 4.9210634, 31.7165)
 mesh = SubResource("BoxMesh_41")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch3_1" type="MeshInstance3D" parent="Trees" unique_id=1408856324]
-transform = Transform3D(-0.8544, 0.4429, -0.2717, 0.4603, 0.8878, 0, 0.2412, -0.1251, -0.9624, -6.8045, 4.3179, 31.2271)
+transform = Transform3D(-0.8544, 0.4429, -0.2717, 0.4603, 0.8878, 0, 0.2412, -0.1251, -0.9624, -6.8045, 4.468915, 31.2271)
 mesh = SubResource("BoxMesh_42")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch3_2" type="MeshInstance3D" parent="Trees" unique_id=1576735773]
-transform = Transform3D(-0.4232, 0.291, 0.858, 0.5665, 0.824, 0, -0.707, 0.4861, -0.5136, -6.2693, 4.0239, 30.5502)
+transform = Transform3D(-0.4232, 0.291, 0.858, 0.5665, 0.824, 0, -0.707, 0.4861, -0.5136, -6.2693, 4.2493663, 30.5502)
 mesh = SubResource("BoxMesh_43")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch3_3" type="MeshInstance3D" parent="Trees" unique_id=735266150]
-transform = Transform3D(0.9611, -0.2729, 0.0434, 0.2732, 0.962, 0, -0.0417, 0.0118, 0.9991, -5.172, 4.2604, 30.9641)
+transform = Transform3D(0.9611, -0.2729, 0.0434, 0.2732, 0.962, 0, -0.0417, 0.0118, 0.9991, -5.172, 4.437951, 30.9641)
 mesh = SubResource("BoxMesh_44")
 surface_material_override/0 = ExtResource("m_deadwood")
 
@@ -1975,12 +1986,12 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_46")
 
 [node name="Branch4_0" type="MeshInstance3D" parent="Trees" unique_id=370325930]
-transform = Transform3D(0.9501, -0.2781, -0.1413, 0.2809, 0.9597, 0, 0.1356, -0.0397, 0.99, 12.6778, 4.0352, 29.0967)
+transform = Transform3D(0.9501, -0.2781, -0.1413, 0.2809, 0.9597, 0, 0.1356, -0.0397, 0.99, 12.6778, 4.0457025, 29.0967)
 mesh = SubResource("BoxMesh_47")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch4_1" type="MeshInstance3D" parent="Trees" unique_id=1807891720]
-transform = Transform3D(0.9077, -0.2123, -0.362, 0.2277, 0.9737, 0, 0.3525, -0.0824, 0.9322, 12.7525, 2.9376, 29.2922)
+transform = Transform3D(0.9077, -0.2123, -0.362, 0.2277, 0.9737, 0, 0.3525, -0.0824, 0.9322, 12.7525, 2.9475162, 29.2922)
 mesh = SubResource("BoxMesh_48")
 surface_material_override/0 = ExtResource("m_deadwood")
 
@@ -1990,12 +2001,12 @@ mesh = SubResource("BoxMesh_49")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch4_3" type="MeshInstance3D" parent="Trees" unique_id=1719817391]
-transform = Transform3D(-0.8638, 0.4006, 0.3057, 0.4207, 0.9072, 0, -0.2773, 0.1286, -0.9521, 11.1875, 3.7984, 28.7392)
+transform = Transform3D(-0.8638, 0.4006, 0.3057, 0.4207, 0.9072, 0, -0.2773, 0.1286, -0.9521, 11.1875, 3.7985497, 28.7392)
 mesh = SubResource("BoxMesh_50")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Trunk5" type="StaticBody3D" parent="Trees" unique_id=26813026]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 2.648, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 2.6719913, 3)
 
 [node name="Mesh" type="MeshInstance3D" parent="Trees/Trunk5" unique_id=464553623]
 mesh = SubResource("CylinderMesh_51")
@@ -2005,27 +2016,27 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_52")
 
 [node name="Branch5_0" type="MeshInstance3D" parent="Trees" unique_id=709397660]
-transform = Transform3D(-0.724, 0.4672, -0.5074, 0.5422, 0.8402, 0, 0.4264, -0.2751, -0.8617, -30.5545, 3.9621, 3.3265)
+transform = Transform3D(-0.724, 0.4672, -0.5074, 0.5422, 0.8402, 0, 0.4264, -0.2751, -0.8617, -30.5545, 4.017011, 3.3265)
 mesh = SubResource("BoxMesh_53")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch5_1" type="MeshInstance3D" parent="Trees" unique_id=828005123]
-transform = Transform3D(0.5442, -0.2095, -0.8124, 0.3592, 0.9333, 0, 0.7582, -0.2918, 0.5831, -29.6674, 5.3134, 3.4635)
+transform = Transform3D(0.5442, -0.2095, -0.8124, 0.3592, 0.9333, 0, 0.7582, -0.2918, 0.5831, -29.6674, 5.3248653, 3.4635)
 mesh = SubResource("BoxMesh_54")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch5_2" type="MeshInstance3D" parent="Trees" unique_id=931966544]
-transform = Transform3D(-0.9506, 0.2957, -0.0943, 0.297, 0.9549, 0, 0.0901, -0.028, -0.9955, -30.7324, 3.673, 3.0694)
+transform = Transform3D(-0.9506, 0.2957, -0.0943, 0.297, 0.9549, 0, 0.0901, -0.028, -0.9955, -30.7324, 3.7490988, 3.0694)
 mesh = SubResource("BoxMesh_55")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch5_3" type="MeshInstance3D" parent="Trees" unique_id=1885507140]
-transform = Transform3D(-0.7828, 0.3866, -0.4875, 0.4428, 0.8966, 0, 0.4371, -0.2159, -0.8731, -30.5655, 3.242, 3.3158)
+transform = Transform3D(-0.7828, 0.3866, -0.4875, 0.4428, 0.8966, 0, 0.4371, -0.2159, -0.8731, -30.5655, 3.2979674, 3.3158)
 mesh = SubResource("BoxMesh_56")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Trunk6" type="StaticBody3D" parent="Trees" unique_id=225247286]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2.7148, -30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2.733531, -30)
 
 [node name="Mesh" type="MeshInstance3D" parent="Trees/Trunk6" unique_id=2114955188]
 mesh = SubResource("CylinderMesh_57")
@@ -2035,22 +2046,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_58")
 
 [node name="Branch6_0" type="MeshInstance3D" parent="Trees" unique_id=1547804932]
-transform = Transform3D(-0.8999, 0.4251, 0.0972, 0.4271, 0.9042, 0, -0.0879, 0.0415, -0.9953, -4.7435, 4.9513, -30.0726)
+transform = Transform3D(-0.8999, 0.4251, 0.0972, 0.4271, 0.9042, 0, -0.0879, 0.0415, -0.9953, -4.7435, 4.9633894, -30.0726)
 mesh = SubResource("BoxMesh_59")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch6_1" type="MeshInstance3D" parent="Trees" unique_id=1610353873]
-transform = Transform3D(0.7198, -0.3655, 0.5902, 0.4528, 0.8916, 0, -0.5262, 0.2672, 0.8073, -3.3445, 3.5247, -30.4792)
+transform = Transform3D(0.7198, -0.3655, 0.5902, 0.4528, 0.8916, 0, -0.5262, 0.2672, 0.8073, -3.3445, 3.5344398, -30.4792)
 mesh = SubResource("BoxMesh_60")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch6_2" type="MeshInstance3D" parent="Trees" unique_id=711550634]
-transform = Transform3D(-0.7521, 0.2065, -0.6258, 0.2647, 0.9643, 0, 0.6035, -0.1657, -0.78, -4.5145, 5.0302, -29.5872)
+transform = Transform3D(-0.7521, 0.2065, -0.6258, 0.2647, 0.9643, 0, 0.6035, -0.1657, -0.78, -4.5145, 5.0393586, -29.5872)
 mesh = SubResource("BoxMesh_61")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Branch6_3" type="MeshInstance3D" parent="Trees" unique_id=207269840]
-transform = Transform3D(0.8573, -0.3459, -0.3812, 0.3742, 0.9273, 0, 0.3535, -0.1427, 0.9245, -3.5129, 4.6798, -29.7991)
+transform = Transform3D(0.8573, -0.3459, -0.3812, 0.3742, 0.9273, 0, 0.3535, -0.1427, 0.9245, -3.5129, 4.6884694, -29.7991)
 mesh = SubResource("BoxMesh_62")
 surface_material_override/0 = ExtResource("m_deadwood")
 
@@ -2219,7 +2230,7 @@ surface_material_override/0 = ExtResource("m_deadwood")
 [node name="StoneWall" type="Node3D" parent="." unique_id=1337755268]
 
 [node name="Block0" type="StaticBody3D" parent="StoneWall" unique_id=1777563973]
-transform = Transform3D(0.9957, 0, -0.0923, 0, 1, 0, 0.0923, 0, 0.9957, -27.2832, 0.4, -16)
+transform = Transform3D(0.9957, 0, -0.0923, 0, 1, 0, 0.0923, 0, 0.9957, -27.2832, 1.867978, -16)
 
 [node name="Mesh" type="MeshInstance3D" parent="StoneWall/Block0" unique_id=1683450906]
 mesh = SubResource("BoxMesh_66")
@@ -2229,7 +2240,7 @@ surface_material_override/0 = ExtResource("m_stone")
 shape = SubResource("BoxShape3D_67")
 
 [node name="Block1" type="StaticBody3D" parent="StoneWall" unique_id=1403556947]
-transform = Transform3D(0.9833, 0, 0.182, 0, 1, 0, -0.182, 0, 0.9833, -27.0317, 0.4, -14.3)
+transform = Transform3D(0.9833, 0, 0.182, 0, 1, 0, -0.182, 0, 0.9833, -27.0317, 1.2530897, -14.3)
 
 [node name="Mesh" type="MeshInstance3D" parent="StoneWall/Block1" unique_id=928285209]
 mesh = SubResource("BoxMesh_68")
@@ -2239,7 +2250,7 @@ surface_material_override/0 = ExtResource("m_stone")
 shape = SubResource("BoxShape3D_69")
 
 [node name="Block2" type="StaticBody3D" parent="StoneWall" unique_id=1901738493]
-transform = Transform3D(0.9935, 0, -0.1142, 0, 1, 0, 0.1142, 0, 0.9935, -27.1677, 0.4, -12.6)
+transform = Transform3D(0.9935, 0, -0.1142, 0, 1, 0, 0.1142, 0, 0.9935, -27.1677, 0.5775457, -12.6)
 
 [node name="Mesh" type="MeshInstance3D" parent="StoneWall/Block2" unique_id=1486302049]
 mesh = SubResource("BoxMesh_70")
@@ -2249,7 +2260,7 @@ surface_material_override/0 = ExtResource("m_stone")
 shape = SubResource("BoxShape3D_71")
 
 [node name="Block3" type="StaticBody3D" parent="StoneWall" unique_id=658186879]
-transform = Transform3D(0.9898, 0, 0.1421, 0, 1, 0, -0.1421, 0, 0.9898, -26.7598, 0.4, -10.9)
+transform = Transform3D(0.9898, 0, 0.1421, 0, 1, 0, -0.1421, 0, 0.9898, -26.7598, 0.37706923, -10.9)
 
 [node name="Mesh" type="MeshInstance3D" parent="StoneWall/Block3" unique_id=74204092]
 mesh = SubResource("BoxMesh_72")
@@ -2259,7 +2270,7 @@ surface_material_override/0 = ExtResource("m_stone")
 shape = SubResource("BoxShape3D_73")
 
 [node name="Block4" type="StaticBody3D" parent="StoneWall" unique_id=6200020]
-transform = Transform3D(0.9977, 0, 0.0672, 0, 1, 0, -0.0672, 0, 0.9977, -27.2491, 0.4, -9.2)
+transform = Transform3D(0.9977, 0, 0.0672, 0, 1, 0, -0.0672, 0, 0.9977, -27.2491, 0.39693984, -9.2)
 
 [node name="Mesh" type="MeshInstance3D" parent="StoneWall/Block4" unique_id=1450214991]
 mesh = SubResource("BoxMesh_74")
@@ -2279,7 +2290,7 @@ surface_material_override/0 = ExtResource("m_stone")
 shape = SubResource("BoxShape3D_77")
 
 [node name="Block6" type="StaticBody3D" parent="StoneWall" unique_id=1661841114]
-transform = Transform3D(0.999, 0, -0.0436, 0, 1, 0, 0.0436, 0, 0.999, -26.717, 0.4, -5.8)
+transform = Transform3D(0.999, 0, -0.0436, 0, 1, 0, 0.0436, 0, 0.999, -26.717, 0.3999728, -5.8)
 
 [node name="Mesh" type="MeshInstance3D" parent="StoneWall/Block6" unique_id=1701474187]
 mesh = SubResource("BoxMesh_78")
@@ -2289,7 +2300,7 @@ surface_material_override/0 = ExtResource("m_stone")
 shape = SubResource("BoxShape3D_79")
 
 [node name="Block7" type="StaticBody3D" parent="StoneWall" unique_id=646584200]
-transform = Transform3D(0.9878, 0, -0.1556, 0, 1, 0, 0.1556, 0, 0.9878, -27.198, 0.4, -4.1)
+transform = Transform3D(0.9878, 0, -0.1556, 0, 1, 0, 0.1556, 0, 0.9878, -27.198, 0.39113083, -4.1)
 
 [node name="Mesh" type="MeshInstance3D" parent="StoneWall/Block7" unique_id=743684858]
 mesh = SubResource("BoxMesh_80")
@@ -2299,7 +2310,7 @@ surface_material_override/0 = ExtResource("m_stone")
 shape = SubResource("BoxShape3D_81")
 
 [node name="Block8" type="StaticBody3D" parent="StoneWall" unique_id=1708360399]
-transform = Transform3D(0.9907, 0, 0.1363, 0, 1, 0, -0.1363, 0, 0.9907, -27.2123, 0.4, -2.4)
+transform = Transform3D(0.9907, 0, 0.1363, 0, 1, 0, -0.1363, 0, 0.9907, -27.2123, 0.41996592, -2.4)
 
 [node name="Mesh" type="MeshInstance3D" parent="StoneWall/Block8" unique_id=1364627736]
 mesh = SubResource("BoxMesh_82")
@@ -2309,7 +2320,7 @@ surface_material_override/0 = ExtResource("m_stone")
 shape = SubResource("BoxShape3D_83")
 
 [node name="Block9" type="StaticBody3D" parent="StoneWall" unique_id=1322761773]
-transform = Transform3D(0.9881, 0, -0.154, 0, 1, 0, 0.154, 0, 0.9881, -26.9708, 0.4, -0.7)
+transform = Transform3D(0.9881, 0, -0.154, 0, 1, 0, 0.154, 0, 0.9881, -26.9708, 0.71719956, -0.7)
 
 [node name="Mesh" type="MeshInstance3D" parent="StoneWall/Block9" unique_id=537793849]
 mesh = SubResource("BoxMesh_84")
@@ -2500,7 +2511,7 @@ surface_material_override/0 = ExtResource("m_metal")
 [node name="PierProps" type="Node3D" parent="." unique_id=2122259695]
 
 [node name="Bollard40_-1" type="StaticBody3D" parent="PierProps" unique_id=182449334]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.2, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.019704804, 40)
 
 [node name="Mesh" type="MeshInstance3D" parent="PierProps/Bollard40_-1" unique_id=1222110637]
 mesh = SubResource("CylinderMesh_104")
@@ -2510,7 +2521,7 @@ surface_material_override/0 = ExtResource("m_metal")
 shape = SubResource("CylinderShape3D_105")
 
 [node name="Bollard40_1" type="StaticBody3D" parent="PierProps" unique_id=1236288701]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.2, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.10742158, 40)
 
 [node name="Mesh" type="MeshInstance3D" parent="PierProps/Bollard40_1" unique_id=197783257]
 mesh = SubResource("CylinderMesh_104")
@@ -2693,6 +2704,7 @@ light_color = Color(0.6, 0.75, 1, 1)
 light_energy = 0.5
 
 [node name="Wreck" type="Node3D" parent="." unique_id=1141593618]
+script = ExtResource("s_aurora")
 
 [node name="Hull" type="StaticBody3D" parent="Wreck" unique_id=1979468658]
 transform = Transform3D(0.8471, -0.1801, 0.5, 0.2079, 0.9781, 0, -0.4891, 0.104, 0.866, -40, -0.2, 24)
@@ -2767,7 +2779,7 @@ shape = SubResource("BoxShape3D_127")
 [node name="Boulders" type="Node3D" parent="." unique_id=2010826091]
 
 [node name="Boulder0" type="StaticBody3D" parent="Boulders" unique_id=2084935124]
-transform = Transform3D(0.2683, 0.0272, 0.9629, -0.1007, 0.9949, 0, -0.9581, -0.097, 0.2697, 29.533, 0.6603, 20.6792)
+transform = Transform3D(0.2683, 0.0272, 0.9629, -0.1007, 0.9949, 0, -0.9581, -0.097, 0.2697, 29.533, 0.6600246, 20.6792)
 
 [node name="Mesh" type="MeshInstance3D" parent="Boulders/Boulder0" unique_id=682098750]
 mesh = SubResource("BoxMesh_128")
@@ -2777,7 +2789,7 @@ surface_material_override/0 = ExtResource("m_rock")
 shape = SubResource("BoxShape3D_129")
 
 [node name="Boulder1" type="StaticBody3D" parent="Boulders" unique_id=1118518309]
-transform = Transform3D(0.9178, 0.026, 0.3962, -0.0283, 0.9996, 0, -0.3961, -0.0112, 0.9182, 29.0829, 0.5443, -20.3641)
+transform = Transform3D(0.9178, 0.026, 0.3962, -0.0283, 0.9996, 0, -0.3961, -0.0112, 0.9182, 29.0829, 2.4888334, -20.3641)
 
 [node name="Mesh" type="MeshInstance3D" parent="Boulders/Boulder1" unique_id=1617770848]
 mesh = SubResource("BoxMesh_130")
@@ -2787,7 +2799,7 @@ surface_material_override/0 = ExtResource("m_rock")
 shape = SubResource("BoxShape3D_131")
 
 [node name="Boulder2" type="StaticBody3D" parent="Boulders" unique_id=1698508670]
-transform = Transform3D(0.6027, -0.0856, 0.7934, 0.1407, 0.9901, 0, -0.7855, 0.1116, 0.6087, 9.1265, 0.6123, -34.0606)
+transform = Transform3D(0.6027, -0.0856, 0.7934, 0.1407, 0.9901, 0, -0.7855, 0.1116, 0.6087, 9.1265, 4.8737597, -34.0606)
 
 [node name="Mesh" type="MeshInstance3D" parent="Boulders/Boulder2" unique_id=824308579]
 mesh = SubResource("BoxMesh_132")
@@ -2797,7 +2809,7 @@ surface_material_override/0 = ExtResource("m_rock")
 shape = SubResource("BoxShape3D_133")
 
 [node name="Boulder3" type="StaticBody3D" parent="Boulders" unique_id=71566868]
-transform = Transform3D(0.6709, 0.1138, 0.7327, -0.1672, 0.9859, 0, -0.7224, -0.1225, 0.6805, -15.1472, 0.701, -32.4832)
+transform = Transform3D(0.6709, 0.1138, 0.7327, -0.1672, 0.9859, 0, -0.7224, -0.1225, 0.6805, -15.1472, 1.0126349, -32.4832)
 
 [node name="Mesh" type="MeshInstance3D" parent="Boulders/Boulder3" unique_id=1519851483]
 mesh = SubResource("BoxMesh_134")
@@ -2807,7 +2819,7 @@ surface_material_override/0 = ExtResource("m_rock")
 shape = SubResource("BoxShape3D_135")
 
 [node name="Boulder4" type="StaticBody3D" parent="Boulders" unique_id=1290028274]
-transform = Transform3D(0.9635, 0.0089, 0.2674, -0.0093, 1, 0, -0.2674, -0.0025, 0.9636, -31.0732, 0.4024, -17.9401)
+transform = Transform3D(0.9635, 0.0089, 0.2674, -0.0093, 1, 0, -0.2674, -0.0025, 0.9636, -31.0732, 2.3940065, -17.9401)
 
 [node name="Mesh" type="MeshInstance3D" parent="Boulders/Boulder4" unique_id=1602303345]
 mesh = SubResource("BoxMesh_136")
@@ -2817,7 +2829,7 @@ surface_material_override/0 = ExtResource("m_rock")
 shape = SubResource("BoxShape3D_137")
 
 [node name="Boulder5" type="StaticBody3D" parent="Boulders" unique_id=1463204652]
-transform = Transform3D(0.6398, -0.0637, 0.7659, 0.0991, 0.9951, 0, -0.7622, 0.0759, 0.6429, -33.0353, 0.5956, 15.4046)
+transform = Transform3D(0.6398, -0.0637, 0.7659, 0.0991, 0.9951, 0, -0.7622, 0.0759, 0.6429, -33.0353, 3.1149938, 15.4046)
 
 [node name="Mesh" type="MeshInstance3D" parent="Boulders/Boulder5" unique_id=202735630]
 mesh = SubResource("BoxMesh_138")
@@ -2837,7 +2849,7 @@ surface_material_override/0 = ExtResource("m_rock")
 shape = SubResource("BoxShape3D_141")
 
 [node name="Boulder7" type="StaticBody3D" parent="Boulders" unique_id=1917283528]
-transform = Transform3D(0.5718, -0.0011, 0.8204, 0.0019, 1, 0, -0.8204, 0.0016, 0.5718, 18.0617, 0.9475, 31.2838)
+transform = Transform3D(0.5718, -0.0011, 0.8204, 0.0019, 1, 0, -0.8204, 0.0016, 0.5718, 18.0617, 2.2725828, 31.2838)
 
 [node name="Mesh" type="MeshInstance3D" parent="Boulders/Boulder7" unique_id=788428416]
 mesh = SubResource("BoxMesh_142")
@@ -2847,7 +2859,7 @@ surface_material_override/0 = ExtResource("m_rock")
 shape = SubResource("BoxShape3D_143")
 
 [node name="Boulder8" type="StaticBody3D" parent="Boulders" unique_id=1135065173]
-transform = Transform3D(0.7224, -0.1122, 0.6823, 0.1535, 0.9881, 0, -0.6742, 0.1047, 0.7311, 20.6627, 0.6714, -29.5094)
+transform = Transform3D(0.7224, -0.1122, 0.6823, 0.1535, 0.9881, 0, -0.6742, 0.1047, 0.7311, 20.6627, 5.373693, -29.5094)
 
 [node name="Mesh" type="MeshInstance3D" parent="Boulders/Boulder8" unique_id=1604941285]
 mesh = SubResource("BoxMesh_144")
@@ -2857,7 +2869,7 @@ surface_material_override/0 = ExtResource("m_rock")
 shape = SubResource("BoxShape3D_145")
 
 [node name="Boulder9" type="StaticBody3D" parent="Boulders" unique_id=943650302]
-transform = Transform3D(0.6304, -0.0983, 0.77, 0.1541, 0.9881, 0, -0.7608, 0.1187, 0.638, -35.8455, 0.9653, 6.3205)
+transform = Transform3D(0.6304, -0.0983, 0.77, 0.1541, 0.9881, 0, -0.7608, 0.1187, 0.638, -35.8455, 2.1567993, 6.3205)
 
 [node name="Mesh" type="MeshInstance3D" parent="Boulders/Boulder9" unique_id=2090667729]
 mesh = SubResource("BoxMesh_146")
@@ -2910,24 +2922,26 @@ script = ExtResource("s_chest")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0.25, 47.2)
 
 [node name="Mesh" type="MeshInstance3D" parent="Chest/Body" unique_id=62636804]
+transform = Transform3D(0.92230713, 0, 0.3864577, 0, 1, 0, -0.3864577, 0, 0.92230713, 0, 0, 0)
 mesh = SubResource("BoxMesh_154")
 surface_material_override/0 = ExtResource("m_deadwood")
 
 [node name="Shape" type="CollisionShape3D" parent="Chest/Body" unique_id=1776807840]
+transform = Transform3D(0.92230713, 0, 0.3864577, 0, 1, 0, -0.3864577, 0, 0.92230713, 0, 0, 0)
 shape = SubResource("BoxShape3D_155")
 
 [node name="Lid" type="MeshInstance3D" parent="Chest" unique_id=1470456502]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0.57, 47.2)
+transform = Transform3D(0.92230713, 0, 0.3864577, 0, 1, 0, -0.3864577, 0, 0.92230713, -0.7, 0.57, 47.2)
 mesh = SubResource("BoxMesh_156")
 surface_material_override/0 = ExtResource("m_wood")
 
 [node name="BandA" type="MeshInstance3D" parent="Chest" unique_id=445533580]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.26, 47.2)
+transform = Transform3D(0.92230713, 0, 0.3864577, 0, 1, 0, -0.3864577, 0, 0.92230713, -0.97669214, 0.26, 47.315937)
 mesh = SubResource("BoxMesh_157")
 surface_material_override/0 = ExtResource("m_metal")
 
 [node name="BandB" type="MeshInstance3D" parent="Chest" unique_id=558402273]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0.26, 47.2)
+transform = Transform3D(0.92230713, 0, 0.3864577, 0, 1, 0, -0.3864577, 0, 0.92230713, -0.42330787, 0.26, 47.084064)
 mesh = SubResource("BoxMesh_157")
 surface_material_override/0 = ExtResource("m_metal")
 
@@ -2959,10 +2973,26 @@ script = ExtResource("s_cellar_lock")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.6, 0.9, -2.3)
 script = ExtResource("s_oil_drum")
 
+[node name="OilFactory" type="Marker3D" parent="Stations" unique_id=1383485595]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 21.5)
+script = ExtResource("s_factory")
+input_items = PackedStringArray("wood", "fat", "algae")
+
+[node name="FuelFactory" type="Marker3D" parent="Stations" unique_id=435165923]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.5, 0, 21.5)
+script = ExtResource("s_factory")
+title = "Fábrica de combustível"
+input_items = PackedStringArray("wood", "coal", "scrap")
+output_item = "fuel"
+seconds_per_unit = 75.0
+
 [node name="Clues" type="Node3D" parent="." unique_id=1018771673]
 
 [node name="Clue0" type="Area3D" parent="Clues" unique_id=1011137821]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 1.4, -23.2)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
 script = ExtResource("s_clue")
 text = "Inscrição: OITO vigias descansam aqui. O nono ainda vigia."
 prompt = "Ler a inscrição"
@@ -2972,6 +3002,9 @@ shape = SubResource("SphereShape3D_158")
 
 [node name="Clue1" type="Area3D" parent="Clues" unique_id=1144913640]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.9, 42)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
 script = ExtResource("s_clue")
 text = "Etiqueta do caixote: LOTE 3, ÓLEO DE LAMPARINA."
 prompt = "Ler a etiqueta"
@@ -2981,6 +3014,9 @@ shape = SubResource("SphereShape3D_158")
 
 [node name="Clue2" type="Area3D" parent="Clues" unique_id=1734253677]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.6, 1.5, 19.6)
+collision_layer = 4
+collision_mask = 0
+monitoring = false
 script = ExtResource("s_clue")
 text = "Placa do tanque: CAPACIDADE 5 LATAS."
 prompt = "Ler a placa"
@@ -2991,7 +3027,7 @@ shape = SubResource("SphereShape3D_158")
 [node name="Pines" type="Node3D" parent="." unique_id=291641978]
 
 [node name="Trunk0" type="StaticBody3D" parent="Pines" unique_id=583034586]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.04, 1.1213, 15.3732)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.04, 1.1564139, 15.3732)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk0" unique_id=1892236392]
 mesh = SubResource("CylinderMesh_159")
@@ -3001,22 +3037,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_160")
 
 [node name="Foliage0_0" type="MeshInstance3D" parent="Pines" unique_id=2067397218]
-transform = Transform3D(0.0539, 0, 0.9985, 0, 1, 0, -0.9985, 0, 0.0539, 16.04, 2.4296, 15.3732)
+transform = Transform3D(0.0539, 0, 0.9985, 0, 1, 0, -0.9985, 0, 0.0539, 16.04, 2.464714, 15.3732)
 mesh = SubResource("CylinderMesh_161")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage0_1" type="MeshInstance3D" parent="Pines" unique_id=318513705]
-transform = Transform3D(0.8841, 0, 0.4673, 0, 1, 0, -0.4673, 0, 0.8841, 16.04, 3.4574, 15.3732)
+transform = Transform3D(0.8841, 0, 0.4673, 0, 1, 0, -0.4673, 0, 0.8841, 16.04, 3.4925141, 15.3732)
 mesh = SubResource("CylinderMesh_162")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage0_2" type="MeshInstance3D" parent="Pines" unique_id=513730579]
-transform = Transform3D(0.8472, 0, 0.5313, 0, 1, 0, -0.5313, 0, 0.8472, 16.04, 4.3919, 15.3732)
+transform = Transform3D(0.8472, 0, 0.5313, 0, 1, 0, -0.5313, 0, 0.8472, 16.04, 4.427014, 15.3732)
 mesh = SubResource("CylinderMesh_163")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk1" type="StaticBody3D" parent="Pines" unique_id=1470073520]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.987, 0.9607, 7.3474)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.987, 2.041206, 7.3474)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk1" unique_id=946048098]
 mesh = SubResource("CylinderMesh_164")
@@ -3026,22 +3062,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_165")
 
 [node name="Foliage1_0" type="MeshInstance3D" parent="Pines" unique_id=848479981]
-transform = Transform3D(0.8256, 0, 0.5642, 0, 1, 0, -0.5642, 0, 0.8256, 14.987, 2.0815, 7.3474)
+transform = Transform3D(0.8256, 0, 0.5642, 0, 1, 0, -0.5642, 0, 0.8256, 14.987, 3.162006, 7.3474)
 mesh = SubResource("CylinderMesh_166")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage1_1" type="MeshInstance3D" parent="Pines" unique_id=1059976823]
-transform = Transform3D(0.7347, 0, 0.6784, 0, 1, 0, -0.6784, 0, 0.7347, 14.987, 2.9622, 7.3474)
+transform = Transform3D(0.7347, 0, 0.6784, 0, 1, 0, -0.6784, 0, 0.7347, 14.987, 4.042706, 7.3474)
 mesh = SubResource("CylinderMesh_167")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage1_2" type="MeshInstance3D" parent="Pines" unique_id=732291186]
-transform = Transform3D(0.704, 0, 0.7102, 0, 1, 0, -0.7102, 0, 0.704, 14.987, 3.7628, 7.3474)
+transform = Transform3D(0.704, 0, 0.7102, 0, 1, 0, -0.7102, 0, 0.704, 14.987, 4.843306, 7.3474)
 mesh = SubResource("CylinderMesh_168")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk2" type="StaticBody3D" parent="Pines" unique_id=355743847]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.6215, 1.0926, -30.582)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.6215, 3.5584824, -30.582)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk2" unique_id=943430666]
 mesh = SubResource("CylinderMesh_169")
@@ -3051,22 +3087,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_170")
 
 [node name="Foliage2_0" type="MeshInstance3D" parent="Pines" unique_id=482274152]
-transform = Transform3D(0.7018, 0, 0.7123, 0, 1, 0, -0.7123, 0, 0.7018, 6.6215, 2.3674, -30.582)
+transform = Transform3D(0.7018, 0, 0.7123, 0, 1, 0, -0.7123, 0, 0.7018, 6.6215, 4.8332825, -30.582)
 mesh = SubResource("CylinderMesh_171")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage2_1" type="MeshInstance3D" parent="Pines" unique_id=1112802991]
-transform = Transform3D(1, 0, 0.0078, 0, 1, 0, -0.0078, 0, 1, 6.6215, 3.369, -30.582)
+transform = Transform3D(1, 0, 0.0078, 0, 1, 0, -0.0078, 0, 1, 6.6215, 5.8348823, -30.582)
 mesh = SubResource("CylinderMesh_172")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage2_2" type="MeshInstance3D" parent="Pines" unique_id=2031750777]
-transform = Transform3D(0.9151, 0, 0.4031, 0, 1, 0, -0.4031, 0, 0.9151, 6.6215, 4.2795, -30.582)
+transform = Transform3D(0.9151, 0, 0.4031, 0, 1, 0, -0.4031, 0, 0.9151, 6.6215, 6.7453823, -30.582)
 mesh = SubResource("CylinderMesh_173")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk3" type="StaticBody3D" parent="Pines" unique_id=2033429652]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.8393, 1.0192, 23.1334)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.8393, 1.0193104, 23.1334)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk3" unique_id=425802710]
 mesh = SubResource("CylinderMesh_174")
@@ -3076,17 +3112,17 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_175")
 
 [node name="Foliage3_0" type="MeshInstance3D" parent="Pines" unique_id=1044196108]
-transform = Transform3D(0.8095, 0, 0.5872, 0, 1, 0, -0.5872, 0, 0.8095, 15.8393, 2.2083, 23.1334)
+transform = Transform3D(0.8095, 0, 0.5872, 0, 1, 0, -0.5872, 0, 0.8095, 15.8393, 2.2084105, 23.1334)
 mesh = SubResource("CylinderMesh_176")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage3_1" type="MeshInstance3D" parent="Pines" unique_id=1560667144]
-transform = Transform3D(0.9979, 0, 0.0654, 0, 1, 0, -0.0654, 0, 0.9979, 15.8393, 3.1426, 23.1334)
+transform = Transform3D(0.9979, 0, 0.0654, 0, 1, 0, -0.0654, 0, 0.9979, 15.8393, 3.1427104, 23.1334)
 mesh = SubResource("CylinderMesh_177")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage3_2" type="MeshInstance3D" parent="Pines" unique_id=104256003]
-transform = Transform3D(0.9994, 0, 0.0353, 0, 1, 0, -0.0353, 0, 0.9994, 15.8393, 3.992, 23.1334)
+transform = Transform3D(0.9994, 0, 0.0353, 0, 1, 0, -0.0353, 0, 0.9994, 15.8393, 3.9921105, 23.1334)
 mesh = SubResource("CylinderMesh_178")
 surface_material_override/0 = ExtResource("m_pine")
 
@@ -3116,7 +3152,7 @@ mesh = SubResource("CylinderMesh_183")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk5" type="StaticBody3D" parent="Pines" unique_id=639563375]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0622, 1.4554, -21.8031)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.0622, 3.2596533, -21.8031)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk5" unique_id=1945154911]
 mesh = SubResource("CylinderMesh_184")
@@ -3126,22 +3162,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_185")
 
 [node name="Foliage5_0" type="MeshInstance3D" parent="Pines" unique_id=1714717644]
-transform = Transform3D(0.5124, 0, 0.8588, 0, 1, 0, -0.8588, 0, 0.5124, 24.0622, 3.1533, -21.8031)
+transform = Transform3D(0.5124, 0, 0.8588, 0, 1, 0, -0.8588, 0, 0.5124, 24.0622, 4.9575534, -21.8031)
 mesh = SubResource("CylinderMesh_186")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage5_1" type="MeshInstance3D" parent="Pines" unique_id=553261468]
-transform = Transform3D(0.4315, 0, 0.9021, 0, 1, 0, -0.9021, 0, 0.4315, 24.0622, 4.4874, -21.8031)
+transform = Transform3D(0.4315, 0, 0.9021, 0, 1, 0, -0.9021, 0, 0.4315, 24.0622, 6.2916536, -21.8031)
 mesh = SubResource("CylinderMesh_187")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage5_2" type="MeshInstance3D" parent="Pines" unique_id=1882490860]
-transform = Transform3D(0.1888, 0, 0.982, 0, 1, 0, -0.982, 0, 0.1888, 24.0622, 5.7001, -21.8031)
+transform = Transform3D(0.1888, 0, 0.982, 0, 1, 0, -0.982, 0, 0.1888, 24.0622, 7.5043535, -21.8031)
 mesh = SubResource("CylinderMesh_188")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk6" type="StaticBody3D" parent="Pines" unique_id=207380136]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.494, 1.2171, -1.9175)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.494, 2.7955568, -1.9175)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk6" unique_id=2025777185]
 mesh = SubResource("CylinderMesh_189")
@@ -3151,17 +3187,17 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_190")
 
 [node name="Foliage6_0" type="MeshInstance3D" parent="Pines" unique_id=441012326]
-transform = Transform3D(0.8716, 0, 0.4902, 0, 1, 0, -0.4902, 0, 0.8716, -19.494, 2.637, -1.9175)
+transform = Transform3D(0.8716, 0, 0.4902, 0, 1, 0, -0.4902, 0, 0.8716, -19.494, 4.215457, -1.9175)
 mesh = SubResource("CylinderMesh_191")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage6_1" type="MeshInstance3D" parent="Pines" unique_id=1901410390]
-transform = Transform3D(0.024, 0, 0.9997, 0, 1, 0, -0.9997, 0, 0.024, -19.494, 3.7527, -1.9175)
+transform = Transform3D(0.024, 0, 0.9997, 0, 1, 0, -0.9997, 0, 0.024, -19.494, 5.3311567, -1.9175)
 mesh = SubResource("CylinderMesh_192")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage6_2" type="MeshInstance3D" parent="Pines" unique_id=987178289]
-transform = Transform3D(0.9726, 0, 0.2326, 0, 1, 0, -0.2326, 0, 0.9726, -19.494, 4.7669, -1.9175)
+transform = Transform3D(0.9726, 0, 0.2326, 0, 1, 0, -0.2326, 0, 0.9726, -19.494, 6.345357, -1.9175)
 mesh = SubResource("CylinderMesh_193")
 surface_material_override/0 = ExtResource("m_pine")
 
@@ -3191,7 +3227,7 @@ mesh = SubResource("CylinderMesh_198")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk8" type="StaticBody3D" parent="Pines" unique_id=1385993046]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.9726, 1.5487, -16.7453)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.9726, 1.575156, -16.7453)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk8" unique_id=704301625]
 mesh = SubResource("CylinderMesh_199")
@@ -3201,22 +3237,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_200")
 
 [node name="Foliage8_0" type="MeshInstance3D" parent="Pines" unique_id=1243858410]
-transform = Transform3D(0.5525, 0, 0.8335, 0, 1, 0, -0.8335, 0, 0.5525, -16.9726, 3.3555, -16.7453)
+transform = Transform3D(0.5525, 0, 0.8335, 0, 1, 0, -0.8335, 0, 0.5525, -16.9726, 3.381956, -16.7453)
 mesh = SubResource("CylinderMesh_201")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage8_1" type="MeshInstance3D" parent="Pines" unique_id=766480970]
-transform = Transform3D(0.406, 0, 0.9139, 0, 1, 0, -0.9139, 0, 0.406, -16.9726, 4.7751, -16.7453)
+transform = Transform3D(0.406, 0, 0.9139, 0, 1, 0, -0.9139, 0, 0.406, -16.9726, 4.801556, -16.7453)
 mesh = SubResource("CylinderMesh_202")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage8_2" type="MeshInstance3D" parent="Pines" unique_id=1711283085]
-transform = Transform3D(0.2907, 0, 0.9568, 0, 1, 0, -0.9568, 0, 0.2907, -16.9726, 6.0657, -16.7453)
+transform = Transform3D(0.2907, 0, 0.9568, 0, 1, 0, -0.9568, 0, 0.2907, -16.9726, 6.092156, -16.7453)
 mesh = SubResource("CylinderMesh_203")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk9" type="StaticBody3D" parent="Pines" unique_id=1188473582]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6207, 1.0519, 12.5466)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6207, 1.6515499, 12.5466)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk9" unique_id=1854020053]
 mesh = SubResource("CylinderMesh_204")
@@ -3226,22 +3262,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_205")
 
 [node name="Foliage9_0" type="MeshInstance3D" parent="Pines" unique_id=54564364]
-transform = Transform3D(0.6802, 0, 0.733, 0, 1, 0, -0.733, 0, 0.6802, -1.6207, 2.2792, 12.5466)
+transform = Transform3D(0.6802, 0, 0.733, 0, 1, 0, -0.733, 0, 0.6802, -1.6207, 2.87885, 12.5466)
 mesh = SubResource("CylinderMesh_206")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage9_1" type="MeshInstance3D" parent="Pines" unique_id=1287275517]
-transform = Transform3D(0.7022, 0, 0.7119, 0, 1, 0, -0.7119, 0, 0.7022, -1.6207, 3.2435, 12.5466)
+transform = Transform3D(0.7022, 0, 0.7119, 0, 1, 0, -0.7119, 0, 0.7022, -1.6207, 3.84315, 12.5466)
 mesh = SubResource("CylinderMesh_207")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage9_2" type="MeshInstance3D" parent="Pines" unique_id=1931140030]
-transform = Transform3D(0.2564, 0, 0.9666, 0, 1, 0, -0.9666, 0, 0.2564, -1.6207, 4.1201, 12.5466)
+transform = Transform3D(0.2564, 0, 0.9666, 0, 1, 0, -0.9666, 0, 0.2564, -1.6207, 4.71975, 12.5466)
 mesh = SubResource("CylinderMesh_208")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk10" type="StaticBody3D" parent="Pines" unique_id=1500339444]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.8468, 1.4911, 14.7992)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.8468, 1.5782005, 14.7992)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk10" unique_id=111099933]
 mesh = SubResource("CylinderMesh_209")
@@ -3251,17 +3287,17 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_210")
 
 [node name="Foliage10_0" type="MeshInstance3D" parent="Pines" unique_id=1806469491]
-transform = Transform3D(0.2693, 0, 0.9631, 0, 1, 0, -0.9631, 0, 0.2693, -27.8468, 3.2307, 14.7992)
+transform = Transform3D(0.2693, 0, 0.9631, 0, 1, 0, -0.9631, 0, 0.2693, -27.8468, 3.3178005, 14.7992)
 mesh = SubResource("CylinderMesh_211")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage10_1" type="MeshInstance3D" parent="Pines" unique_id=1539870509]
-transform = Transform3D(0.6079, 0, 0.794, 0, 1, 0, -0.794, 0, 0.6079, -27.8468, 4.5975, 14.7992)
+transform = Transform3D(0.6079, 0, 0.794, 0, 1, 0, -0.794, 0, 0.6079, -27.8468, 4.6846004, 14.7992)
 mesh = SubResource("CylinderMesh_212")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage10_2" type="MeshInstance3D" parent="Pines" unique_id=180179246]
-transform = Transform3D(0.1675, 0, 0.9859, 0, 1, 0, -0.9859, 0, 0.1675, -27.8468, 5.8401, 14.7992)
+transform = Transform3D(0.1675, 0, 0.9859, 0, 1, 0, -0.9859, 0, 0.1675, -27.8468, 5.9272003, 14.7992)
 mesh = SubResource("CylinderMesh_213")
 surface_material_override/0 = ExtResource("m_pine")
 
@@ -3291,7 +3327,7 @@ mesh = SubResource("CylinderMesh_218")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk12" type="StaticBody3D" parent="Pines" unique_id=892060557]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.7167, 1.0478, 4.8607)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.7167, 1.1056644, 4.8607)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk12" unique_id=622566650]
 mesh = SubResource("CylinderMesh_219")
@@ -3301,22 +3337,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_220")
 
 [node name="Foliage12_0" type="MeshInstance3D" parent="Pines" unique_id=294874587]
-transform = Transform3D(0.8437, 0, 0.5368, 0, 1, 0, -0.5368, 0, 0.8437, 7.7167, 2.2703, 4.8607)
+transform = Transform3D(0.8437, 0, 0.5368, 0, 1, 0, -0.5368, 0, 0.8437, 7.7167, 2.3281643, 4.8607)
 mesh = SubResource("CylinderMesh_221")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage12_1" type="MeshInstance3D" parent="Pines" unique_id=594901040]
-transform = Transform3D(0.9865, 0, 0.1641, 0, 1, 0, -0.1641, 0, 0.9865, 7.7167, 3.2308, 4.8607)
+transform = Transform3D(0.9865, 0, 0.1641, 0, 1, 0, -0.1641, 0, 0.9865, 7.7167, 3.2886643, 4.8607)
 mesh = SubResource("CylinderMesh_222")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage12_2" type="MeshInstance3D" parent="Pines" unique_id=1770868366]
-transform = Transform3D(0.255, 0, 0.9669, 0, 1, 0, -0.9669, 0, 0.255, 7.7167, 4.104, 4.8607)
+transform = Transform3D(0.255, 0, 0.9669, 0, 1, 0, -0.9669, 0, 0.255, 7.7167, 4.1618648, 4.8607)
 mesh = SubResource("CylinderMesh_223")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk13" type="StaticBody3D" parent="Pines" unique_id=734312086]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.7685, 1.3286, 5.61)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.7685, 1.8385924, 5.61)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk13" unique_id=1701127549]
 mesh = SubResource("CylinderMesh_224")
@@ -3326,22 +3362,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_225")
 
 [node name="Foliage13_0" type="MeshInstance3D" parent="Pines" unique_id=2089970789]
-transform = Transform3D(0.552, 0, 0.8339, 0, 1, 0, -0.8339, 0, 0.552, -18.7685, 2.8787, 5.61)
+transform = Transform3D(0.552, 0, 0.8339, 0, 1, 0, -0.8339, 0, 0.552, -18.7685, 3.3886924, 5.61)
 mesh = SubResource("CylinderMesh_226")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage13_1" type="MeshInstance3D" parent="Pines" unique_id=663472535]
-transform = Transform3D(0.554, 0, 0.8325, 0, 1, 0, -0.8325, 0, 0.554, -18.7685, 4.0966, 5.61)
+transform = Transform3D(0.554, 0, 0.8325, 0, 1, 0, -0.8325, 0, 0.554, -18.7685, 4.6065927, 5.61)
 mesh = SubResource("CylinderMesh_227")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage13_2" type="MeshInstance3D" parent="Pines" unique_id=537468963]
-transform = Transform3D(0.4808, 0, 0.8768, 0, 1, 0, -0.8768, 0, 0.4808, -18.7685, 5.2038, 5.61)
+transform = Transform3D(0.4808, 0, 0.8768, 0, 1, 0, -0.8768, 0, 0.4808, -18.7685, 5.713793, 5.61)
 mesh = SubResource("CylinderMesh_228")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk14" type="StaticBody3D" parent="Pines" unique_id=1705152545]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.0414, 1.2829, -10.4046)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.0414, 1.139229, -10.4046)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk14" unique_id=396659081]
 mesh = SubResource("CylinderMesh_229")
@@ -3351,17 +3387,17 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_230")
 
 [node name="Foliage14_0" type="MeshInstance3D" parent="Pines" unique_id=1065321405]
-transform = Transform3D(1, 0, 0.0052, 0, 1, 0, -0.0052, 0, 1, -30.0414, 2.7797, -10.4046)
+transform = Transform3D(1, 0, 0.0052, 0, 1, 0, -0.0052, 0, 1, -30.0414, 2.6360292, -10.4046)
 mesh = SubResource("CylinderMesh_231")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage14_1" type="MeshInstance3D" parent="Pines" unique_id=180664234]
-transform = Transform3D(0.3125, 0, 0.9499, 0, 1, 0, -0.9499, 0, 0.3125, -30.0414, 3.9557, -10.4046)
+transform = Transform3D(0.3125, 0, 0.9499, 0, 1, 0, -0.9499, 0, 0.3125, -30.0414, 3.8120291, -10.4046)
 mesh = SubResource("CylinderMesh_232")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage14_2" type="MeshInstance3D" parent="Pines" unique_id=146580437]
-transform = Transform3D(0.3852, 0, 0.9228, 0, 1, 0, -0.9228, 0, 0.3852, -30.0414, 5.0248, -10.4046)
+transform = Transform3D(0.3852, 0, 0.9228, 0, 1, 0, -0.9228, 0, 0.3852, -30.0414, 4.881129, -10.4046)
 mesh = SubResource("CylinderMesh_233")
 surface_material_override/0 = ExtResource("m_pine")
 
@@ -3416,7 +3452,7 @@ mesh = SubResource("CylinderMesh_243")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk17" type="StaticBody3D" parent="Pines" unique_id=750687655]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5478, 1.4414, -0.0081)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.5478, 3.780789, -0.0081)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk17" unique_id=279959876]
 mesh = SubResource("CylinderMesh_244")
@@ -3426,22 +3462,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_245")
 
 [node name="Foliage17_0" type="MeshInstance3D" parent="Pines" unique_id=1077802263]
-transform = Transform3D(0.9485, 0, 0.3168, 0, 1, 0, -0.3168, 0, 0.9485, -14.5478, 3.1229, -0.0081)
+transform = Transform3D(0.9485, 0, 0.3168, 0, 1, 0, -0.3168, 0, 0.9485, -14.5478, 5.462289, -0.0081)
 mesh = SubResource("CylinderMesh_246")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage17_1" type="MeshInstance3D" parent="Pines" unique_id=1141976948]
-transform = Transform3D(0.3974, 0, 0.9176, 0, 1, 0, -0.9176, 0, 0.3974, -14.5478, 4.4442, -0.0081)
+transform = Transform3D(0.3974, 0, 0.9176, 0, 1, 0, -0.9176, 0, 0.3974, -14.5478, 6.783589, -0.0081)
 mesh = SubResource("CylinderMesh_247")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage17_2" type="MeshInstance3D" parent="Pines" unique_id=527348635]
-transform = Transform3D(0.0381, 0, 0.9993, 0, 1, 0, -0.9993, 0, 0.0381, -14.5478, 5.6453, -0.0081)
+transform = Transform3D(0.0381, 0, 0.9993, 0, 1, 0, -0.9993, 0, 0.0381, -14.5478, 7.9846888, -0.0081)
 mesh = SubResource("CylinderMesh_248")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk18" type="StaticBody3D" parent="Pines" unique_id=704736365]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6727, 1.286, 5.2607)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6727, 1.4762683, 5.2607)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk18" unique_id=1753249322]
 mesh = SubResource("CylinderMesh_249")
@@ -3451,22 +3487,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_250")
 
 [node name="Foliage18_0" type="MeshInstance3D" parent="Pines" unique_id=976818657]
-transform = Transform3D(0.8248, 0, 0.5654, 0, 1, 0, -0.5654, 0, 0.8248, -3.6727, 2.7863, 5.2607)
+transform = Transform3D(0.8248, 0, 0.5654, 0, 1, 0, -0.5654, 0, 0.8248, -3.6727, 2.9765682, 5.2607)
 mesh = SubResource("CylinderMesh_251")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage18_1" type="MeshInstance3D" parent="Pines" unique_id=1063079701]
-transform = Transform3D(0.73, 0, 0.6834, 0, 1, 0, -0.6834, 0, 0.73, -3.6727, 3.9652, 5.2607)
+transform = Transform3D(0.73, 0, 0.6834, 0, 1, 0, -0.6834, 0, 0.73, -3.6727, 4.1554685, 5.2607)
 mesh = SubResource("CylinderMesh_252")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage18_2" type="MeshInstance3D" parent="Pines" unique_id=1787943030]
-transform = Transform3D(0.4767, 0, 0.8791, 0, 1, 0, -0.8791, 0, 0.4767, -3.6727, 5.0369, 5.2607)
+transform = Transform3D(0.4767, 0, 0.8791, 0, 1, 0, -0.8791, 0, 0.4767, -3.6727, 5.2271686, 5.2607)
 mesh = SubResource("CylinderMesh_253")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk19" type="StaticBody3D" parent="Pines" unique_id=985707440]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6204, 1.4662, -24.5561)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6204, 1.4662437, -24.5561)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk19" unique_id=750433220]
 mesh = SubResource("CylinderMesh_254")
@@ -3476,22 +3512,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_255")
 
 [node name="Foliage19_0" type="MeshInstance3D" parent="Pines" unique_id=219532012]
-transform = Transform3D(0.566, 0, 0.8244, 0, 1, 0, -0.8244, 0, 0.566, -2.6204, 3.1768, -24.5561)
+transform = Transform3D(0.566, 0, 0.8244, 0, 1, 0, -0.8244, 0, 0.566, -2.6204, 3.1768436, -24.5561)
 mesh = SubResource("CylinderMesh_256")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage19_1" type="MeshInstance3D" parent="Pines" unique_id=1690126250]
-transform = Transform3D(0.5322, 0, 0.8466, 0, 1, 0, -0.8466, 0, 0.5322, -2.6204, 4.5208, -24.5561)
+transform = Transform3D(0.5322, 0, 0.8466, 0, 1, 0, -0.8466, 0, 0.5322, -2.6204, 4.520844, -24.5561)
 mesh = SubResource("CylinderMesh_257")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage19_2" type="MeshInstance3D" parent="Pines" unique_id=1996922225]
-transform = Transform3D(0.9926, 0, 0.1214, 0, 1, 0, -0.1214, 0, 0.9926, -2.6204, 5.7426, -24.5561)
+transform = Transform3D(0.9926, 0, 0.1214, 0, 1, 0, -0.1214, 0, 0.9926, -2.6204, 5.742644, -24.5561)
 mesh = SubResource("CylinderMesh_258")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk20" type="StaticBody3D" parent="Pines" unique_id=492977696]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.6611, 1.0573, -4.6419)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.6611, 1.0597695, -4.6419)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk20" unique_id=1498825311]
 mesh = SubResource("CylinderMesh_259")
@@ -3501,22 +3537,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_260")
 
 [node name="Foliage20_0" type="MeshInstance3D" parent="Pines" unique_id=40572155]
-transform = Transform3D(0.9215, 0, 0.3884, 0, 1, 0, -0.3884, 0, 0.9215, 10.6611, 2.2908, -4.6419)
+transform = Transform3D(0.9215, 0, 0.3884, 0, 1, 0, -0.3884, 0, 0.9215, 10.6611, 2.2932696, -4.6419)
 mesh = SubResource("CylinderMesh_261")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage20_1" type="MeshInstance3D" parent="Pines" unique_id=1066289401]
-transform = Transform3D(0.3925, 0, 0.9197, 0, 1, 0, -0.9197, 0, 0.3925, 10.6611, 3.26, -4.6419)
+transform = Transform3D(0.3925, 0, 0.9197, 0, 1, 0, -0.9197, 0, 0.3925, 10.6611, 3.2624695, -4.6419)
 mesh = SubResource("CylinderMesh_262")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage20_2" type="MeshInstance3D" parent="Pines" unique_id=1941408332]
-transform = Transform3D(0.8878, 0, 0.4602, 0, 1, 0, -0.4602, 0, 0.8878, 10.6611, 4.1411, -4.6419)
+transform = Transform3D(0.8878, 0, 0.4602, 0, 1, 0, -0.4602, 0, 0.8878, 10.6611, 4.1435695, -4.6419)
 mesh = SubResource("CylinderMesh_263")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk21" type="StaticBody3D" parent="Pines" unique_id=1935698545]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.1927, 1.3347, 0.9485)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.1927, 1.6353505, 0.9485)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk21" unique_id=685542991]
 mesh = SubResource("CylinderMesh_264")
@@ -3526,22 +3562,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_265")
 
 [node name="Foliage21_0" type="MeshInstance3D" parent="Pines" unique_id=717581885]
-transform = Transform3D(0.9998, 0, 0.0196, 0, 1, 0, -0.0196, 0, 0.9998, -30.1927, 2.8919, 0.9485)
+transform = Transform3D(0.9998, 0, 0.0196, 0, 1, 0, -0.0196, 0, 0.9998, -30.1927, 3.1925507, 0.9485)
 mesh = SubResource("CylinderMesh_266")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage21_1" type="MeshInstance3D" parent="Pines" unique_id=581714262]
-transform = Transform3D(0.9955, 0, 0.0951, 0, 1, 0, -0.0951, 0, 0.9955, -30.1927, 4.1154, 0.9485)
+transform = Transform3D(0.9955, 0, 0.0951, 0, 1, 0, -0.0951, 0, 0.9955, -30.1927, 4.4160504, 0.9485)
 mesh = SubResource("CylinderMesh_267")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage21_2" type="MeshInstance3D" parent="Pines" unique_id=1083902448]
-transform = Transform3D(0.9122, 0, 0.4098, 0, 1, 0, -0.4098, 0, 0.9122, -30.1927, 5.2277, 0.9485)
+transform = Transform3D(0.9122, 0, 0.4098, 0, 1, 0, -0.4098, 0, 0.9122, -30.1927, 5.528351, 0.9485)
 mesh = SubResource("CylinderMesh_268")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk22" type="StaticBody3D" parent="Pines" unique_id=943941474]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.5945, 1.4035, 25.192)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.5945, 1.4089237, 25.192)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk22" unique_id=1577389646]
 mesh = SubResource("CylinderMesh_269")
@@ -3551,22 +3587,22 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_270")
 
 [node name="Foliage22_0" type="MeshInstance3D" parent="Pines" unique_id=1444223408]
-transform = Transform3D(0.4649, 0, 0.8854, 0, 1, 0, -0.8854, 0, 0.4649, -16.5945, 3.041, 25.192)
+transform = Transform3D(0.4649, 0, 0.8854, 0, 1, 0, -0.8854, 0, 0.4649, -16.5945, 3.0464237, 25.192)
 mesh = SubResource("CylinderMesh_271")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage22_1" type="MeshInstance3D" parent="Pines" unique_id=359608245]
-transform = Transform3D(0.4877, 0, 0.873, 0, 1, 0, -0.873, 0, 0.4877, -16.5945, 4.3275, 25.192)
+transform = Transform3D(0.4877, 0, 0.873, 0, 1, 0, -0.873, 0, 0.4877, -16.5945, 4.3329234, 25.192)
 mesh = SubResource("CylinderMesh_272")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage22_2" type="MeshInstance3D" parent="Pines" unique_id=935338875]
-transform = Transform3D(0.8974, 0, 0.4411, 0, 1, 0, -0.4411, 0, 0.8974, -16.5945, 5.4971, 25.192)
+transform = Transform3D(0.8974, 0, 0.4411, 0, 1, 0, -0.4411, 0, 0.8974, -16.5945, 5.5025234, 25.192)
 mesh = SubResource("CylinderMesh_273")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk23" type="StaticBody3D" parent="Pines" unique_id=535068234]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.6557, 1.3009, -19.7323)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.6557, 2.320964, -19.7323)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk23" unique_id=1178946433]
 mesh = SubResource("CylinderMesh_274")
@@ -3576,17 +3612,17 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_275")
 
 [node name="Foliage23_0" type="MeshInstance3D" parent="Pines" unique_id=705666770]
-transform = Transform3D(0.7452, 0, 0.6668, 0, 1, 0, -0.6668, 0, 0.7452, 18.6557, 2.8186, -19.7323)
+transform = Transform3D(0.7452, 0, 0.6668, 0, 1, 0, -0.6668, 0, 0.7452, 18.6557, 3.838664, -19.7323)
 mesh = SubResource("CylinderMesh_276")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage23_1" type="MeshInstance3D" parent="Pines" unique_id=1548885832]
-transform = Transform3D(0.7435, 0, 0.6687, 0, 1, 0, -0.6687, 0, 0.7435, 18.6557, 4.0112, -19.7323)
+transform = Transform3D(0.7435, 0, 0.6687, 0, 1, 0, -0.6687, 0, 0.7435, 18.6557, 5.0312643, -19.7323)
 mesh = SubResource("CylinderMesh_277")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage23_2" type="MeshInstance3D" parent="Pines" unique_id=654423932]
-transform = Transform3D(0.9827, 0, 0.1851, 0, 1, 0, -0.1851, 0, 0.9827, 18.6557, 5.0952, -19.7323)
+transform = Transform3D(0.9827, 0, 0.1851, 0, 1, 0, -0.1851, 0, 0.9827, 18.6557, 6.1152644, -19.7323)
 mesh = SubResource("CylinderMesh_278")
 surface_material_override/0 = ExtResource("m_pine")
 
@@ -3616,7 +3652,7 @@ mesh = SubResource("CylinderMesh_283")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Trunk25" type="StaticBody3D" parent="Pines" unique_id=2129501726]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.2463, 0.9716, -4.2124)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24.2463, 0.9798952, -4.2124)
 
 [node name="Mesh" type="MeshInstance3D" parent="Pines/Trunk25" unique_id=688346134]
 mesh = SubResource("CylinderMesh_284")
@@ -3626,89 +3662,89 @@ surface_material_override/0 = ExtResource("m_deadwood")
 shape = SubResource("CylinderShape3D_285")
 
 [node name="Foliage25_0" type="MeshInstance3D" parent="Pines" unique_id=189543827]
-transform = Transform3D(0.7512, 0, 0.6601, 0, 1, 0, -0.6601, 0, 0.7512, 24.2463, 2.105, -4.2124)
+transform = Transform3D(0.7512, 0, 0.6601, 0, 1, 0, -0.6601, 0, 0.7512, 24.2463, 2.1132953, -4.2124)
 mesh = SubResource("CylinderMesh_286")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage25_1" type="MeshInstance3D" parent="Pines" unique_id=393635734]
-transform = Transform3D(0.2791, 0, 0.9602, 0, 1, 0, -0.9602, 0, 0.2791, 24.2463, 2.9956, -4.2124)
+transform = Transform3D(0.2791, 0, 0.9602, 0, 1, 0, -0.9602, 0, 0.2791, 24.2463, 3.0038953, -4.2124)
 mesh = SubResource("CylinderMesh_287")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Foliage25_2" type="MeshInstance3D" parent="Pines" unique_id=119178893]
-transform = Transform3D(0.0501, 0, 0.9987, 0, 1, 0, -0.9987, 0, 0.0501, 24.2463, 3.8052, -4.2124)
+transform = Transform3D(0.0501, 0, 0.9987, 0, 1, 0, -0.9987, 0, 0.0501, 24.2463, 3.8134954, -4.2124)
 mesh = SubResource("CylinderMesh_288")
 surface_material_override/0 = ExtResource("m_pine")
 
 [node name="Bushes" type="Node3D" parent="." unique_id=1269918225]
 
 [node name="Bush0" type="MeshInstance3D" parent="Bushes" unique_id=164341477]
-transform = Transform3D(0.9443, 0, 1.512, 0, 1.2341, 0, -1.512, 0, 0.9443, 8.5026, 0.4799, 32.9755)
+transform = Transform3D(0.9443, 0, 1.512, 0, 1.2341, 0, -1.512, 0, 0.9443, 8.5026, 0.48856074, 32.9755)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush1" type="MeshInstance3D" parent="Bushes" unique_id=2057962232]
-transform = Transform3D(1.2523, 0, 0.4839, 0, 0.9294, 0, -0.4839, 0, 1.2523, 6.5689, 0.3614, 26.0654)
+transform = Transform3D(1.2523, 0, 0.4839, 0, 0.9294, 0, -0.4839, 0, 1.2523, 6.5689, 0.5511732, 26.0654)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush1b" type="MeshInstance3D" parent="Bushes" unique_id=1802878462]
-transform = Transform3D(0.9294, 0, 0, 0, 0.7229, 0, 0, 0, 0.9294, 7.1216, 0.2892, 26.311)
+transform = Transform3D(0.9294, 0, 0, 0, 0.7229, 0, 0, 0, 0.9294, 7.1216, 0.4352443, 26.311)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush2" type="MeshInstance3D" parent="Bushes" unique_id=1936224006]
-transform = Transform3D(1.189, 0, 0.0407, 0, 0.8237, 0, -0.0407, 0, 1.189, 12.9602, 0.3203, -3.9657)
+transform = Transform3D(1.189, 0, 0.0407, 0, 0.8237, 0, -0.0407, 0, 1.189, 12.9602, 0.43034986, -3.9657)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush2b" type="MeshInstance3D" parent="Bushes" unique_id=1080112736]
-transform = Transform3D(0.8237, 0, 0, 0, 0.6406, 0, 0, 0, 0.8237, 13.1695, 0.2562, -4.0616)
+transform = Transform3D(0.8237, 0, 0, 0, 0.6406, 0, 0, 0, 0.8237, 13.1695, 0.39575866, -4.0616)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush3" type="MeshInstance3D" parent="Bushes" unique_id=386723955]
-transform = Transform3D(0.571, 0, 0.9914, 0, 0.7921, 0, -0.9914, 0, 0.571, 10.7625, 0.308, -22.7907)
+transform = Transform3D(0.571, 0, 0.9914, 0, 0.7921, 0, -0.9914, 0, 0.571, 10.7625, 0.49864364, -22.7907)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush4" type="MeshInstance3D" parent="Bushes" unique_id=852089802]
-transform = Transform3D(1.1148, 0, 0.0598, 0, 0.7729, 0, -0.0598, 0, 1.1148, 22.3371, 0.3006, -19.233)
+transform = Transform3D(1.1148, 0, 0.0598, 0, 0.7729, 0, -0.0598, 0, 1.1148, 22.3371, 1.5450898, -19.233)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush4b" type="MeshInstance3D" parent="Bushes" unique_id=239155045]
-transform = Transform3D(0.7729, 0, 0, 0, 0.6011, 0, 0, 0, 0.7729, 22.2418, 0.2405, -19.014)
+transform = Transform3D(0.7729, 0, 0, 0, 0.6011, 0, 0, 0, 0.7729, 22.2418, 1.4557185, -19.014)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush5" type="MeshInstance3D" parent="Bushes" unique_id=1527602275]
-transform = Transform3D(0.3417, 0, 1.0353, 0, 0.7548, 0, -1.0353, 0, 0.3417, -7.3419, 0.2935, 0.641)
+transform = Transform3D(0.3417, 0, 1.0353, 0, 0.7548, 0, -1.0353, 0, 0.3417, -7.3419, 0.29228213, 0.641)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush6" type="MeshInstance3D" parent="Bushes" unique_id=213185742]
-transform = Transform3D(1.2989, 0, 0.4338, 0, 0.9481, 0, -0.4338, 0, 1.2989, 24.7885, 0.3687, 0.5593)
+transform = Transform3D(1.2989, 0, 0.4338, 0, 0.9481, 0, -0.4338, 0, 1.2989, 24.7885, 0.36645296, 0.5593)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush7" type="MeshInstance3D" parent="Bushes" unique_id=1701731386]
-transform = Transform3D(0.333, 0, 1.1463, 0, 0.8264, 0, -1.1463, 0, 0.333, 13.2598, 0.3214, 16.1741)
+transform = Transform3D(0.333, 0, 1.1463, 0, 0.8264, 0, -1.1463, 0, 0.333, 13.2598, 0.31304738, 16.1741)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush7b" type="MeshInstance3D" parent="Bushes" unique_id=1356095748]
-transform = Transform3D(0.8264, 0, 0, 0, 0.6427, 0, 0, 0, 0.8264, 12.9255, 0.2571, 16.4867)
+transform = Transform3D(0.8264, 0, 0, 0, 0.6427, 0, 0, 0, 0.8264, 12.9255, 0.25462773, 16.4867)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush8" type="MeshInstance3D" parent="Bushes" unique_id=35868229]
-transform = Transform3D(0.0889, 0, 1.175, 0, 0.8158, 0, -1.175, 0, 0.0889, -12.9652, 0.3173, 29.4126)
+transform = Transform3D(0.0889, 0, 1.175, 0, 0.8158, 0, -1.175, 0, 0.0889, -12.9652, 0.30239636, 29.4126)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush8b" type="MeshInstance3D" parent="Bushes" unique_id=910169798]
-transform = Transform3D(0.8158, 0, 0, 0, 0.6345, 0, 0, 0, 0.8158, -13.3404, 0.2538, 29.0806)
+transform = Transform3D(0.8158, 0, 0, 0, 0.6345, 0, 0, 0, 0.8158, -13.3404, 0.23941764, 29.0806)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
@@ -3718,37 +3754,37 @@ mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush10" type="MeshInstance3D" parent="Bushes" unique_id=1862413235]
-transform = Transform3D(0.8502, 0, 0.6045, 0, 0.7222, 0, -0.6045, 0, 0.8502, 26.5562, 0.2809, -13.2383)
+transform = Transform3D(0.8502, 0, 0.6045, 0, 0.7222, 0, -0.6045, 0, 0.8502, 26.5562, 0.65390974, -13.2383)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush10b" type="MeshInstance3D" parent="Bushes" unique_id=1706488973]
-transform = Transform3D(0.7222, 0, 0, 0, 0.5617, 0, 0, 0, 0.7222, 27.1251, 0.2247, -13.6681)
+transform = Transform3D(0.7222, 0, 0, 0, 0.5617, 0, 0, 0, 0.7222, 27.1251, 0.68622625, -13.6681)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush11" type="MeshInstance3D" parent="Bushes" unique_id=97605196]
-transform = Transform3D(0.9529, 0, 0.0903, 0, 0.6627, 0, -0.0903, 0, 0.9529, 15.724, 0.2577, -11.1893)
+transform = Transform3D(0.9529, 0, 0.0903, 0, 0.6627, 0, -0.0903, 0, 0.9529, 15.724, 0.4417381, -11.1893)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush11b" type="MeshInstance3D" parent="Bushes" unique_id=1730945576]
-transform = Transform3D(0.6627, 0, 0, 0, 0.5154, 0, 0, 0, 0.6627, 16.2018, 0.2062, -10.729)
+transform = Transform3D(0.6627, 0, 0, 0, 0.5154, 0, 0, 0, 0.6627, 16.2018, 0.47327942, -10.729)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush12" type="MeshInstance3D" parent="Bushes" unique_id=189827446]
-transform = Transform3D(0.0061, 0, 1.5768, 0, 1.0916, 0, -1.5768, 0, 0.0061, 27.0511, 0.4245, -0.2052)
+transform = Transform3D(0.0061, 0, 1.5768, 0, 1.0916, 0, -1.5768, 0, 0.0061, 27.0511, 0.42059362, -0.2052)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush13" type="MeshInstance3D" parent="Bushes" unique_id=1696456967]
-transform = Transform3D(1.1586, 0, 0.3475, 0, 0.8374, 0, -0.3475, 0, 1.1586, -1.4292, 0.3257, 8.9668)
+transform = Transform3D(1.1586, 0, 0.3475, 0, 0.8374, 0, -0.3475, 0, 1.1586, -1.4292, 0.9127119, 8.9668)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush14" type="MeshInstance3D" parent="Bushes" unique_id=1000023938]
-transform = Transform3D(1.5871, 0, 0.0796, 0, 1.1002, 0, -0.0796, 0, 1.5871, -7.5195, 0.4278, 33.0323)
+transform = Transform3D(1.5871, 0, 0.0796, 0, 1.1002, 0, -0.0796, 0, 1.5871, -7.5195, 0.3026031, 33.0323)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
@@ -3758,32 +3794,32 @@ mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush15b" type="MeshInstance3D" parent="Bushes" unique_id=204465531]
-transform = Transform3D(0.8685, 0, 0, 0, 0.6755, 0, 0, 0, 0.8685, -0.3182, 0.2702, 17.9372)
+transform = Transform3D(0.8685, 0, 0, 0, 0.6755, 0, 0, 0, 0.8685, -0.3182, 0.27021608, 17.9372)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush16" type="MeshInstance3D" parent="Bushes" unique_id=1672522111]
-transform = Transform3D(0.9916, 0, 0.6108, 0, 0.8063, 0, -0.6108, 0, 0.9916, -23.9589, 0.3136, 24.4611)
+transform = Transform3D(0.9916, 0, 0.6108, 0, 0.8063, 0, -0.6108, 0, 0.9916, -23.9589, 0.44817472, 24.4611)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush17" type="MeshInstance3D" parent="Bushes" unique_id=1966669398]
-transform = Transform3D(0.0574, 0, 1.021, 0, 0.7079, 0, -1.021, 0, 0.0574, -22.7825, 0.2753, -24.5362)
+transform = Transform3D(0.0574, 0, 1.021, 0, 0.7079, 0, -1.021, 0, 0.0574, -22.7825, 0.40871122, -24.5362)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush17b" type="MeshInstance3D" parent="Bushes" unique_id=2061294584]
-transform = Transform3D(0.7079, 0, 0, 0, 0.5506, 0, 0, 0, 0.7079, -22.9545, 0.2202, -24.1503)
+transform = Transform3D(0.7079, 0, 0, 0, 0.5506, 0, 0, 0, 0.7079, -22.9545, 0.34197548, -24.1503)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush18" type="MeshInstance3D" parent="Bushes" unique_id=1799055196]
-transform = Transform3D(1.29, 0, 1.0416, 0, 1.1479, 0, -1.0416, 0, 1.29, 24.3562, 0.4464, -9.5197)
+transform = Transform3D(1.29, 0, 1.0416, 0, 1.1479, 0, -1.0416, 0, 1.29, 24.3562, 0.9072395, -9.5197)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush18b" type="MeshInstance3D" parent="Bushes" unique_id=618335118]
-transform = Transform3D(1.1479, 0, 0, 0, 0.8928, 0, 0, 0, 1.1479, 24.3243, 0.3571, -9.6725)
+transform = Transform3D(1.1479, 0, 0, 0, 0.8928, 0, 0, 0, 1.1479, 24.3243, 0.8490796, -9.6725)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
@@ -3798,87 +3834,87 @@ mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush20" type="MeshInstance3D" parent="Bushes" unique_id=831464375]
-transform = Transform3D(0.374, 0, 1.2282, 0, 0.8888, 0, -1.2282, 0, 0.374, -20.5877, 0.3456, 3.6352)
+transform = Transform3D(0.374, 0, 1.2282, 0, 0.8888, 0, -1.2282, 0, 0.374, -20.5877, 1.069154, 3.6352)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush21" type="MeshInstance3D" parent="Bushes" unique_id=468907559]
-transform = Transform3D(0.9456, 0, 0.0518, 0, 0.6556, 0, -0.0518, 0, 0.9456, -8.9277, 0.255, 28.8445)
+transform = Transform3D(0.9456, 0, 0.0518, 0, 0.6556, 0, -0.0518, 0, 0.9456, -8.9277, 0.2413611, 28.8445)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush21b" type="MeshInstance3D" parent="Bushes" unique_id=916455620]
-transform = Transform3D(0.6556, 0, 0, 0, 0.5099, 0, 0, 0, 0.6556, -8.4236, 0.204, 28.5529)
+transform = Transform3D(0.6556, 0, 0, 0, 0.5099, 0, 0, 0, 0.6556, -8.4236, 0.2093019, 28.5529)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush22" type="MeshInstance3D" parent="Bushes" unique_id=359584075]
-transform = Transform3D(0.2523, 0, 1.5699, 0, 1.1008, 0, -1.5699, 0, 0.2523, 18.1498, 0.4281, -2.7233)
+transform = Transform3D(0.2523, 0, 1.5699, 0, 1.1008, 0, -1.5699, 0, 0.2523, 18.1498, 1.2984729, -2.7233)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush22b" type="MeshInstance3D" parent="Bushes" unique_id=1933919021]
-transform = Transform3D(1.1008, 0, 0, 0, 0.8562, 0, 0, 0, 1.1008, 17.8766, 0.3425, -2.1741)
+transform = Transform3D(1.1008, 0, 0, 0, 0.8562, 0, 0, 0, 1.1008, 17.8766, 1.1117474, -2.1741)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush23" type="MeshInstance3D" parent="Bushes" unique_id=1757748345]
-transform = Transform3D(1.3484, 0, 0.589, 0, 1.0187, 0, -0.589, 0, 1.3484, -10.9364, 0.3962, -16.311)
+transform = Transform3D(1.3484, 0, 0.589, 0, 1.0187, 0, -0.589, 0, 1.3484, -10.9364, 0.3962007, -16.311)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush24" type="MeshInstance3D" parent="Bushes" unique_id=651058827]
-transform = Transform3D(1.0875, 0, 0.5026, 0, 0.8294, 0, -0.5026, 0, 1.0875, 7.3384, 0.3225, 12.8342)
+transform = Transform3D(1.0875, 0, 0.5026, 0, 0.8294, 0, -0.5026, 0, 1.0875, 7.3384, 0.34560263, 12.8342)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush24b" type="MeshInstance3D" parent="Bushes" unique_id=1388518551]
-transform = Transform3D(0.8294, 0, 0, 0, 0.6451, 0, 0, 0, 0.8294, 7.6452, 0.258, 13.334)
+transform = Transform3D(0.8294, 0, 0, 0, 0.6451, 0, 0, 0, 0.8294, 7.6452, 0.29567683, 13.334)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush25" type="MeshInstance3D" parent="Bushes" unique_id=1510136046]
-transform = Transform3D(0.1324, 0, 1.481, 0, 1.0294, 0, -1.481, 0, 0.1324, -16.9866, 0.4003, 0.3121)
+transform = Transform3D(0.1324, 0, 1.481, 0, 1.0294, 0, -1.481, 0, 0.1324, -16.9866, 3.6037278, 0.3121)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush25b" type="MeshInstance3D" parent="Bushes" unique_id=2103856668]
-transform = Transform3D(1.0294, 0, 0, 0, 0.8007, 0, 0, 0, 1.0294, -17.3059, 0.3203, 0.2824)
+transform = Transform3D(1.0294, 0, 0, 0, 0.8007, 0, 0, 0, 1.0294, -17.3059, 3.4379914, 0.2824)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush26" type="MeshInstance3D" parent="Bushes" unique_id=978613224]
-transform = Transform3D(0.1288, 0, 1.776, 0, 1.2328, 0, -1.776, 0, 0.1288, 29.0523, 0.4794, -19.4096)
+transform = Transform3D(0.1288, 0, 1.776, 0, 1.2328, 0, -1.776, 0, 0.1288, 29.0523, 2.1077962, -19.4096)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush26b" type="MeshInstance3D" parent="Bushes" unique_id=1531689079]
-transform = Transform3D(1.2328, 0, 0, 0, 0.9588, 0, 0, 0, 1.2328, 28.7535, 0.3835, -19.4937)
+transform = Transform3D(1.2328, 0, 0, 0, 0.9588, 0, 0, 0, 1.2328, 28.7535, 1.9996076, -19.4937)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush27" type="MeshInstance3D" parent="Bushes" unique_id=1328726207]
-transform = Transform3D(0.1532, 0, 1.3504, 0, 0.9409, 0, -1.3504, 0, 0.1532, -13.1801, 0.3659, 4.2861)
+transform = Transform3D(0.1532, 0, 1.3504, 0, 0.9409, 0, -1.3504, 0, 0.1532, -13.1801, 1.3726718, 4.2861)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush27b" type="MeshInstance3D" parent="Bushes" unique_id=2105115747]
-transform = Transform3D(0.9409, 0, 0, 0, 0.7318, 0, 0, 0, 0.9409, -12.817, 0.2927, 4.5723)
+transform = Transform3D(0.9409, 0, 0, 0, 0.7318, 0, 0, 0, 0.9409, -12.817, 1.0993466, 4.5723)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush28" type="MeshInstance3D" parent="Bushes" unique_id=393659364]
-transform = Transform3D(0.5795, 0, 1.5542, 0, 1.1483, 0, -1.5542, 0, 0.5795, -6.3189, 0.4466, 9.6918)
+transform = Transform3D(0.5795, 0, 1.5542, 0, 1.1483, 0, -1.5542, 0, 0.5795, -6.3189, 0.5915931, 9.6918)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush29" type="MeshInstance3D" parent="Bushes" unique_id=696623302]
-transform = Transform3D(1.0593, 0, 0.5814, 0, 0.8365, 0, -0.5814, 0, 1.0593, -29.9018, 0.3253, -13.9831)
+transform = Transform3D(1.0593, 0, 0.5814, 0, 0.8365, 0, -0.5814, 0, 1.0593, -29.9018, 1.180538, -13.9831)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush29b" type="MeshInstance3D" parent="Bushes" unique_id=639987194]
-transform = Transform3D(0.8365, 0, 0, 0, 0.6506, 0, 0, 0, 0.8365, -29.5631, 0.2602, -14.4883)
+transform = Transform3D(0.8365, 0, 0, 0, 0.6506, 0, 0, 0, 0.8365, -29.5631, 1.2680233, -14.4883)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
@@ -3893,7 +3929,7 @@ mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush31" type="MeshInstance3D" parent="Bushes" unique_id=401108814]
-transform = Transform3D(1.2319, 0, 0.6918, 0, 0.9781, 0, -0.6918, 0, 1.2319, 17.4922, 0.3804, 7.1889)
+transform = Transform3D(1.2319, 0, 0.6918, 0, 0.9781, 0, -0.6918, 0, 1.2319, 17.4922, 0.5445775, 7.1889)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
@@ -3908,57 +3944,57 @@ mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush33" type="MeshInstance3D" parent="Bushes" unique_id=188138155]
-transform = Transform3D(0.6003, 0, 1.2243, 0, 0.944, 0, -1.2243, 0, 0.6003, -2.366, 0.3671, 17.8093)
+transform = Transform3D(0.6003, 0, 1.2243, 0, 0.944, 0, -1.2243, 0, 0.6003, -2.366, 0.36766374, 17.8093)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush33b" type="MeshInstance3D" parent="Bushes" unique_id=887786016]
-transform = Transform3D(0.944, 0, 0, 0, 0.7343, 0, 0, 0, 0.944, -2.685, 0.2937, 17.7095)
+transform = Transform3D(0.944, 0, 0, 0, 0.7343, 0, 0, 0, 0.944, -2.685, 0.29483393, 17.7095)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush34" type="MeshInstance3D" parent="Bushes" unique_id=1775134181]
-transform = Transform3D(0.7223, 0, 1.2855, 0, 1.0208, 0, -1.2855, 0, 0.7223, 30.9578, 0.397, -9.2173)
+transform = Transform3D(0.7223, 0, 1.2855, 0, 1.0208, 0, -1.2855, 0, 0.7223, 30.9578, 0.3869375, -9.2173)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush35" type="MeshInstance3D" parent="Bushes" unique_id=1082254163]
-transform = Transform3D(0.8455, 0, 1.4526, 0, 1.1636, 0, -1.4526, 0, 0.8455, 19.3011, 0.4525, -14.8366)
+transform = Transform3D(0.8455, 0, 1.4526, 0, 1.1636, 0, -1.4526, 0, 0.8455, 19.3011, 1.7613416, -14.8366)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush35b" type="MeshInstance3D" parent="Bushes" unique_id=1337438353]
-transform = Transform3D(1.1636, 0, 0, 0, 0.905, 0, 0, 0, 1.1636, 19.7102, 0.362, -15.0841)
+transform = Transform3D(1.1636, 0, 0, 0, 0.905, 0, 0, 0, 1.1636, 19.7102, 1.7541881, -15.0841)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush36" type="MeshInstance3D" parent="Bushes" unique_id=1610055260]
-transform = Transform3D(1.1881, 0, 0.7884, 0, 0.9871, 0, -0.7884, 0, 1.1881, -26.1873, 0.3839, 21.2457)
+transform = Transform3D(1.1881, 0, 0.7884, 0, 0.9871, 0, -0.7884, 0, 1.1881, -26.1873, 0.63504833, 21.2457)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush37" type="MeshInstance3D" parent="Bushes" unique_id=437615725]
-transform = Transform3D(1.0099, 0, 0.4135, 0, 0.7555, 0, -0.4135, 0, 1.0099, 14.8282, 0.2938, -28.8376)
+transform = Transform3D(1.0099, 0, 0.4135, 0, 0.7555, 0, -0.4135, 0, 1.0099, 14.8282, 3.513362, -28.8376)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush37b" type="MeshInstance3D" parent="Bushes" unique_id=55782326]
-transform = Transform3D(0.7555, 0, 0, 0, 0.5876, 0, 0, 0, 0.7555, 14.4122, 0.235, -28.3766)
+transform = Transform3D(0.7555, 0, 0, 0, 0.5876, 0, 0, 0, 0.7555, 14.4122, 3.2318306, -28.3766)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush38" type="MeshInstance3D" parent="Bushes" unique_id=1601544136]
-transform = Transform3D(1.2516, 0, 0.7044, 0, 0.9943, 0, -0.7044, 0, 1.2516, 11.2165, 0.3867, 9.1664)
+transform = Transform3D(1.2516, 0, 0.7044, 0, 0.9943, 0, -0.7044, 0, 1.2516, 11.2165, 1.724747, 9.1664)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush38b" type="MeshInstance3D" parent="Bushes" unique_id=2003576082]
-transform = Transform3D(0.9943, 0, 0, 0, 0.7734, 0, 0, 0, 0.9943, 11.8074, 0.3093, 9.1752)
+transform = Transform3D(0.9943, 0, 0, 0, 0.7734, 0, 0, 0, 0.9943, 11.8074, 1.876677, 9.1752)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush39" type="MeshInstance3D" parent="Bushes" unique_id=836199082]
-transform = Transform3D(0.3321, 0, 1.0702, 0, 0.7758, 0, -1.0702, 0, 0.3321, 27.8543, 0.3017, -10.7276)
+transform = Transform3D(0.3321, 0, 1.0702, 0, 0.7758, 0, -1.0702, 0, 0.3321, 27.8543, 0.100874744, -10.7276)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
@@ -3983,7 +4019,7 @@ mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush42" type="MeshInstance3D" parent="Bushes" unique_id=207399373]
-transform = Transform3D(1.0933, 0, 1.4241, 0, 1.243, 0, -1.4241, 0, 1.0933, 12.5419, 0.4834, 13.0184)
+transform = Transform3D(1.0933, 0, 1.4241, 0, 1.243, 0, -1.4241, 0, 1.0933, 12.5419, 1.1544749, 13.0184)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
@@ -3998,12 +4034,12 @@ mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush44" type="MeshInstance3D" parent="Bushes" unique_id=1164249252]
-transform = Transform3D(1.7462, 0, 0.2928, 0, 1.2258, 0, -0.2928, 0, 1.7462, -13.0546, 0.4767, 11.0674)
+transform = Transform3D(1.7462, 0, 0.2928, 0, 1.2258, 0, -0.2928, 0, 1.7462, -13.0546, 0.48070085, 11.0674)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Bush44b" type="MeshInstance3D" parent="Bushes" unique_id=2062543833]
-transform = Transform3D(1.2258, 0, 0, 0, 0.9534, 0, 0, 0, 1.2258, -12.9107, 0.3814, 10.7286)
+transform = Transform3D(1.2258, 0, 0, 0, 0.9534, 0, 0, 0, 1.2258, -12.9107, 0.39751247, 10.7286)
 mesh = SubResource("SphereMesh_289")
 surface_material_override/0 = ExtResource("m_bush")
 
@@ -4019,3 +4055,27 @@ surface_material_override/0 = ExtResource("m_bush")
 
 [node name="Supplies" type="Node3D" parent="." unique_id=1730042219]
 script = ExtResource("s_supplies")
+
+[node name="Ships" type="Node3D" parent="." unique_id=1885938897]
+script = ExtResource("s_traffic")
+
+[node name="Boatman" type="Node3D" parent="." unique_id=536801841]
+script = ExtResource("s_boatman")
+
+[node name="Lavados" type="Node3D" parent="." unique_id=1799818331]
+script = ExtResource("s_lavados")
+
+[node name="Invasion" type="Node3D" parent="." unique_id=763957460]
+script = ExtResource("s_invasion")
+
+[node name="HorizonShip" type="Node3D" parent="." unique_id=1632111871]
+script = ExtResource("s_horizon")
+
+[node name="PortinhoGiant" type="Node3D" parent="."]
+script = ExtResource("s_pgiant")
+
+[node name="SupplyCrate" type="Node3D" parent="."]
+script = ExtResource("s_pcrate")
+
+[node name="PortinhoDoll" type="Node3D" parent="."]
+script = ExtResource("s_pdoll")

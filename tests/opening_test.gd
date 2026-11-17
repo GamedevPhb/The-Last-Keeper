@@ -32,8 +32,11 @@ func _process(_delta: float) -> bool:
 				var player: Node = _main.get_node("Player")
 				_check(player.locked, "player locked during the opening")
 				_check(cut.get("_camera").current, "cutscene camera is current")
-				for i in 400:
+				var length := 0.0
+				while length < 200.0 and not cut.is_queued_for_deletion():
 					cut.advance(0.25)
+					length += 0.25
+				_check(length >= 45.0 and length <= 60.0, "the opening lasts ~50 s (was %.0f s)" % length)
 				_check(_find_cutscene() == null or _find_cutscene().is_queued_for_deletion(), "cutscene finishes")
 				_check(_state.in_game, "clock starts after the opening")
 				_check(not player.locked, "player free after the opening")

@@ -27,6 +27,8 @@ Tudo que o jogo precisa daqui para frente, na ordem em que deve ser produzido. B
 
 ## 1. Criaturas
 
+> Armas (combate básico, GDD 4.11) já importadas em `assets/armas/`: machado, pistola P38, espingarda de cano duplo e cartucho calibre 12. Ver `LICENSE-ASSETS.md`.
+
 Conceito: os afogados e náufragos que o mar devolveu. Maioria marinha. O jogador nunca vê tudo de uma vez: primeiro o som, depois a silhueta, só no fim o corpo.
 
 | ID | Criatura | Descrição | Tam. | Tris | Animações | Prior. |
@@ -59,6 +61,8 @@ O **Portinho** é o farol-mascote da Porto Indie, aqui em **versão demônio**. 
 | boss_05 | Chaves do segredo | 4 relíquias escondidas (proposta: sino, lente, âncora e chave) e o altar onde se encaixam | 4 × 150 | P2 |
 | boss_06 | Efeitos | Olhos brilhantes, feixe vermelho, rachaduras, poeira de pedra | – | P2 |
 | boss_07 | Áudio | Rugido grave, passos de pedra, sino rachado, trilha própria | 5 sons | P2 |
+
+**Já no jogo (easter egg amigável, não o chefe):** o Portinho como modelo 3D low-poly (`assets/portinho/portinho.glb`, baseado no mascote da Porto Indie, usado com permissão; referência em `ref.png`), aparece gigante no horizonte na noite 1 e vira um bonequinho de lata na mesa do rádio. Código em `world/portinho_model.gd` (carrega o .glb ou um placeholder), `world/portinho_giant.gd`, `world/portinho_doll.gd`, `world/supply_crate.gd`.
 
 **Para começar o Portinho**, preciso da arte do Portinho original (logo ou mascote da Porto Indie) e de uma decisão sua sobre o **desbloqueio** (quais puzzles e se é só na noite final). O desenho acima é proposta, a validar.
 

@@ -36,7 +36,11 @@ static func meta(slot: int) -> Dictionary:
 
 
 static func write(slot: int, main: Node) -> void:
-	var data := capture(main)
+	store(slot, capture(main))
+
+
+## Writes ready-made save data (the start of the next night) to the slot.
+static func store(slot: int, data: Dictionary) -> void:
 	var file := FileAccess.open(path(slot), FileAccess.WRITE)
 	if file == null:
 		push_warning("Could not write save slot %d: %s" % [slot, error_string(FileAccess.get_open_error())])

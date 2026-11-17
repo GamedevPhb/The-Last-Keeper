@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://h6s760i3t8gy"]
 
-[ext_resource type="Script" path="res://ui/hud.gd" id="1_hud"]
+[ext_resource type="Script" uid="uid://bf82pfk2j64oh" path="res://ui/hud.gd" id="1_hud"]
 
 [sub_resource type="StyleBoxFlat" id="bar_bg"]
 bg_color = Color(0, 0, 0, 0.6)
@@ -8,11 +8,11 @@ bg_color = Color(0, 0, 0, 0.6)
 [sub_resource type="StyleBoxFlat" id="bar_fill"]
 bg_color = Color(0.72, 0.14, 0.1, 1)
 
-[node name="Hud" type="CanvasLayer"]
+[node name="Hud" type="CanvasLayer" unique_id=1185339044]
 layer = 10
 script = ExtResource("1_hud")
 
-[node name="Root" type="Control" parent="."]
+[node name="Root" type="Control" parent="." unique_id=329798136]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -21,7 +21,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Crosshair" type="ColorRect" parent="Root"]
+[node name="Crosshair" type="ColorRect" parent="Root" unique_id=1502850934]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -32,10 +32,12 @@ offset_left = -1.0
 offset_top = -1.0
 offset_right = 1.0
 offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0.8)
 
-[node name="Prompt" type="Label" parent="Root"]
+[node name="Prompt" type="Label" parent="Root" unique_id=130407157]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -46,6 +48,8 @@ offset_left = -120.0
 offset_top = 10.0
 offset_right = 120.0
 offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.92, 0.75, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
@@ -53,7 +57,7 @@ theme_override_font_sizes/font_size = 8
 text = "[E] Interagir"
 horizontal_alignment = 1
 
-[node name="HoldBar" type="ProgressBar" parent="Root"]
+[node name="HoldBar" type="ProgressBar" parent="Root" unique_id=858574682]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -64,13 +68,15 @@ offset_left = -20.0
 offset_top = 26.0
 offset_right = 20.0
 offset_bottom = 29.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/background = SubResource("bar_bg")
 theme_override_styles/fill = SubResource("bar_fill")
 max_value = 1.0
 show_percentage = false
 
-[node name="Toast" type="Label" parent="Root"]
+[node name="Toast" type="Label" parent="Root" unique_id=645647236]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -80,6 +86,8 @@ offset_left = 10.0
 offset_top = -50.0
 offset_right = -10.0
 offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
@@ -87,7 +95,7 @@ theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Status" type="Label" parent="Root"]
+[node name="Status" type="Label" parent="Root" unique_id=359519975]
 layout_mode = 0
 offset_left = 4.0
 offset_top = 2.0
@@ -98,7 +106,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 8
 
-[node name="Clock" type="Label" parent="Root"]
+[node name="Clock" type="Label" parent="Root" unique_id=2065021132]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -107,13 +115,14 @@ offset_left = -30.0
 offset_top = 2.0
 offset_right = 30.0
 offset_bottom = 14.0
+grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.92, 0.75, 0.95)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 
-[node name="Objective" type="Label" parent="Root"]
+[node name="Objective" type="Label" parent="Root" unique_id=215652098]
 layout_mode = 0
 offset_left = 4.0
 offset_top = 14.0
@@ -125,7 +134,7 @@ theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 8
 autowrap_mode = 3
 
-[node name="Compass" type="Label" parent="Root"]
+[node name="Compass" type="Label" parent="Root" unique_id=1120473500]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -134,13 +143,14 @@ offset_left = -70.0
 offset_top = 2.0
 offset_right = -4.0
 offset_bottom = 14.0
+grow_horizontal = 0
 theme_override_colors/font_color = Color(1, 0.92, 0.75, 0.9)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 8
 horizontal_alignment = 2
 
-[node name="Hints" type="Label" parent="Root"]
+[node name="Hints" type="Label" parent="Root" unique_id=329925509]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -149,6 +159,7 @@ offset_left = 4.0
 offset_top = -12.0
 offset_right = 316.0
 offset_bottom = -1.0
+grow_vertical = 0
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2

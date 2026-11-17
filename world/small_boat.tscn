@@ -1,0 +1,67 @@
+[gd_scene format=3]
+
+; Placeholder rowboat with outboard (hull, bow, bench, motor). Bow points to -Z, waterline at y = 0.
+; To swap in a real model, keep the root node and the `Seat` marker (where the boatman stands).
+
+[ext_resource type="Material" path="res://materials/m_wood.tres" id="m_wood"]
+[ext_resource type="Material" path="res://materials/m_metal.tres" id="m_metal"]
+
+[sub_resource type="BoxMesh" id="hull_mesh"]
+size = Vector3(1.5, 0.55, 3.0)
+
+[sub_resource type="BoxMesh" id="bow_mesh"]
+size = Vector3(0.9, 0.5, 0.9)
+
+[sub_resource type="BoxMesh" id="rim_mesh"]
+size = Vector3(0.12, 0.12, 3.0)
+
+[sub_resource type="BoxMesh" id="bench_mesh"]
+size = Vector3(1.4, 0.1, 0.4)
+
+[sub_resource type="BoxMesh" id="motor_mesh"]
+size = Vector3(0.3, 0.55, 0.3)
+
+[sub_resource type="CylinderMesh" id="shaft_mesh"]
+top_radius = 0.04
+bottom_radius = 0.04
+height = 0.6
+
+[node name="SmallBoat" type="Node3D"]
+
+[node name="Hull" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("hull_mesh")
+surface_material_override/0 = ExtResource("m_wood")
+
+[node name="Bow" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -1.85)
+mesh = SubResource("bow_mesh")
+surface_material_override/0 = ExtResource("m_wood")
+
+[node name="RimL" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.69, 0.3, 0)
+mesh = SubResource("rim_mesh")
+surface_material_override/0 = ExtResource("m_wood")
+
+[node name="RimR" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.69, 0.3, 0)
+mesh = SubResource("rim_mesh")
+surface_material_override/0 = ExtResource("m_wood")
+
+[node name="Bench" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -0.5)
+mesh = SubResource("bench_mesh")
+surface_material_override/0 = ExtResource("m_wood")
+
+[node name="Motor" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 1.65)
+mesh = SubResource("motor_mesh")
+surface_material_override/0 = ExtResource("m_metal")
+
+[node name="Shaft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 1.65)
+mesh = SubResource("shaft_mesh")
+surface_material_override/0 = ExtResource("m_metal")
+
+[node name="Seat" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0.7)

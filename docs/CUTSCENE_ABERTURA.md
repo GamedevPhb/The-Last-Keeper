@@ -4,6 +4,18 @@
 > Toca ao iniciar um novo jogo, depois da escolha do slot, e entrega o controle no píer, ao lado do baú, às 17:30.
 > Itens marcados com **[NOVO]** não estão na bíblia narrativa; os outros já são canon.
 
+> **Revisão (v0.3):** a abertura caiu para ~52 s (`OPENING` em `ui/opening_cutscene.gd`): título, chegada ao píer, o essencial da conversa (farol lacrado há 30 anos, os dez vigias e o nono que sumiu no Santa Aurora, "Volto às seis. Se a luz estiver acesa.") e o barquinho partindo para o cargueiro. O resto virou **cenas de história** curtas, com câmera travada e puláveis como a abertura (segurar E / Quadrado por 1 s), tocadas uma vez cada por um único player, `ui/story_scene.gd` (tabela `SCENES`), disparadas por `GameState.SCENE_TRIGGERS` e gravadas em `scenes_seen` no save. O relógio da noite espera durante a cena (`GameState.scene_active`).
+>
+> | Cena | Gatilho | Conteúdo |
+> |---|---|---|
+> | `house` | 1ª vez dentro da casa | A voz do barqueiro no rádio ensina a sintonia, a regra "carga igual autoriza, diferente recusa" e o livro de registros (J). |
+> | `lamp` | 1ª vez que a lâmpada acende | O feixe varre o mar; o cargueiro do horizonte pisca as luzes em resposta (`HorizonShip.answer`). |
+> | `bell` | 23:45 | O Sineiro toca o sino três vezes e não há ninguém (HISTORIA §6.1). |
+> | `lavado` | 00:00 | A primeira silhueta de um Lavado na praia, de costas (HISTORIA §6.2). |
+> | `captain` | 03:05 | A Capitã no convés do Casco, olhando para o farol, por um instante. |
+>
+> Personagens: os FBX têm um clip de 1 quadro (T-pose), então `world/actor_pose.gd` pose o esqueleto por código (braços descem, respiração, balanço da cabeça, gesto de fala, andar dos Lavados, remo do barqueiro). Vale para o Mixamo e para o `keeper.glb`.
+
 ## Resumo
 
 Fim de tarde. Um barco pequeno leva o décimo vigia até o Farol 7, lacrado há 30 anos. O barqueiro fala pouco, evita o casco a sudoeste, desliga o próprio rádio quando ele chia "Farol Sete" e deixa o vigia no píer sem desembarcar. Lembra a regra, promete voltar às seis "se a luz estiver acesa" e vai embora tocando o sino de bordo duas vezes. O protagonista não fala nada, e o jogo também não diz o nome dele.
@@ -12,7 +24,7 @@ Fim de tarde. Um barco pequeno leva o décimo vigia até o Farol 7, lacrado há 
 
 | Item | Valor |
 |---|---|
-| Duração | ~82 s (faixa 60–90 s) |
+| Duração | ~52 s (v0.3; a tabela de planos abaixo é a versão original de ~82 s) |
 | Pular | Segurar `interact` (E / Quadrado) por 1 s, com o mesmo anel de progresso do HUD. Qualquer tecla só mostra o aviso "Segure E para pular". Pular corta para o plano 12 com fade de 0,5 s. |
 | Caixa de diálogo | Rodapé, máx. 2 linhas × 40 caracteres, sem nome do falante (quem fala fica claro pelo plano). Texto aparece letra a letra (~30 car/s) e fica 1,5 s depois de completo. Fala de rádio em itálico ou entre aspas, com tremor leve. |
 | Câmera | `Camera3D` própria da cutscene, `Path3D`/tween linear com ease suave. Sem câmera na mão. O jitter PS1 dos shaders já basta. |

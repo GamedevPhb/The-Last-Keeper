@@ -211,6 +211,48 @@ Pressão de fundo, não uma segunda rotina: numa noite bem jogada, o jogador beb
 
 ---
 
+### 4.11 Combate básico
+Escopo mínimo: defesa, não um jogo de tiro. Munição escassa, recarga lenta e **barulho que atrai** os Lavados (`GameState.make_noise`: eles viram para o som por 8 s e andam 25% mais rápido; a luz do farol ainda os congela).
+
+| Arma | Onde | Dano | Alcance | Munição | Barulho |
+|---|---|---|---|---|---|
+| Machado | baú do píer | 25 (3 golpes matam um Lavado de 60 hp) | 2 m | nenhuma | 7 m (14 se acerta) |
+| Pistola P38 | armário da casa | 35 (2 tiros) | 60 m | pente 6, recarga 2,4 s; 6 balas no armário + 3 na prateleira do galpão | 45 m |
+| Espingarda | porão (cadeado 8-3-5), a reserva do vigia 9 | 5 balins de 16 (80 de perto, cai até 40% a 25 m) | 25 m | pente 2, recarga 3,4 s; 4 cartuchos no porão | 70 m |
+
+- Lavados têm 60 hp, cambaleiam e recuam ao ser atingidos e tombam ao morrer; não renascem. Futuros inimigos entram pelo grupo `enemies` com `take_damage(dano, direção)`.
+- Equipar: pelo inventário (Shift+clique / Quadrado, marcador no slot), teclas 1-3, roda do mouse ou direcional para a direita (cicla mãos vazias, machado, pistola, espingarda). A lanterna continua na outra mão (a mão 2D espelha para a esquerda com arma equipada).
+- HUD discreto no canto inferior direito: "Pistola 6/12" (pente / reserva).
+- Impacto: quando um inimigo surge a menos de 45 m, flash branco de 0,12 s em 3 passos e tremor de 0,3 s (cooldown 1,5 s). Opção "Efeitos de impacto" nas configurações.
+
+- **Evento de invasão (02:30):** `world/invasion.gd`. Às 02:30 o mar "devolve algo": sino, buzina, mensagem, nota no livro e uma caixa de munição (12 balas de pistola e 4 cartuchos, uma única vez; a pistola também, se o vigia não tiver arma de fogo) aparece na casa, diante do armário. Depois de 12 s vêm três ondas de afogados pela praia sul (4, 6 e 8; a última com um Lavado resistente de vermelho, 132 hp e 30% mais veloz), com 10 s de pausa para recarregar (a onda seguinte também chega se a atual passar de 40 s). Eles caçam o jogador, tocam a −35 mesmo com a corda girando, o ruído de tiro os chama de 50% mais longe e a luz do farol ainda os congela. Acaba ao abater todos ("A maré recuou.", nota no livro) ou às 05:30; durante o evento a tensão da música sobe e depois a dificuldade (`progress()`) ganha +0,04. HUD discreto: "Onda 2/3 · restam N". O resumo da noite informa abatidos e tiros gastos. Save: `invasion_active/done/wave/kills/spent/crate`; carregar no meio reinicia a onda atual. `tests/invasion_test.gd`.
+
+**Critérios de pronto:** (1) sem munição o gatilho só estala; (2) recarga move balas da reserva para o pente; (3) arma e pentes persistem no save; (4) paredes bloqueiam tiros; (5) `tests/weapons_test.gd` cobre equipar, tiro, dano, falloff, ruído e save.
+
+### 4.12 Economia por noite
+
+Premissas: noite = 900 s reais; a dificuldade média `(1 + progress())` é ~1,5; `night_factor` (nf) = 0,55 / 1,0 / 1,15 / 1,3 / 1,45 (noites 1, 2, 3, 4, 5) e 1,6 de teto. Pior caso: lâmpada e gerador ligados a noite toda. Lâmpada: `oil_burn` 100/600 por s, 50 de óleo por lata. Gerador: 1/480 de lata por s. Lata = 3 insumos (`INPUTS_PER_OUTPUT`); fábrica de óleo 60 s/lata, de combustível 75 s/lata (capacidade 4, não é o gargalo).
+
+Fórmulas: latas de óleo = 900 × (100/600) × 1,5 × nf / 50 = 4,5 × nf; latas de combustível = 900 × 1,5 × nf / 480 = 2,8 × nf. O baú dá 1 óleo + 1 combustível por noite (o tambor do ilhéu, 3 latas, só uma vez).
+
+| Noite | nf | Óleo (latas) | Combustível (latas) | Do baú | Das fábricas | Insumos (x3) | Reserva de insumos* | Comida/água |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0,55 | 2,5 | 1,5 | 2 | ~2 | 6-7 (1-2 viagens) | 34 | 1 água + 1 peixe/2 bolachas (prateleira do galpão) |
+| 2 | 1,0 | 4,5 | 2,8 | 2 | ~5,3 | ~16 | 46 | pesca: 3 peixes, ~1 água por noite; 1 água e 2 bolachas na prateleira |
+| 3 | 1,15 | 5,2 | 3,2 | 2 | ~6,4 | ~19 (+4 de cerca) | 46 | + horta: 2 bolachas e 1 água |
+| 5 | 1,45 | 6,5 | 4,1 | 2 | ~8,6 | ~26 | 46 | idem; pesca e horta obrigatórias para regenerar |
+| 7 | 1,6 | 7,2 | 4,5 | 2 | ~9,7 | ~29 | 46 | idem |
+
+*Reserva por noite (re-arma a cada noite): madeira 8x3 = 24, algas 3x2 = 6, gordura 2x2 = 4 (básicos, noite 1+ = 34); carvão 3x2 = 6 e sucata 3x2 = 6 (noite 2+, também alimentam a fábrica de combustível e a oficina). Da noite 5 em diante o jogador usa quase tudo o que há: cerca (10 madeira no total) e oficina competem com as fábricas.
+
+Sobrevivência: sede cai 8/h e fome 5/h de jogo (noite = 12,5 h; fome x1,5 ao ar livre depois das 02:00). Sem comer nem beber chega-se a ~0 pela madrugada; 1 água (35) e 1 peixe (30) mantêm o jogador vivo, 2 de cada mantêm acima de 50 (regeneração). Pesca: 2 usos/noite, 1-2 peixes, 50% de garrafa; horta: 1 uso/noite.
+
+Pilhas da lanterna (carga 100 = 150 s de feixe na noite 2+, 300 s na noite 1; pilha = +50): noite 1 o baú dá 4 pilhas (cobre a noite); da noite 2 em diante o baú dá 2 e o déficit de ~2-4 pilhas vem da oficina (1 sucata + 1 carvão cada).
+
+Custos: cerca nível 1 = 4 madeira, nível 2 (porta) = 6 (máximo 10, ~3 latas de óleo); oficina: munição 2 sucata + 1 carvão (6 balas), cartuchos 2 sucata + 1 carvão (2), pilha 1 + 1, pano 2 sucata. Reproduzir o balanço com a fórmula acima ao mexer em `night_factor`, `oil_burn` ou `FUEL_BURN`.
+
+---
+
 ## 5. Progressão (7 noites)
 
 | Noite | Novidade | Clima | Tom |
@@ -256,7 +298,9 @@ Pressão de fundo, não uma segunda rotina: numa noite bem jogada, o jogador beb
    [Pedras / costa] — destroços, itens, lugar dos eventos estranhos
 ```
 
-- A ilha tem ~76 m de diâmetro (~25 s de ponta a ponta andando). Ir e voltar entre o rádio, a lâmpada e o gerador é a principal tensão de tempo.
+- **Terreno orgânico:** a ilha não é mais um disco plano. Costa irregular com enseada (píer em x≈0), colina e penhasco a nordeste (~10 m, gruta no pé), mata do oeste em morros (~7 m), faixa norte, ilhota da maré e ilhéu sul por pedras de maré. Farol, casa, galpão, fábricas, píer e trilhas ficam em platôs planos (y=0). Esquema: `docs/shots/mapa_ilha_organica.png`.
+- **Expansão (noites 2+):** mata (madeira), costa norte (algas, gordura, pesca), gruta (carvão, perigosa), cabana do vigia 6 (torre de vigia), ilhéu sul (horta). Fábricas de óleo e combustível na noite 1; coleta, pesca e oficina na 2; horta, torre e cerca na 3 (`GameState.UNLOCKS`). Cada estrutura tem uma cena de tutorial (`tut_*`) na primeira vez.
+- A ilha original tinha ~76 m de diâmetro (~25 s de ponta a ponta andando); com a expansão são ~180 m de leste a oeste. Ir e voltar entre o rádio, a lâmpada e o gerador é a principal tensão de tempo.
 - **Escada do farol:** rampa em espiral de 16 m, ~14 s para subir. É deliberadamente longa e é onde acontecem vários eventos. O rádio fica na casa, ao pé do farol, para que atender uma chamada exija descer.
 
 ---
@@ -274,6 +318,9 @@ Pressão de fundo, não uma segunda rotina: numa noite bem jogada, o jogador beb
 | Pular (`jump`) | Espaço | Círculo / B (índice 1) | botão pular |
 | Interagir / pegar item no chão (`interact`) | E (segurar nas ações contínuas) | X ou Quadrado / A (índices 0 e 2) | botão interagir (segurar nas ações contínuas) |
 | Lanterna (`flashlight`) | F | R1 | botão lanterna |
+| Atacar / atirar (`attack`) | botão esquerdo do mouse | R2 (eixo 5) | sem botão ainda |
+| Recarregar (`reload`) | T | L2 (eixo 4) | sem botão ainda |
+| Equipar arma (`weapon_1`..`3`, `weapon_cycle`) | 1 / 2 / 3; roda do mouse ou X cicla | direcional para a direita cicla | |
 | Rádio portátil (`radio`) | R | direcional para cima | botão rádio |
 | Inventário (`inventory`) | Tab | Triângulo | botão inventário |
 | Livro de registros (`journal`) | J | L1 | botão livro |
@@ -345,7 +392,7 @@ Azul-petróleo e cinza para o mar e a noite, amarelo-âmbar para a luz do farol,
 - 7 noites, 3 finais, clima dinâmico, barco de suprimentos, livro de registros com narrativa, arte e áudio finais, menus e save.
 
 ### Fora do escopo
-- Multiplayer, mundo aberto, combate, crafting complexo, dublagem completa.
+- Multiplayer, mundo aberto, combate além do básico da seção 4.11 (sem mira por mira de ferro, sem corpo a corpo avançado), crafting complexo, dublagem completa.
 
 ---
 

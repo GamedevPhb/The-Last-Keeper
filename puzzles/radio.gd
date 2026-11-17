@@ -16,6 +16,7 @@ var _call := {}
 var _contact := false
 var _ringing := false
 var _until_next := 20.0
+var _next_bearing := "" ## rolled ahead so the watchtower can announce it
 var _count := 0
 var _queue: Array = []
 var _tune: Interactable
@@ -68,9 +69,12 @@ func _add(node_name: String, x: float, prompt_text: String, hold: float, z := 0.
 	return item
 
 
-## Every third ship lies early in the night, every second one after midnight.
+## Every third ship lies early in the night, every second one after midnight. Night 1 is the
+## tutorial: the first call is honest and nobody lies before midnight (0 = no liars).
 func _anomaly_every() -> int:
-	return 2 if GameState.progress() > 0.5 else 3
+	if GameState.tutorial() and GameState.minutes < 24.0 * 60.0:
+		return 0
+	return 2 if GameState.progress() > 0.5 and not GameState.tutorial() else 3
 
 
 func _spawn_call() -> void:
@@ -78,15 +82,18 @@ func _spawn_call() -> void:
 		_queue = GameState.SHIPS.duplicate()
 		_queue.shuffle()
 	var ship: Dictionary = _queue.pop_back()
+	var bearing: String = _next_bearing if _next_bearing != "" else BEARINGS.pick_random()
+	_next_bearing = ""
 	_count += 1
 	var claim: String = ship.register
-	if _count % _anomaly_every() == 0:
+	if _anomaly_every() > 0 and _count > 1 and _count % _anomaly_every() == 0:
 		var others := CARGOS.duplicate()
 		others.erase(ship.register)
 		claim = others.pick_random()
+	var timeout := CALL_TIMEOUT * (1.5 if GameState.tutorial() and _count == 1 else 1.0)
 	# Never the frequency the desk is on, so every call rings before it is answered.
 	_call = {"call": ship.call, "register": ship.register, "claim": claim, "freq": (_freq + 1 + randi() % (FREQS.size() - 1)) % FREQS.size(),
-		"status": "incoming", "left": CALL_TIMEOUT, "total": CALL_TIMEOUT, "answered": false, "extended": false, "bearing": BEARINGS.pick_random(), "seed": randi()}
+		"status": "incoming", "left": timeout, "total": timeout, "answered": false, "extended": false, "bearing": bearing, "seed": randi()}
 	_until_next = randf_range(60.0, 90.0) * (1.0 - 0.45 * GameState.progress())
 	GameState.active_call = _call
 	_sync_ring(GameState.powered("radio"))
@@ -96,6 +103,21 @@ func _spawn_call() -> void:
 	elif not GameState.has_radio:
 		GameState.say("Rádio: há uma chamada na linha. Sintonize.")
 	_check_contact()
+
+
+## What the watchtower binoculars see: {"call", "bearing", "eta" (game minutes, 0 = on the line now)},
+## or {} when no ship is coming (no radio power, so the schedule does not run).
+func forecast() -> Dictionary:
+	if not _call.is_empty():
+		return {"call": _call.call, "bearing": _call.bearing, "eta": 0.0}
+	if not GameState.powered("radio"):
+		return {}
+	if _queue.is_empty():
+		_queue = GameState.SHIPS.duplicate()
+		_queue.shuffle()
+	if _next_bearing == "":
+		_next_bearing = BEARINGS.pick_random() as String
+	return {"call": _queue.back().call, "bearing": _next_bearing, "eta": maxf(_until_next, 0.0) / GameState.SECONDS_PER_MINUTE}
 
 
 func _on_tune(_by: Node) -> void:
@@ -135,25 +157,28 @@ func _resolve(accept: bool) -> void:
 	var ship: String = _call.call
 	_end_call()
 	if accept and not GameState.lamp_lit:
-		_fail("Sem a luz do farol o %s não achou o canal e encalhou." % ship, "- %s: encalhou no escuro" % ship)
+		_fail("Sem a luz do farol o %s não achou o canal e encalhou." % ship, "- %s: encalhou no escuro" % ship, ship, "wrecked")
 	elif accept and not GameState.lamp_working:
-		_fail("O farol estava fraco ou parado e o %s não o reconheceu. Encalhou nas pedras." % ship, "- %s: farol falhando" % ship)
+		_fail("O farol estava fraco ou parado e o %s não o reconheceu. Encalhou nas pedras." % ship, "- %s: farol falhando" % ship, ship, "wrecked")
 	elif accept and liar:
-		_fail("O %s atracou. O registro dizia outra carga, e a tripulação nunca desceu." % ship, "- %s: carga falsa" % ship)
+		_fail("O %s atracou. O registro dizia outra carga, e a tripulação nunca desceu." % ship, "- %s: carga falsa" % ship, ship, "liar")
 	elif accept:
-		_succeed("O %s atracou em segurança." % ship, "+ %s: atracou" % ship)
+		_succeed("O %s atracou em segurança." % ship, "+ %s: atracou" % ship, ship, "docked")
 	elif liar:
-		_succeed("Você recusou o %s. A voz no rádio se calou." % ship, "+ %s: recusado" % ship)
+		_succeed("Você recusou o %s. A voz no rádio se calou." % ship, "+ %s: recusado" % ship, ship, "refused")
 	else:
-		_fail("O %s seguiu viagem sem ajuda." % ship, "- %s: recusado sem motivo" % ship)
+		_fail("O %s seguiu viagem sem ajuda." % ship, "- %s: recusado sem motivo" % ship, ship, "refused")
 
 
 func _lose(message: String, log_entry: String) -> void:
+	var ship: String = _call.call
 	_end_call()
-	_fail(message, log_entry)
+	_fail(message, log_entry, ship, "wrecked")
 
 
-func _succeed(message: String, log_entry: String) -> void:
+func _succeed(message: String, log_entry: String, ship := "", outcome := "") -> void:
+	if ship != "":
+		GameState.ship_event.emit(ship, outcome)
 	GameState.ships_saved += 1
 	GameState.log_call(log_entry)
 	GameState.play("bell", global_position)
@@ -161,7 +186,9 @@ func _succeed(message: String, log_entry: String) -> void:
 	GameState.autosave()
 
 
-func _fail(message: String, log_entry: String) -> void:
+func _fail(message: String, log_entry: String, ship := "", outcome := "") -> void:
+	if ship != "":
+		GameState.ship_event.emit(ship, outcome)
 	GameState.ships_lost += 1
 	GameState.log_call(log_entry)
 	GameState.play("horn")

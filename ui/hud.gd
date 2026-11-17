@@ -34,6 +34,12 @@ var _blink := 0.0
 var _phone_box: Control
 var _phone_icon: TextureRect
 var _phone_bar: ColorRect
+## Flashlight charge, bottom-right, only while the beam is on.
+var _battery: Label
+## Weapon in hand and its ammo ("Pistola 6/12"), bottom-right above the battery.
+var _ammo: Label
+## "Onda 2/3 · restam 5", top-center, only while the invasion runs.
+var _wave: Label
 
 @onready var _root: Control = $Root
 @onready var _prompt: Label = $Root/Prompt
@@ -68,6 +74,40 @@ func _ready() -> void:
 	add_child(touch)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
+	_battery = UiKit.label("", 0, Color(UiKit.BRASS, 0.8))
+	_battery.anchor_left = 1.0
+	_battery.anchor_right = 1.0
+	_battery.anchor_top = 1.0
+	_battery.anchor_bottom = 1.0
+	_battery.offset_left = -80.0
+	_battery.offset_right = -4.0
+	_battery.offset_top = -12.0
+	_battery.offset_bottom = -1.0
+	_battery.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_battery.visible = false
+	_root.add_child(_battery)
+	_ammo = UiKit.label("", 0, Color(UiKit.BRASS, 0.8))
+	_ammo.anchor_left = 1.0
+	_ammo.anchor_right = 1.0
+	_ammo.anchor_top = 1.0
+	_ammo.anchor_bottom = 1.0
+	_ammo.offset_left = -110.0
+	_ammo.offset_right = -4.0
+	_ammo.offset_top = -23.0
+	_ammo.offset_bottom = -12.0
+	_ammo.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_ammo.visible = false
+	_root.add_child(_ammo)
+	_wave = UiKit.label("", 0, Color(UiKit.BLOOD.lightened(0.3), 0.85))
+	_wave.anchor_left = 0.5
+	_wave.anchor_right = 0.5
+	_wave.offset_left = -70.0
+	_wave.offset_right = 70.0
+	_wave.offset_top = 14.0
+	_wave.offset_bottom = 25.0
+	_wave.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_wave.visible = false
+	_root.add_child(_wave)
 	var x := 4.0
 	for key: String in ["thirst", "hunger", "health"]:
 		var icon := TextureRect.new()
@@ -204,6 +244,11 @@ func _process(delta: float) -> void:
 	_fade(0.0 if TouchControls.enabled else _hints_left, [_hints])
 	_blink += delta
 	_update_phone()
+	_update_battery()
+	_update_ammo()
+	_wave.visible = GameState.invasion_active and GameState.invasion_wave > 0
+	if _wave.visible:
+		_wave.text = "Onda %d/3 · restam %d" % [GameState.invasion_wave, GameState.invasion_left]
 	var critical: Dictionary = GameState.critical()
 	for key: String in _critical_icons:
 		var icon: TextureRect = _critical_icons[key]
@@ -215,6 +260,33 @@ func _process(delta: float) -> void:
 		var width := _prompt.get_theme_font("font").get_string_size(_prompt.text, HORIZONTAL_ALIGNMENT_LEFT, -1, UiKit.FONT_SIZE).x + 14.0
 		_prompt_frame.size.x = width
 		_prompt_frame.position.x = get_viewport().get_visible_rect().size.x / 2.0 - width / 2.0
+
+
+## "Pilha 80%" while the beam is on; blinks when low, "+" marks the lens boost.
+func _update_battery() -> void:
+	var charge: float = GameState.flashlight_battery
+	_battery.visible = GameState.flashlight_on
+	_battery.text = "Pilha %d%%%s" % [ceili(charge), " +" if GameState.lens_left > 0.0 else ""]
+	var low := charge < GameState.FLASH_LOW
+	_battery.add_theme_color_override("font_color", UiKit.BLOOD.lightened(0.25) if low and fmod(_blink, 1.0) < 0.5 else Color(UiKit.BRASS, 0.8))
+
+
+## "Pistola 6/12" (magazine / spare rounds), "recarregando" while reloading, just the name for the axe.
+func _update_ammo() -> void:
+	var id: String = GameState.equipped
+	_ammo.visible = id != ""
+	if id == "":
+		return
+	var def: Dictionary = GameState.WEAPON_DEFS.get_def(id)
+	if not def.ranged:
+		_ammo.text = def.name
+		return
+	var weapons := player.get_node_or_null("Head/Camera3D/Weapons") if player else null
+	var reloading: bool = weapons != null and weapons.is_reloading()
+	var mag: int = GameState.mags[id]
+	_ammo.text = "%s %s" % [def.name, "recarregando..." if reloading else "%d/%d" % [mag, GameState.reserve_ammo(id)]]
+	var empty := mag <= 0 and not reloading
+	_ammo.add_theme_color_override("font_color", UiKit.BLOOD.lightened(0.25) if empty else Color(UiKit.BRASS, 0.8))
 
 
 ## Shows `items` while `left` > 0, fading out over the last second.

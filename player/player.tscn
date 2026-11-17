@@ -1,31 +1,30 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://c5ty14nvh7aka"]
 
-[ext_resource type="Script" path="res://player/player.gd" id="1_player"]
+[ext_resource type="Script" uid="uid://dqpdysj7gxapr" path="res://player/player.gd" id="1_player"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
 height = 1.8
 
-[node name="Player" type="CharacterBody3D"]
+[node name="Player" type="CharacterBody3D" unique_id=179749891]
 collision_layer = 2
 floor_constant_speed = true
 floor_snap_length = 0.35
 script = ExtResource("1_player")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-position = Vector3(0, 0.9, 0)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=97741351]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("capsule")
 
-[node name="Head" type="Node3D" parent="."]
-position = Vector3(0, 1.65, 0)
+[node name="Head" type="Node3D" parent="." unique_id=1752345800]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
 
-[node name="Camera3D" type="Camera3D" parent="Head"]
+[node name="Camera3D" type="Camera3D" parent="Head" unique_id=884609922]
 current = true
 fov = 70.0
-near = 0.05
 far = 75.0
 
-[node name="InteractRay" type="RayCast3D" parent="Head/Camera3D"]
+[node name="InteractRay" type="RayCast3D" parent="Head/Camera3D" unique_id=1783269749]
 target_position = Vector3(0, 0, -2.2)
 collision_mask = 5
 collide_with_areas = true
