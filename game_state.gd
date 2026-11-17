@@ -127,6 +127,9 @@ const PORTINHO_SPOTS := {
 	"garden": Vector3(22.0, 0.0, 18.0), "watchtower": Vector3(-67.0, 0.0, -19.0), "fence": Vector3(27.0, 0.0, 7.0),
 }
 const PORTINHO_NEAR := 7.0
+## Chance, rolled once per new game, that the giant shows up at all.
+const PORTINHO_CHANCE := 0.01
+var portinho_rolled := false
 var portinho_sweeps := 0
 var portinho_solved := false
 var portinho_crate_given := false
@@ -303,6 +306,7 @@ func reset() -> void:
 	lens_left = 0.0
 	scene_active = false
 	scenes_seen = {}
+	portinho_rolled = randf() < PORTINHO_CHANCE
 	portinho_sweeps = 0
 	portinho_solved = false
 	portinho_crate_given = false
@@ -466,6 +470,8 @@ func _check_scenes(delta: float) -> void:
 			continue
 		var trigger: Dictionary = SCENE_TRIGGERS[id]
 		if trigger.has("event") or (trigger.has("night") and night != int(trigger.night)):
+			continue
+		if id == "portinho" and not portinho_rolled:
 			continue
 		var due := false
 		if trigger.has("at"):
@@ -812,7 +818,7 @@ func to_save() -> Dictionary:
 		"invasion_active": invasion_active, "invasion_done": invasion_done, "invasion_wave": invasion_wave,
 		"invasion_kills": invasion_kills, "invasion_spent": invasion_spent, "invasion_crate": invasion_crate,
 		"fence_level": fence_level,
-		"portinho": {"sweeps": portinho_sweeps, "solved": portinho_solved, "crate": portinho_crate_given,
+		"portinho": {"rolled": portinho_rolled, "sweeps": portinho_sweeps, "solved": portinho_solved, "crate": portinho_crate_given,
 			"doll": portinho_doll_taken, "hinted": portinho_hinted},
 	}
 
@@ -845,6 +851,7 @@ func from_save(data: Dictionary) -> void:
 	invasion_crate = data.get("invasion_crate", false)
 	fence_level = int(data.get("fence_level", 0))
 	var saved_portinho: Dictionary = data.get("portinho", {})
+	portinho_rolled = saved_portinho.get("rolled", false)
 	portinho_sweeps = int(saved_portinho.get("sweeps", 0))
 	portinho_solved = saved_portinho.get("solved", false)
 	portinho_crate_given = saved_portinho.get("crate", false)
