@@ -400,6 +400,6 @@ Triagem do relato de um jogador que testou em dois navegadores. Nada foi corrigi
 **Plano aprovado (um PR por fase para `develop`):**
 
 - **Fase 1, bugs:** som no Web (testador anterior, item 1), WASD no menu, caminhos sem z-fighting, lanterna fora do spawn, rampa sem travar + atalho de descida.
-- **Fase 2, legibilidade e feedback:** fonte e contraste do texto, contagem e nível do óleo, válvulas resolvidas desabilitadas, cadeado mais claro, mãos vazias sem lanterna + hotbar (primeira fileira do inventário; 1–9/roda, direcional ←/→).
+- **Fase 2, legibilidade e feedback:** fonte e contraste do texto, contagem e nível do óleo, válvulas resolvidas desabilitadas, cadeado mais claro, mãos vazias sem lanterna + hotbar (primeira fileira do inventário, 8 slots; 1–8/roda, direcional ←/→).
 - **Fase 3, clima e design:** contraste em vez de escuridão (brilho padrão, lua, luzes quentes, neblina próxima), dicas junto de cada puzzle, stamina na corrida, conferir jitter de vértices.
 - **Fase 4, validação:** testes headless, export Web testado em Chrome e Firefox, nova rodada com os dois testadores.
