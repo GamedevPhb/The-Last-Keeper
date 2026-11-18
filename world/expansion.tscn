@@ -154,27 +154,27 @@ metadata/terrain_migrated = true
 [node name="Trail" type="Node3D" parent="." unique_id=40657596]
 
 [node name="Seg0" type="MeshInstance3D" parent="Trail" unique_id=32913992]
-transform = Transform3D(-0.19611618, 0, -0.9805807, 0, 1, 0, 0.9805807, 0, -0.19611618, -40, 0, -5)
+transform = Transform3D(-0.19611618, 0, -0.9805807, 0, 1, 0, 0.9805807, 0, -0.19611618, -40, 0.04, -5)
 material_override = ExtResource("1_jgwx3")
 mesh = SubResource("BoxMesh_bg83e")
 
 [node name="Seg1" type="MeshInstance3D" parent="Trail" unique_id=1380440518]
-transform = Transform3D(-0.35112342, 0, -0.9363292, 0, 1, 0, 0.9363292, 0, -0.35112342, -49, 0, -7.5)
+transform = Transform3D(-0.35112342, 0, -0.9363292, 0, 1, 0, 0.9363292, 0, -0.35112342, -49, 0.06, -7.5)
 material_override = ExtResource("1_jgwx3")
 mesh = SubResource("BoxMesh_gq6fa")
 
 [node name="Seg2" type="MeshInstance3D" parent="Trail" unique_id=795844612]
-transform = Transform3D(-0.485643, 0, -0.87415725, 0, 1, 0, 0.87415725, 0, -0.485643, -55.25, 0, -10.25)
+transform = Transform3D(-0.485643, 0, -0.87415725, 0, 1, 0, 0.87415725, 0, -0.485643, -55.25, 0.04, -10.25)
 material_override = ExtResource("1_jgwx3")
 mesh = SubResource("BoxMesh_ln32y")
 
 [node name="Seg3" type="MeshInstance3D" parent="Trail" unique_id=1552291486]
-transform = Transform3D(-0.9103665, 0, -0.41380298, 0, 1, 0, 0.41380298, 0, -0.9103665, -58.75, 0, -14.25)
+transform = Transform3D(-0.9103665, 0, -0.41380298, 0, 1, 0, 0.41380298, 0, -0.9103665, -58.75, 0.06, -14.25)
 material_override = ExtResource("1_jgwx3")
 mesh = SubResource("BoxMesh_1q8a1")
 
 [node name="Seg4" type="MeshInstance3D" parent="Trail" unique_id=1205703584]
-transform = Transform3D(-0.2747211, 0, -0.96152395, 0, 1, 0, 0.96152395, 0, -0.2747211, -63.5, 0, -18)
+transform = Transform3D(-0.2747211, 0, -0.96152395, 0, 1, 0, 0.96152395, 0, -0.2747211, -63.5, 0.04, -18)
 material_override = ExtResource("1_jgwx3")
 mesh = SubResource("BoxMesh_xwj2o")
 

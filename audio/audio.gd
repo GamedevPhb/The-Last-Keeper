@@ -86,9 +86,16 @@ var _lamp_was_lit := false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	for bus in ["Music", "SFX", "Ambience"]:
-		AudioServer.add_bus()
-		var index := AudioServer.bus_count - 1
+	# Grow the layout with bus_count, not add_bus(): on the Web build (sample playback) Godot
+	# 4.7 mirrors add_bus() through GodotAudio.Bus.addAt(-1), which moves the new bus in
+	# front of Master and wires Master into a send loop that Web Audio mutes (no sound at
+	# all). set_bus_count appends cleanly on every platform.
+	var names := ["Music", "SFX", "Ambience"]
+	var first := AudioServer.bus_count
+	AudioServer.bus_count = first + names.size()
+	for i in names.size():
+		var bus: String = names[i]
+		var index := first + i
 		AudioServer.set_bus_name(index, bus)
 		AudioServer.set_bus_send(index, "Master")
 		_spu_chain(index, SPU_VERB_WET[bus])

@@ -10,7 +10,7 @@ const DEFS := {
 		"noise": 7.0, "stun": 0.45,
 		"model": "machado.glb", "length": 0.7,
 		# viewmodel: `hold` = position in camera space, `tilt` = the model's own rotation in degrees
-		"hold": Vector3(0.36, -0.4, -0.65), "tilt": Vector3(5.0, 35.0, 15.0),
+		"hold": Vector3(0.36, -0.4, -0.65), "tilt": Vector3(5.0, -75.0, 15.0),
 	},
 	"pistol": {
 		"name": "Pistola", "slot": 2, "ranged": true,

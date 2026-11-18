@@ -125,6 +125,17 @@ func _physics_process(delta: float) -> bool:
 			# Let one-shot sounds and smoke finish so nothing is mid-flight at exit.
 			_wait -= delta
 			if _wait <= 0.0:
+				var handle: Node = _beacon.get_parent().get_node("SpiralRamp/Descend/Interactable")
+				handle.interact(_player)
+				_wait = 1.5
+				_phase = "descend"
+		"descend":
+			# The "Descer" handle fades out, drops the keeper at the tower door and fades back.
+			_wait -= delta
+			if _wait <= 0.0:
+				if _player.global_position.y > 1.0 or _player.locked:
+					return _finish("the descend handle did not bring the keeper down (%s)" % _player.global_position)
+				print("descended to %s" % _player.global_position)
 				return _finish("")
 	return false
 

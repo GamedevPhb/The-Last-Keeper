@@ -21,5 +21,6 @@ void vertex() {
 void fragment() {
 	vec4 tex = texture(albedo_texture, psx_resolve_uv(UV * uv_scale, affine_uv));
 	ALBEDO = albedo.rgb * tex.rgb * vcol;
+	EMISSION = ALBEDO * psx_flashlight_light(VERTEX, NORMAL);
 	ROUGHNESS = 1.0;
 }

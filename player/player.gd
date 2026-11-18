@@ -81,6 +81,15 @@ func look_by(yaw: float, pitch: float) -> void:
 	_head.rotation.x = clampf(_head.rotation.x, deg_to_rad(-85.0), deg_to_rad(85.0))
 
 
+## Moves the keeper instantly (shortcuts, cutscenes) without counting it as a fall.
+func teleport(to: Transform3D) -> void:
+	global_transform = to
+	velocity = Vector3.ZERO
+	_head.rotation.x = 0.0
+	_air_peak = to.origin.y
+	_was_on_floor = true
+
+
 func apply_settings(mouse: float, stick: float, fov: float) -> void:
 	mouse_sensitivity = mouse
 	stick_sensitivity = stick
