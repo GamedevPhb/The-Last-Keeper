@@ -259,7 +259,7 @@ func _build_frame() -> void:
 	_message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_message.custom_minimum_size.y = 11
 	box.add_child(_message)
-	_help = UiKit.label(_help_text(), 0, Color(0.7, 0.75, 0.7, 0.7))
+	_help = UiKit.label(_help_text(), 0, UiKit.MUTED)
 	_help.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_help)

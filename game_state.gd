@@ -22,6 +22,8 @@ signal item_given(id: String)
 signal radio_requested
 ## The weapon in hand changed (or its magazine did): viewmodel and HUD redraw.
 signal weapon_changed
+## The selected hotbar slot changed (hands and HUD redraw).
+signal hotbar_changed
 ## Screen impact: a white flash and/or a camera shake (amplitude in meters of view offset).
 signal impact(flash: bool, shake: float)
 ## A loud action (a shot, a swing) at a point; `radius` is how far it carries (enemies listen).
@@ -111,7 +113,9 @@ var flashlight_on := false
 ## True while a story scene plays: the night clock, status and radio wait for it.
 var scene_active := false
 ## Weapon in hand ("" = bare hands) and the rounds loaded in each firearm's magazine.
+## Derived from the selected hotbar slot (`inventory.selected`) unless the keeper holstered it.
 var equipped := ""
+var _holstered := false
 const EMERGE_RANGE := 45.0
 var _last_impact := -100.0
 var mags := {"pistol": 0, "shotgun": 0}
@@ -246,7 +250,9 @@ const FLASH_LOW := 20.0 ## below this the beam dims and flickers
 
 func _ready() -> void:
 	_load_keepers()
-	inventory.changed.connect(func() -> void: changed.emit())
+	inventory.changed.connect(func() -> void:
+		_sync_hand()
+		changed.emit())
 	ship_event.connect(_on_ship_event)
 
 
@@ -293,8 +299,10 @@ func reset() -> void:
 	_last_hour = -1
 	minutes = START_MINUTES
 	inventory.clear()
+	inventory.selected = 0
 	equipped = ""
-	mags = {"pistol": 0, "shotgun": 0}
+	_holstered = false
+	mags ={"pistol": 0, "shotgun": 0}
 	thirst = THIRST_START
 	hunger = HUNGER_START
 	health = 100.0
@@ -348,26 +356,76 @@ func reset() -> void:
 
 # ---- Weapons
 
-## Puts a weapon in hand ("" = holster). False if it is not in the inventory.
+## Puts a weapon in hand ("" = holster): it moves into the hotbar if needed and gets selected.
+## False if it is not in the inventory.
 func equip(id: String) -> bool:
-	if id != "" and (not WEAPON_DEFS.is_weapon(id) or inventory.count(id) <= 0):
+	if id == "":
+		if equipped != "":
+			_holstered = true
+			_sync_hand()
+		return true
+	if not WEAPON_DEFS.is_weapon(id) or inventory.count(id) <= 0:
 		return false
 	if id == equipped:
 		return true
-	equipped = id
-	if id != "":
-		say("%s na mão." % INVENTORY.item_name(id))
-	weapon_changed.emit()
+	return hold(id)
+
+
+# ---- Hotbar (first inventory row): what the keeper holds
+
+## Id of the item in the selected hotbar slot ("" if empty).
+func held_item() -> String:
+	return inventory.selected_id()
+
+
+## Selects a hotbar slot (wraps). Selecting the slot already selected draws / holsters its weapon.
+func select_hotbar(index: int) -> void:
+	index = posmod(index, INVENTORY.HOTBAR)
+	if index == inventory.selected:
+		if WEAPON_DEFS.is_weapon(held_item()):
+			_holstered = not _holstered
+	else:
+		inventory.selected = index
+		_holstered = false
+	_sync_hand()
+	hotbar_changed.emit()
+
+
+func cycle_hotbar(step: int) -> void:
+	select_hotbar(inventory.selected + step)
+
+
+## Moves `id` into the hotbar (first free slot, else swapping with the selected one) and selects
+## it. False if it is not carried in a slot.
+func hold(id: String, quiet := false) -> bool:
+	var was_holstered := _holstered
+	_holstered = true # no hand change while the stack moves; settled below
+	var index: int = inventory.bring_to_hotbar(id)
+	if index < 0:
+		_holstered = was_holstered
+		return false
+	inventory.selected = index
+	_holstered = false
+	_sync_hand(quiet)
+	hotbar_changed.emit()
 	return true
 
 
-## Cycles bare hands -> axe -> pistol -> shotgun over what the keeper carries.
-func cycle_weapon() -> void:
-	var owned: Array[String] = [""]
-	for id: String in WEAPON_DEFS.ORDER:
-		if inventory.count(id) > 0:
-			owned.append(id)
-	equip(owned[(owned.find(equipped) + 1) % owned.size()])
+## The beam can shine: the flashlight is in hand, or in the off hand while a weapon is drawn (GDD 4.11).
+func flashlight_ready() -> bool:
+	return has_flashlight and (held_item() == "flashlight" or equipped != "")
+
+
+## `equipped` follows the selected slot: its weapon, unless holstered.
+func _sync_hand(quiet := false) -> void:
+	var id := held_item()
+	var want := id if WEAPON_DEFS.is_weapon(id) and not _holstered else ""
+	if want == equipped:
+		return
+	equipped = want
+	if want != "" and not quiet:
+		say("%s na mão." % INVENTORY.item_name(want))
+	weapon_changed.emit()
 
 
 ## Rounds of the equipped firearm's ammo still in the inventory (0 for the axe / bare hands).
@@ -814,7 +872,7 @@ func to_save() -> Dictionary:
 		"thirst": thirst, "hunger": hunger, "health": health, "dead": dead, "death_cause": death_cause,
 		"scenes_seen": scenes_seen.duplicate(), "flashlight_battery": flashlight_battery, "lens_left": lens_left,
 		"cold_left": cold_left, "radio_battery": radio_battery, "radio_docked": radio_docked,
-		"equipped": equipped, "mags": mags.duplicate(),
+		"equipped": equipped, "hotbar": inventory.selected, "mags": mags.duplicate(),
 		"invasion_active": invasion_active, "invasion_done": invasion_done, "invasion_wave": invasion_wave,
 		"invasion_kills": invasion_kills, "invasion_spent": invasion_spent, "invasion_crate": invasion_crate,
 		"fence_level": fence_level,
@@ -839,6 +897,8 @@ func from_save(data: Dictionary) -> void:
 	var saved_breakers: Dictionary = data.get("breakers", {})
 	for circuit: String in breakers:
 		breakers[circuit] = saved_breakers.get(circuit, false)
+	inventory.selected = clampi(int(data.get("hotbar", 0)), 0, INVENTORY.HOTBAR - 1)
+	_holstered = true # no "na mão" while the slots refill; the hand is settled below
 	inventory.load_slots(data.get("slots", []), data.get("cursor", {}))
 	var saved_mags: Dictionary = data.get("mags", {})
 	for firearm: String in mags:
@@ -859,9 +919,12 @@ func from_save(data: Dictionary) -> void:
 	portinho_hinted = saved_portinho.get("hinted", false)
 	_portinho_reach_said = false
 	invasion_left = 0
-	equipped = str(data.get("equipped", ""))
-	if equipped != "" and inventory.count(equipped) <= 0:
-		equipped = ""
+	var saved_weapon := str(data.get("equipped", ""))
+	_holstered = false
+	if saved_weapon == "" or not hold(saved_weapon, true):
+		# an empty hand over a weapon slot means it was holstered
+		_holstered = WEAPON_DEFS.is_weapon(held_item())
+		_sync_hand(true)
 	weapon_changed.emit()
 	thirst = data.get("thirst", THIRST_START)
 	hunger = data.get("hunger", HUNGER_START)

@@ -6,8 +6,10 @@ extends Node3D
 ## tested as vertical capsules (`hit_height`, `hit_radius`) against the ray, behind the world
 ## (layer 1) so walls stop shots.
 ##
-## Actions: attack (mouse left / R2), reload (T / L2), weapon_1..3 (keys 1-3), weapon_cycle
-## (mouse wheel / X / d-pad right). Holding the weapon dips it while the keeper sprints.
+## Actions: attack (mouse left / R2), reload (T / L2). The hand also reads the hotbar (first
+## inventory row): hotbar_1..8 (keys 1-8), hotbar_next / hotbar_prev (mouse wheel, X, d-pad
+## right / left); a weapon slot draws it (`GameState.select_hotbar`). Holding the weapon dips it
+## while the keeper sprints.
 
 const DEFS := preload("res://items/weapon_defs.gd")
 const WORLD_MASK := 1
@@ -64,7 +66,7 @@ func attack() -> bool:
 	if id == "":
 		if _hint_left <= 0.0:
 			_hint_left = HINT_GAP
-			GameState.say("Mãos vazias. [1] machado, [2] pistola, [3] espingarda (o que você tiver).")
+			GameState.say("Mãos vazias. Selecione uma arma na barra de atalhos (1-8 / roda do mouse).")
 		GameState.play("unarmed")
 		cooldown = 0.4
 		return true
@@ -257,8 +259,12 @@ func _process(delta: float) -> void:
 
 ## The wheel "presses and releases" in one event, so polling would miss it.
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("weapon_cycle") and _can_act():
-		GameState.cycle_weapon()
+	if not _can_act():
+		return
+	if event.is_action_pressed("hotbar_next"):
+		GameState.cycle_hotbar(1)
+	elif event.is_action_pressed("hotbar_prev"):
+		GameState.cycle_hotbar(-1)
 
 
 func _read_input() -> void:
@@ -268,13 +274,9 @@ func _read_input() -> void:
 		attack()
 	if Input.is_action_just_pressed("reload"):
 		reload()
-	for slot in 3:
-		if Input.is_action_just_pressed("weapon_%d" % (slot + 1)):
-			var id: String = DEFS.by_slot(slot + 1)
-			if GameState.equipped == id:
-				GameState.equip("")
-			elif not GameState.equip(id):
-				GameState.say("Você não tem isso.")
+	for slot in GameState.INVENTORY.HOTBAR:
+		if Input.is_action_just_pressed("hotbar_%d" % (slot + 1)):
+			GameState.select_hotbar(slot)
 
 
 func _tick_reload(delta: float) -> void:

@@ -29,8 +29,9 @@ func _on_pickup(_by: Node) -> void:
 		return
 	cans -= 1
 	GameState.play("clunk", global_position)
+	var carried: int = GameState.oil_cans
 	if cans <= 0:
 		_pickup.enabled = false
-		GameState.say("Você pega a última lata do tambor.")
+		GameState.say("Lata de óleo (%d na mochila). Era a última do tambor." % carried)
 	else:
-		GameState.say("Você pega uma lata de óleo. Restam %d no tambor." % cans)
+		GameState.say("Lata de óleo (%d na mochila). Restam %d no tambor." % [carried, cans])

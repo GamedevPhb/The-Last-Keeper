@@ -1,6 +1,7 @@
 extends SceneTree
 ## Headless test: every visible Control of every panel/menu fits inside the viewport at 320x240 (4:3)
-## and 427x240 (16:9), or sits inside a ScrollContainer. Lists what overflows and exits 1.
+## and 427x240 (16:9), or sits inside a ScrollContainer, and no visible text is smaller than
+## UiKit.FONT_SIZE (legibility at 320x240). Lists what fails and exits 1.
 ## Run: godot-4 --headless --path . --script res://tests/ui_fit_test.gd
 
 const SIZES: Array[Vector2i] = [Vector2i(320, 240), Vector2i(427, 240), Vector2i(384, 240)]
@@ -16,12 +17,19 @@ var _wait := 0
 func _check_fit(label: String) -> void:
 	var view := Rect2(Vector2.ZERO, Vector2(root.size))
 	var bad := 0
+	var small := 0
 	for control: Node in root.find_children("*", "Control", true, false):
 		var c := control as Control
 		if not c.is_visible_in_tree() or _in_scroll(c):
 			continue
 		if c.modulate.a <= 0.0 or c.size.x <= 0 or c.size.y <= 0:
 			continue
+		if (c is Label or c is Button) and c.get("text") != "":
+			var font_size := c.get_theme_font_size("font_size")
+			if font_size < UiKit.FONT_SIZE:
+				small += 1
+				if small <= 6:
+					printerr("  SMALL TEXT [%s] %s (%s) %d px < %d" % [label, c.get_path(), c.get_class(), font_size, UiKit.FONT_SIZE])
 		var rect := c.get_global_rect()
 		if rect.position.x < view.position.x - 0.01 or rect.position.y < view.position.y - 0.01 \
 				or rect.end.x > view.end.x + 0.01 or rect.end.y > view.end.y + 0.01:
@@ -31,6 +39,9 @@ func _check_fit(label: String) -> void:
 	if bad > 0:
 		_failures += 1
 		printerr("FAIL: %s @%s: %d controls outside the viewport" % [label, view.size, bad])
+	if small > 0:
+		_failures += 1
+		printerr("FAIL: %s @%s: %d texts below %d px" % [label, view.size, small, UiKit.FONT_SIZE])
 
 
 func _in_scroll(c: Control) -> bool:

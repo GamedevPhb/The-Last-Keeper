@@ -184,6 +184,10 @@ func _toggle_flashlight() -> void:
 	if not _flashlight.visible and GameState.flashlight_battery <= 0.0:
 		GameState.say("A lanterna está sem pilha. Procure pilhas na casa, no galpão e no porão.")
 		return
+	# The beam needs the flashlight in hand: switching it on brings it to the hotbar and selects it.
+	if not _flashlight.visible and not GameState.flashlight_ready():
+		if not GameState.hold("flashlight"):
+			return # it is on the inventory cursor
 	_flashlight.visible = not _flashlight.visible
 	if not _flashlight.visible:
 		_push_beam(0.0, FLASH_RANGE)
@@ -195,6 +199,14 @@ func _toggle_flashlight() -> void:
 ## Beam strength follows the battery (dims and flickers when low, dies at 0) and the lens boost.
 func _process(_delta: float) -> void:
 	if _flashlight == null or not _flashlight.visible:
+		return
+	if GameState.has_flashlight and not GameState.flashlight_ready():
+		# another hotbar slot went into the hand: the flashlight goes off with it
+		_flashlight.visible = false
+		_push_beam(0.0, FLASH_RANGE)
+		GameState.flashlight_on = false
+		GameState.flashlight_toggled.emit(false)
+		GameState.play("switch")
 		return
 	if GameState.flashlight_battery <= 0.0 or not GameState.has_flashlight:
 		_flashlight.visible = false
@@ -447,10 +459,10 @@ func _build_fate() -> Control:
 	_fate_title.add_theme_font_size_override("font_size", UiKit.HEADING_SIZE)
 	_fate_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_fate_title)
-	_fate_text = UiKit.label("", 260, Color(0.7, 0.64, 0.56))
+	_fate_text = UiKit.label("", 260, Color(0.82, 0.76, 0.66))
 	_fate_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_fate_text)
-	_fate_book = UiKit.label("", 260, Color(0.5, 0.45, 0.38))
+	_fate_book = UiKit.label("", 260, Color(0.68, 0.62, 0.52))
 	_fate_book.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_fate_book)
 	_fate_buttons = VBoxContainer.new()

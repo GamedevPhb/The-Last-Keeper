@@ -50,10 +50,10 @@ offset_right = 120.0
 offset_bottom = 24.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(1, 0.92, 0.75, 1)
+theme_override_colors/font_color = Color(1, 0.94, 0.78, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 9
 text = "[E] Interagir"
 horizontal_alignment = 1
 
@@ -88,10 +88,10 @@ offset_right = -10.0
 offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_colors/font_color = Color(1, 0.94, 0.78, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 9
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -101,10 +101,10 @@ offset_left = 4.0
 offset_top = 2.0
 offset_right = 200.0
 offset_bottom = 14.0
-theme_override_colors/font_color = Color(1, 0.92, 0.75, 0.8)
+theme_override_colors/font_color = Color(0.88, 0.84, 0.7, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 9
 
 [node name="Clock" type="Label" parent="Root" unique_id=2065021132]
 layout_mode = 1
@@ -118,8 +118,8 @@ offset_bottom = 14.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.92, 0.75, 0.95)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 9
 horizontal_alignment = 1
 
 [node name="Objective" type="Label" parent="Root" unique_id=215652098]
@@ -128,10 +128,10 @@ offset_left = 4.0
 offset_top = 14.0
 offset_right = 190.0
 offset_bottom = 70.0
-theme_override_colors/font_color = Color(0.85, 0.92, 1, 0.95)
+theme_override_colors/font_color = Color(1, 0.94, 0.78, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 9
 autowrap_mode = 3
 
 [node name="Compass" type="Label" parent="Root" unique_id=1120473500]
@@ -146,8 +146,8 @@ offset_bottom = 14.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(1, 0.92, 0.75, 0.9)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 9
 horizontal_alignment = 2
 
 [node name="Hints" type="Label" parent="Root" unique_id=329925509]
@@ -162,6 +162,6 @@ offset_bottom = -1.0
 grow_vertical = 0
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 8
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 9
 text = "[Tab] Inventário  [J] Livro  [F] Lanterna  [Esc] Pausa"

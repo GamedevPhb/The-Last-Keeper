@@ -4,6 +4,11 @@ extends CanvasLayer
 ## native 320x240 view. Sits on layer 3: above the 3D world, below the HUD (10) and under the
 ## PsxPost filter (5), so dithering and CRT apply to it. Hidden while a panel, the opening, the
 ## death/dawn summary or the menu owns the screen, or when "Mostrar mãos" is off.
+## The clips follow what is in hand (the selected hotbar slot, `GameState.held_item()`):
+## flashlight -> lanterna_idle / andar / correr (lit lens while on), oil or fuel can ->
+## segurar_lata / andar_lata / correr_lata, anything else -> idle / andar_vazio / correr_vazio.
+## With a weapon drawn (3D viewmodel) this hand mirrors to the left and holds the flashlight if
+## the keeper carries one (GDD 4.11), else stays empty.
 
 const FOLDER := "res://assets/maos/"
 ## name -> [frames, fps, loop]
@@ -14,6 +19,10 @@ const CLIPS := {
 	"lanterna_desligar": [5, 10.0, false],
 	"andar": [8, 10.0, true],
 	"correr": [8, 12.0, true],
+	"andar_vazio": [8, 10.0, true],
+	"correr_vazio": [8, 12.0, true],
+	"andar_lata": [8, 10.0, true],
+	"correr_lata": [8, 12.0, true],
 	"pegar": [10, 10.0, false],
 	"segurar_lata": [6, 8.0, true],
 	"interagir": [7, 8.0, false],
@@ -29,6 +38,12 @@ const HAND_ANCHOR_X := 112.0      ## x of the hand's centre inside the 160x120 f
 const HAND_BOTTOM_CUT := 4.0      ## frame pixels pushed below the bottom edge (before scaling)
 ## clips whose frames have a lit-lens variant (folder name + "_luz") while the flashlight is on
 const LIT_CLIPS := ["andar", "correr"]
+## [still, walking, running] per thing in hand
+const SETS := {
+	"flashlight": ["lanterna_idle", "andar", "correr"],
+	"can": ["segurar_lata", "andar_lata", "correr_lata"],
+	"empty": ["idle", "andar_vazio", "correr_vazio"],
+}
 
 @export var player: Player
 
@@ -53,7 +68,10 @@ func _ready() -> void:
 	_sprite.animation_finished.connect(_on_finished)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
-	GameState.flashlight_toggled.connect(func(on: bool) -> void: _play_once("lanterna_ligar" if on else "lanterna_desligar"))
+	GameState.flashlight_toggled.connect(func(on: bool) -> void:
+		if held_kind() == "flashlight":
+			_play_once("lanterna_ligar" if on else "lanterna_desligar"))
+	GameState.hotbar_changed.connect(_end_flashlight_shot)
 	GameState.weapon_changed.connect(_layout)
 	GameState.item_given.connect(func(_id: String) -> void: _play_once("pegar"))
 	GameState.panel_changed.connect(func(_open: bool) -> void: _refresh())
@@ -71,6 +89,25 @@ func _ready() -> void:
 
 func current_animation() -> String:
 	return _sprite.animation
+
+
+## What this hand holds: "flashlight", "can" or "empty".
+func held_kind() -> String:
+	if GameState.equipped != "":
+		return "flashlight" if GameState.has_flashlight else "empty"
+	match GameState.held_item():
+		"flashlight":
+			return "flashlight"
+		"oil", "fuel":
+			return "can"
+	return "empty"
+
+
+## A flashlight click must not keep playing once something else is in hand.
+func _end_flashlight_shot() -> void:
+	if _one_shot.begins_with("lanterna_") and held_kind() != "flashlight":
+		_one_shot = ""
+		_update_state()
 
 
 func _process(_delta: float) -> void:
@@ -121,15 +158,12 @@ func _on_finished() -> void:
 func _update_state() -> void:
 	if _one_shot != "":
 		return
-	var want := "idle"
+	var clips: Array = SETS[held_kind()]
 	var moving := player != null and Vector2(player.velocity.x, player.velocity.z).length() > 0.5 and player.is_on_floor()
+	var want: String = clips[0]
 	if moving:
-		want = "correr" if GameState.sprinting else "andar"
-	elif GameState.flashlight_on and GameState.has_flashlight:
-		want = "lanterna_idle"
-	elif GameState.oil_cans + GameState.fuel_cans > 0:
-		want = "segurar_lata"
-	var lit: bool = GameState.flashlight_on and GameState.has_flashlight
+		want = clips[2] if GameState.sprinting else clips[1]
+	var lit: bool = GameState.flashlight_on and held_kind() == "flashlight"
 	if lit != _lit:
 		_lit = lit
 		_sprite.sprite_frames = _frames_on if lit else _frames_off

@@ -221,7 +221,7 @@ Escopo mínimo: defesa, não um jogo de tiro. Munição escassa, recarga lenta e
 | Espingarda | porão (cadeado 8-3-5), a reserva do vigia 9 | 5 balins de 16 (80 de perto, cai até 40% a 25 m) | 25 m | pente 2, recarga 3,4 s; 4 cartuchos no porão | 70 m |
 
 - Lavados têm 60 hp, cambaleiam e recuam ao ser atingidos e tombam ao morrer; não renascem. Futuros inimigos entram pelo grupo `enemies` com `take_damage(dano, direção)`.
-- Equipar: pelo inventário (Shift+clique / Quadrado, marcador no slot), teclas 1-3, roda do mouse ou direcional para a direita (cicla mãos vazias, machado, pistola, espingarda). A lanterna continua na outra mão (a mão 2D espelha para a esquerda com arma equipada).
+- Equipar: pela hotbar (primeira fileira do inventário, 8 slots; teclas 1–8, roda do mouse, X ou direcional ←/→). Selecionar o slot de uma arma a saca; outro slot a guarda; repetir o número do slot saca/guarda. Usar a arma no inventário a traz para a hotbar. As mãos mostram o item selecionado (lanterna, lata ou vazias). Com arma sacada, a lanterna continua na outra mão (a mão 2D espelha para a esquerda); sem arma, o feixe só funciona com a lanterna selecionada (F a traz para a hotbar).
 - HUD discreto no canto inferior direito: "Pistola 6/12" (pente / reserva).
 - Impacto: quando um inimigo surge a menos de 45 m, flash branco de 0,12 s em 3 passos e tremor de 0,3 s (cooldown 1,5 s). Opção "Efeitos de impacto" nas configurações.
 
@@ -320,7 +320,7 @@ Custos: cerca nível 1 = 4 madeira, nível 2 (porta) = 6 (máximo 10, ~3 latas d
 | Lanterna (`flashlight`) | F | R1 | botão lanterna |
 | Atacar / atirar (`attack`) | botão esquerdo do mouse | R2 (eixo 5) | sem botão ainda |
 | Recarregar (`reload`) | T | L2 (eixo 4) | sem botão ainda |
-| Equipar arma (`weapon_1`..`3`, `weapon_cycle`) | 1 / 2 / 3; roda do mouse ou X cicla | direcional para a direita cicla | |
+| Hotbar (`hotbar_1`..`8`, `hotbar_next`, `hotbar_prev`) | 1–8; roda do mouse; X avança | direcional ←/→ | tocar no slot |
 | Rádio portátil (`radio`) | R | direcional para cima | botão rádio |
 | Inventário (`inventory`) | Tab | Triângulo | botão inventário |
 | Livro de registros (`journal`) | J | L1 | botão livro |

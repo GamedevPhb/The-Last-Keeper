@@ -62,11 +62,16 @@ func _process(delta: float) -> bool:
 	for index in generator.order:
 		generator.get_node("Valve%s" % generator.LABELS[index]).interact(null)
 	_check(not generator.running, "generator needs fuel even with the right order")
+	_check(generator._valves.all(func(v: Interactable) -> bool: return v.enabled), "valves come back after an empty-tank reset")
+	generator.get_node("Valve%s" % generator.LABELS[generator.order[0]]).interact(null)
+	_check(not generator._valves[generator.order[0]].enabled and generator._valves[generator.order[1]].enabled, "an opened valve is no longer offered")
+	generator._reset()
 	state.fuel_cans = 1
 	generator.get_node("FuelIn").interact(null)
 	for index in generator.order:
 		generator.get_node("Valve%s" % generator.LABELS[index]).interact(null)
 	_check(generator.running and state.generator_on, "generator starts with fuel and the right order")
+	_check(generator._valves.all(func(v: Interactable) -> bool: return not v.enabled), "valves are disabled while it runs")
 
 	# Breakers through their panel: capacity is two circuits.
 	var fuses := stations.get_node("Station_Fuses")
@@ -256,7 +261,7 @@ func _test_lamp(state: Node, main: Node, beacon: Node) -> void:
 
 	# One Interactable, the console; the old invisible stations are gone.
 	var interactables := beacon.find_children("*", "Area3D", true, false)
-	_check(interactables.size() == 1 and interactables[0].prompt == "Console da lâmpada", "lamp has a single console interactable")
+	_check(interactables.size() == 1 and interactables[0].prompt.begins_with("Console da lâmpada"), "lamp has a single console interactable")
 	for old_name in ["OilTank", "Crank", "Lens"]:
 		_check(beacon.find_child(old_name, true, false) == null, "station %s removed" % old_name)
 
@@ -274,6 +279,10 @@ func _test_lamp(state: Node, main: Node, beacon: Node) -> void:
 	_check(beacon.oil == 0.0 and _last_toast.contains("Sem óleo"), "refuel without a can only says Sem óleo")
 	state.oil_cans = 2
 	_check(beacon.refuel() and is_equal_approx(beacon.oil, 50.0) and state.oil_cans == 1, "a can adds 50 oil")
+	_check(_last_toast.contains("+50%") and _last_toast.contains("resta 1 lata"), "pouring says how much went in and the cans left")
+	beacon.oil = 95.0
+	_check(not beacon.refuel() and state.oil_cans == 1 and _last_toast.contains("cheio"), "a full tank refuses the can and says so")
+	beacon.oil = 50.0
 
 	# Drown: pump to 60, heat only to 50, open.
 	_pump_to(beacon, 60.0)
