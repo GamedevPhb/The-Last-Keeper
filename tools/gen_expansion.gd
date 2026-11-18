@@ -6,6 +6,8 @@ var root_node: Node3D
 var M := {}
 var rng := RandomNumberGenerator.new()
 var trail: Array[Vector3] = []
+const TRAIL_Y := 0.04  # centro da caixa de 4 cm -> topo a 6 cm (antes: rente ao chao)
+const TRAIL_STAGGER := 0.02
 
 
 func _mat(n: String) -> Material:
@@ -120,7 +122,9 @@ func _initialize() -> void:
 		bm.size = Vector3(2.2, 0.04, a.distance_to(b) + 0.6)
 		mi.mesh = bm
 		mi.material_override = _mat("m_path")
-		_add(trail_n, mi, "Seg%d" % i, (a + b) * 0.5 + Vector3(0, 0.0, 0))
+		# Topo 2 cm acima do chao (y=0 nos platos) e segmentos alternados +2 cm, para que as
+		# emendas sobrepostas nao briguem no z-buffer (ver depth_pull em m_path).
+		_add(trail_n, mi, "Seg%d" % i, (a + b) * 0.5 + Vector3(0, TRAIL_Y + TRAIL_STAGGER * (i % 2), 0))
 		mi.rotation.y = atan2(b.x - a.x, b.z - a.z)
 
 	# ---- Cabana do vigia 6 (ruina) ----

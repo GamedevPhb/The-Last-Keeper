@@ -383,3 +383,23 @@ Triagem do relato de um jogador que testou em dois navegadores. Nada foi corrigi
 
 **Observação:** os itens 3, 4 e 6 se sobrepõem às cenas de tutorial da expansão (`tut_lamp`, `tut_generator`), que ainda não foram jogadas por um humano; vale rodar a nova versão com o testador antes de mudar o HUD.
 
+
+## Feedback de um segundo testador e plano aprovado (18/11)
+
+| # | Relato | Causa provável | Fase |
+|---|---|---|---|
+| 1 | Menu navega pelas setas, mas não pelo WASD | `ui_up/down/left/right` só tinham setas e controle | 1 |
+| 2 | Textura do caminho briga com a do chão | `m_path` na mesma altura do terreno (z-fighting) | 1 |
+| 3 | Caminhos brigam também nos cruzamentos | mesma altura entre trilhas; escalonar ~2 cm | 1 |
+| 4 | Mapa escuro demais, mesmo com brilho no máximo | junto com o item 8 do testador anterior (contraste) | 3 |
+| 5 | Lanterna só faz efeito no spawn | iluminação por vértice: o terreno tem poucos vértices, o píer tem muitos | 1 |
+| 6 | Interação com o cadeado de 3 dígitos confusa | área e prompt pouco claros | 2 |
+| 7 | Subida do farol cansativa e o boneco trava | emendas dos segmentos da rampa; atalho com fade na descida | 1 |
+| 8 | Mãos seguram a lanterna ao andar mesmo sem tê-la | quadros de `andar`/`correr` desenhados com a lanterna; falta hotbar | 2 |
+
+**Plano aprovado (um PR por fase para `develop`):**
+
+- **Fase 1, bugs:** som no Web (testador anterior, item 1), WASD no menu, caminhos sem z-fighting, lanterna fora do spawn, rampa sem travar + atalho de descida.
+- **Fase 2, legibilidade e feedback:** fonte e contraste do texto, contagem e nível do óleo, válvulas resolvidas desabilitadas, cadeado mais claro, mãos vazias sem lanterna + hotbar (primeira fileira do inventário; 1–9/roda, direcional ←/→).
+- **Fase 3, clima e design:** contraste em vez de escuridão (brilho padrão, lua, luzes quentes, neblina próxima), dicas junto de cada puzzle, stamina na corrida, conferir jitter de vértices.
+- **Fase 4, validação:** testes headless, export Web testado em Chrome e Firefox, nova rodada com os dois testadores.

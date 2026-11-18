@@ -15,6 +15,12 @@ const FLASH_ENERGY := 7.0
 const FLASH_RANGE := 20.0
 const LENS_ENERGY := 1.5 ## lens cleaner: stronger beam
 const LENS_RANGE := 1.6 ## and longer reach
+const FLASH_ANGLE := 30.0
+## The beam on PSX surfaces is drawn per pixel by the shaders (global `psx_flashlight`, see
+## shaders/psx_common.gdshaderinc): with forced vertex shading the SpotLight3D vanishes between the
+## big terrain vertices. The SpotLight3D stays only as a weak fill for StandardMaterial props.
+const FLASH_PIXEL_ENERGY := 2.2
+const FLASH_FILL := 0.35
 const MENU := "res://ui/main_menu.tscn"
 const CONTROLS := "Teclado: WASD andar, Shift correr, Espaço pular, E interagir, F lanterna, R rádio, Tab inventário, J livro, Esc pausa.\nControle PS4: analógico esquerdo anda, direito olha, L3 corre, X pula, Quadrado interage, R1 lanterna, direcional para cima rádio, Triângulo inventário, L1 livro, Options pausa."
 
@@ -170,8 +176,8 @@ func _toggle_flashlight() -> void:
 		var camera: Camera3D = get_tree().get_first_node_in_group("player").get_node("Head/Camera3D")
 		_flashlight = SpotLight3D.new()
 		_flashlight.spot_range = FLASH_RANGE
-		_flashlight.spot_angle = 30.0
-		_flashlight.light_energy = FLASH_ENERGY
+		_flashlight.spot_angle = FLASH_ANGLE
+		_flashlight.light_energy = FLASH_ENERGY * FLASH_FILL
 		_flashlight.light_color = Color(1, 0.95, 0.8)
 		camera.add_child(_flashlight)
 		_flashlight.visible = false
@@ -179,6 +185,8 @@ func _toggle_flashlight() -> void:
 		GameState.say("A lanterna está sem pilha. Procure pilhas na casa, no galpão e no porão.")
 		return
 	_flashlight.visible = not _flashlight.visible
+	if not _flashlight.visible:
+		_push_beam(0.0, FLASH_RANGE)
 	GameState.flashlight_on = _flashlight.visible
 	GameState.flashlight_toggled.emit(_flashlight.visible)
 	GameState.play("switch")
@@ -190,6 +198,7 @@ func _process(_delta: float) -> void:
 		return
 	if GameState.flashlight_battery <= 0.0 or not GameState.has_flashlight:
 		_flashlight.visible = false
+		_push_beam(0.0, FLASH_RANGE)
 		GameState.flashlight_on = false
 		GameState.flashlight_toggled.emit(false)
 		GameState.play("switch")
@@ -200,8 +209,23 @@ func _process(_delta: float) -> void:
 	var power := lerpf(0.3, 1.0, clampf(charge / GameState.FLASH_LOW, 0.0, 1.0))
 	if charge < GameState.FLASH_LOW and randf() < 0.08:
 		power *= 0.15
-	_flashlight.light_energy = FLASH_ENERGY * power * (LENS_ENERGY if boost else 1.0)
-	_flashlight.spot_range = FLASH_RANGE * (LENS_RANGE if boost else 1.0)
+	var strength := power * (LENS_ENERGY if boost else 1.0)
+	var reach := FLASH_RANGE * (LENS_RANGE if boost else 1.0)
+	_flashlight.light_energy = FLASH_ENERGY * FLASH_FILL * strength
+	_flashlight.spot_range = reach
+	_push_beam(FLASH_PIXEL_ENERGY * strength, reach)
+
+
+## Feeds the per-pixel beam of the PSX shaders (energy 0 turns it off).
+func _push_beam(energy: float, reach: float) -> void:
+	var outer := cos(deg_to_rad(FLASH_ANGLE))
+	var inner := cos(deg_to_rad(FLASH_ANGLE * 0.6))
+	RenderingServer.global_shader_parameter_set(&"psx_flashlight", Vector4(energy, reach, outer, inner))
+
+
+## Shader globals outlive the scene: never leave the beam on in the menu.
+func _exit_tree() -> void:
+	_push_beam(0.0, FLASH_RANGE)
 
 
 func _go_to_menu() -> void:
