@@ -166,18 +166,45 @@ func _second() -> bool:
 	_check(not impact.is_active(), "the option turns the impact off")
 	settings.values["impact"] = true
 
-	# cycling and slots
-	state.equip("")
-	state.cycle_weapon()
-	_check(state.equipped == "axe", "cycle: hands -> axe")
-	state.cycle_weapon()
-	state.cycle_weapon()
-	state.cycle_weapon()
-	_check(state.equipped == "", "cycle: back to bare hands after the shotgun")
-	Input.action_press("weapon_2")
+	# hotbar: the first inventory row, selected by keys 1-8, the wheel and the d-pad
+	_check(inv.hotbar_index("shotgun") == inv.selected, "an equipped weapon sits in the selected hotbar slot")
+	_place(inv, "pistol", 0)
+	_place(inv, "shotgun", 1)
+	_place(inv, "axe", 2)
+	_place(inv, "", 3)
+	var pistol_slot := 0
+	state.select_hotbar(1)
+	_check(state.equipped == "shotgun", "selecting the shotgun slot draws it")
+	Input.action_press("hotbar_%d" % (pistol_slot + 1))
 	weapons._read_input()
-	Input.action_release("weapon_2")
-	_check(state.equipped == "pistol", "key 2 equips the pistol")
+	Input.action_release("hotbar_%d" % (pistol_slot + 1))
+	_check(state.equipped == "pistol" and inv.selected == pistol_slot, "the pistol's number key draws it")
+	var empty_slot := -1
+	for i in state.INVENTORY.HOTBAR:
+		if inv.slots[i].is_empty():
+			empty_slot = i
+			break
+	if empty_slot >= 0:
+		state.select_hotbar(empty_slot)
+		_check(state.equipped == "", "an empty slot leaves the hands empty")
+	var start: int = inv.selected
+	state.cycle_hotbar(1)
+	_check(inv.selected == (start + 1) % state.INVENTORY.HOTBAR, "next slot")
+	state.cycle_hotbar(-1)
+	state.cycle_hotbar(-1)
+	_check(inv.selected == posmod(start - 1, state.INVENTORY.HOTBAR), "previous slot wraps")
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
+	wheel.pressed = true
+	_check(wheel.is_action("hotbar_next"), "wheel down -> hotbar_next")
+	# a weapon packed in the backpack rows comes to the hotbar when equipped
+	state.select_hotbar(pistol_slot)
+	var axe_at: int = inv.hotbar_index("axe")
+	var deep: int = state.INVENTORY.SIZE - 1
+	inv.slots[deep] = inv.slots[axe_at]
+	inv.slots[axe_at] = {}
+	_check(state.equip("axe") and inv.hotbar_index("axe") >= 0 and inv.selected == inv.hotbar_index("axe"), "equipping a backpack weapon moves it to the hotbar")
+	state.select_hotbar(pistol_slot)
 
 	# save round trip
 	var pistol_rounds: int = state.mags.pistol
@@ -187,9 +214,10 @@ func _second() -> bool:
 	state.mags.pistol = 0
 	state.from_save(saved)
 	_check(state.equipped == "pistol" and state.mags.pistol == pistol_rounds and state.mags.shotgun == shotgun_rounds and pistol_rounds > 0, "equipped weapon and magazines survive a save")
-	state.equipped = "axe"
-	inv.remove("axe", 1)
+	state.select_hotbar(inv.hotbar_index("axe"))
 	saved = state.to_save()
+	inv.remove("axe", 1)
+	saved.slots = inv.slots.duplicate(true)
 	state.from_save(saved)
 	_check(state.equipped == "", "a weapon that is no longer carried is not equipped on load")
 
@@ -215,6 +243,17 @@ func _lavado(lavados: Node3D, player: Node3D, distance: float) -> Node3D:
 	var foe: Node3D = lavados.walkers()[-1]
 	foe.global_position = player.global_position + Vector3(0.0, 0.0, -distance)
 	return foe
+
+
+## Swaps the stack `id` ("" = an empty slot) into slot `index`.
+func _place(inv, id: String, index: int) -> void:
+	for i in inv.SIZE:
+		if i != index and inv.slots[i].get("id", "") == id and (id != "" or i >= inv.HOTBAR):
+			var held: Dictionary = inv.slots[index]
+			inv.slots[index] = inv.slots[i]
+			inv.slots[i] = held
+			break
+	inv.changed.emit()
 
 
 func _check(ok: bool, what: String) -> void:

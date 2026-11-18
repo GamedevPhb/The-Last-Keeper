@@ -660,6 +660,32 @@ static func chew(gain: float) -> AudioStreamWAV:
 	return _wav(out)
 
 
+## Out of breath: a few quick, ragged breaths (rough exhale, thinner inhale) of filtered noise.
+static func pant(breaths: int, gain: float) -> AudioStreamWAV:
+	var cycle := 0.42
+	var n := _count(cycle * breaths)
+	var out := PackedFloat32Array()
+	out.resize(n)
+	var low := 0.0
+	var high := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		var local := fmod(t, cycle) / cycle
+		var fade := 1.0 - 0.35 * t / (cycle * breaths) # each breath a little softer
+		var white := randf_range(-1.0, 1.0)
+		low = lerpf(low, white, 0.18)
+		high = lerpf(high, white, 0.55)
+		var sample := 0.0
+		if local < 0.55: # exhale: dark, chesty "hah"
+			var k := local / 0.55
+			sample = (low * 1.4 + sin(TAU * 130.0 * t) * 0.08) * sin(PI * k) * sqrt(sin(PI * k))
+		else: # inhale: thin and quieter
+			var k := (local - 0.55) / 0.45
+			sample = (high - low) * 0.55 * sin(PI * k)
+		out[i] = sample * fade * gain
+	return _wav(out)
+
+
 ## Hollow stomach growl: a wobbling low saw.
 static func growl(gain: float) -> AudioStreamWAV:
 	var n := _count(0.9)
@@ -861,6 +887,7 @@ static func build_effects() -> Dictionary:
 		"radio_beep": tone(1760.0, 0.14, 12.0, 0.35),
 		"dry_throat": noise(0.35, 0.2, 9.0, 0.5),
 		"stomach": growl(0.4),
+		"winded": pant(4, 0.55),
 		"heart": _once(heartbeat(0.7)),
 		"death": fade_noise(3.0, 0.5),
 		"death_blow": mix_death_blow(),

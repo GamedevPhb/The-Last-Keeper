@@ -287,6 +287,7 @@ for name in todo:
     for i in range(n):
         for o in (flash_obj, can_obj, wheel, pump):
             show(o, False)
+        show(L.root, True)
         fn(i, n)
         sc.render.filepath = os.path.join(d, "%02d.png" % i)
         bpy.ops.render.render(write_still=True)

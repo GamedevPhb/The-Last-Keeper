@@ -8,11 +8,13 @@ signal changed
 
 const SIZE := 32
 const COLUMNS := 8
+## The first row is the hotbar: `selected` is the slot in hand (keys 1-8, wheel, d-pad left/right).
+const HOTBAR := COLUMNS
 
 ## name, stack size, description, how it is used and, for consumables, seconds and effects.
 const ITEMS := {
 	"flashlight": {"name": "Lanterna", "stack": 1, "use": "flashlight",
-		"desc": "Lanterna de mão. Usar liga e desliga (o mesmo que F / R1)."},
+		"desc": "Lanterna de mão. Na mão (barra de atalhos), F / R1 liga e desliga; F a traz para a mão."},
 	"battery": {"name": "Pilha", "stack": 4, "use": "battery",
 		"desc": "Pilha grande. Usar recarrega a lanterna em +50%. Ela gasta enquanto acesa."},
 	"lens_cleaner": {"name": "Limpador de lente", "stack": 2, "use": "lens",
@@ -32,11 +34,11 @@ const ITEMS := {
 	"bandage": {"name": "Curativo", "stack": 2, "use": "consume", "time": 4.0, "effects": {"health": 40.0},
 		"desc": "Gaze e iodo. Vida +40, leva 4 s para aplicar."},
 	"axe": {"name": "Machado", "stack": 1, "use": "equip",
-		"desc": "Machado de lenha. Corpo a corpo e quase silencioso: 25 de dano. Usar equipa (1 / roda do mouse / direcional para a direita)."},
+		"desc": "Machado de lenha. Corpo a corpo e quase silencioso: 25 de dano. Na barra de atalhos, selecionar (1-8 / roda do mouse / direcional ← →) equipa."},
 	"pistol": {"name": "Pistola P38", "stack": 1, "use": "equip",
-		"desc": "Pistola velha do vigia anterior. Pente de 6, 35 de dano, estampido alto. Usar equipa (2). Recarrega com T / L2."},
+		"desc": "Pistola velha do vigia anterior. Pente de 6, 35 de dano, estampido alto. Selecionar na barra equipa. Recarrega com T / L2."},
 	"shotgun": {"name": "Espingarda", "stack": 1, "use": "equip",
-		"desc": "Cano duplo, 2 tiros. De perto derruba qualquer um (80 de dano), de longe quase nada. O barulho vai longe. Usar equipa (3)."},
+		"desc": "Cano duplo, 2 tiros. De perto derruba qualquer um (80 de dano), de longe quase nada. O barulho vai longe. Selecionar na barra equipa."},
 	"portinho": {"name": "Portinho", "stack": 1, "use": "portinho",
 		"desc": "Bonequinho de lata: um farol com chapéu azul, polegar para cima. Usar pede uma dica sobre o que está perto."},
 	"wood": {"name": "Lenha", "stack": 8,
@@ -59,6 +61,7 @@ const ITEMS := {
 
 var slots: Array[Dictionary] = []
 var cursor: Dictionary = {}
+var selected := 0
 
 
 func _init() -> void:
@@ -216,6 +219,46 @@ func load_slots(saved: Array, held: Dictionary) -> void:
 	if not held.is_empty():
 		cursor = {"id": str(held.id), "count": int(held.count)}
 	changed.emit()
+
+
+## Id in the selected hotbar slot ("" if empty).
+func selected_id() -> String:
+	return slots[selected].get("id", "")
+
+
+## Hotbar slot holding `id` (the selected one first), or -1.
+func hotbar_index(id: String) -> int:
+	if slots[selected].get("id", "") == id:
+		return selected
+	for i in HOTBAR:
+		if slots[i].get("id", "") == id:
+			return i
+	return -1
+
+
+## Makes sure `id` sits in the hotbar: a stack from the backpack rows moves to the first free
+## hotbar slot, or swaps with the selected one. Returns its hotbar slot, -1 if not in any slot.
+func bring_to_hotbar(id: String) -> int:
+	var at := hotbar_index(id)
+	if at >= 0:
+		return at
+	var from := -1
+	for i in range(HOTBAR, SIZE):
+		if slots[i].get("id", "") == id:
+			from = i
+			break
+	if from < 0:
+		return -1
+	var to := selected
+	for i in HOTBAR:
+		if slots[i].is_empty():
+			to = i
+			break
+	var moved := slots[to]
+	slots[to] = slots[from]
+	slots[from] = moved
+	changed.emit()
+	return to
 
 
 func take_cursor() -> Dictionary:

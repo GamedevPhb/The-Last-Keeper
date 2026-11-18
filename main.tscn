@@ -22,16 +22,17 @@ radiance_size = 0
 [sub_resource type="Environment" id="night"]
 background_mode = 2
 sky = SubResource("sky")
-background_color = Color(0.015, 0.03, 0.025, 1)
+background_color = Color(0.11, 0.15, 0.19, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.2, 0.3, 0.26, 1)
-ambient_light_energy = 0.32
+ambient_light_color = Color(0.32, 0.4, 0.55, 1)
+ambient_light_energy = 0.42
 fog_enabled = true
-fog_light_color = Color(0.02, 0.04, 0.03, 1)
+fog_light_color = Color(0.1, 0.135, 0.17, 1)
 fog_mode = 1
 fog_sky_affect = 0.0
 fog_density = 1.0
-fog_depth_begin = 3.0
+fog_depth_curve = 1.6
+fog_depth_begin = 6.0
 fog_depth_end = 45.0
 
 [sub_resource type="ShaderMaterial" id="post_mat"]
@@ -44,8 +45,8 @@ environment = SubResource("night")
 
 [node name="Moon" type="DirectionalLight3D" parent="."]
 rotation = Vector3(-0.9, 0.6, 0)
-light_color = Color(0.5, 0.7, 0.6, 1)
-light_energy = 0.14
+light_color = Color(0.62, 0.74, 1, 1)
+light_energy = 0.7
 
 [node name="Island" parent="." instance=ExtResource("1_island")]
 

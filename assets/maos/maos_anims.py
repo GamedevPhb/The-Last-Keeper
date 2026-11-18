@@ -221,3 +221,47 @@ def _(i, n):
     lever.rotation_euler = (0, phi, 0)
     tip = (PUMP[0] - 0.20 * cos(phi), PUMP[1] - 0.012, PUMP[2] + 0.20 * sin(phi))
     aim(R, tip, rot=(40, -phi * 57.3, 18), wrist=(-34, 0, 0), curl=0.95, thumb=0.7)
+
+
+# ---- andar/correr sem lanterna (mesmo ciclo de walk_pose): so a mao direita e renderizada (a esquerda some no corte)
+def gait(i, n, amp):
+    """offsets do pulso direito no ciclo de passo (iguais aos de grip_flash em walk_pose)"""
+    t = 2 * pi * i / n
+    b = sin(2 * t)
+    return t, b, (-0.010 * amp * sin(t), -0.006 * amp * cos(t), 0.010 * amp * b)
+
+
+def walk_empty(i, n, amp, curl):
+    show(L.root, False)
+    t, b, d = gait(i, n, amp)
+    pose(R, RB, d, (2.5 * amp * b, 0, -3 * amp * sin(t)), curl=curl, thumb=0.15 + 0.25 * curl)
+
+
+@A("andar_vazio", 8)
+def _(i, n):
+    walk_empty(i, n, 1.0, 0.25)
+
+
+@A("correr_vazio", 8)
+def _(i, n):
+    walk_empty(i, n, 2.2, 0.55)
+
+
+def walk_can(i, n, amp):
+    show(L.root, False)
+    t, b, d = gait(i, n, amp)
+    tgt = add3(CARRY_T, (d[0] * 0.8, d[1] * 0.5, d[2]))
+    kw = dict(CARRY)
+    kw["rot"] = add3(CARRY["rot"], (2.0 * amp * b, 0, -2.0 * amp * sin(t)))
+    gp = aim(R, tgt, **kw)
+    put_can(gp, 4.0 * amp * sin(t - 0.9), 1.5 * amp * sin(t - 0.9))   # a lata balanca atrasada em relacao ao passo
+
+
+@A("andar_lata", 8)
+def _(i, n):
+    walk_can(i, n, 1.0)
+
+
+@A("correr_lata", 8)
+def _(i, n):
+    walk_can(i, n, 2.2)

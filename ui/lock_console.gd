@@ -4,7 +4,8 @@ extends "res://ui/puzzle_console.gd"
 ## dial, left/right (A/D) change dial, interact (E / Square / Space) confirms, Esc / Q / Circle cancel.
 ## The padlock itself (`puzzles/cellar_lock.gd`) owns the code and the pantry.
 
-const PLATE := "SETAS GIRAM O DISCO · E CONFIRMA · ESC SAI"
+const PLATE := "←/→ ESCOLHE O DÍGITO · ↑/↓ GIRA · E CONFIRMA · ESC SAI"
+const DIGIT_SIZE := 20
 const SUCCESS_TIME := 0.7
 const WRONG_TIME := 0.9
 
@@ -12,6 +13,7 @@ var lock: Node ## cellar_lock.gd
 
 var _digits := [0, 0, 0]
 var _digit_labels: Array[Label] = []
+var _carets: Array[Label] = [] ## "DÍGITO n" over each dial, lit on the selected one
 var _status: Label
 var _wrong := 0.0
 var _success := 0.0
@@ -25,11 +27,15 @@ func _build_body(body: VBoxContainer) -> void:
 	for i in 3:
 		var column := VBoxContainer.new()
 		column.add_theme_constant_override("separation", 1)
+		var caret := UiKit.label("", 0, UiKit.BONE)
+		caret.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		column.add_child(caret)
+		_carets.append(caret)
 		column.add_child(_step_button("▲", i, 1))
 		var digit := UiKit.label("0", 0, UiKit.BONE)
-		digit.add_theme_font_size_override("font_size", UiKit.HEADING_SIZE)
+		digit.add_theme_font_size_override("font_size", DIGIT_SIZE)
 		digit.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		digit.custom_minimum_size = Vector2(30, 24)
+		digit.custom_minimum_size = Vector2(36, 28)
 		digit.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		digit.add_theme_stylebox_override("normal", UiKit.style(Color(0.05, 0.07, 0.06), UiKit.RUST))
 		column.add_child(digit)
@@ -55,7 +61,7 @@ func _action_count() -> int:
 
 
 func _help_text() -> String:
-	return "[W/S] girar  [A/D] disco  [E] confirmar  [Q/Esc] fechar"
+	return "[A/D ←/→] dígito  [W/S ↑/↓] girar  [E] confirmar  [Esc] sair"
 
 
 func open(by: Player = null) -> void:
@@ -138,6 +144,8 @@ func _refresh() -> void:
 		_digit_labels[i].add_theme_color_override("font_color", color)
 		_digit_labels[i].add_theme_stylebox_override("normal",
 			UiKit.style(Color(0.05, 0.07, 0.06), UiKit.BRASS if i == _focus else UiKit.RUST))
+		_carets[i].text = "▼ %d ▼" % (i + 1) if i == _focus else str(i + 1)
+		_carets[i].add_theme_color_override("font_color", UiKit.BRASS if i == _focus else Color(0.6, 0.62, 0.58))
 	if _success > 0.0:
 		_header.text = "ABERTO"
 		_header.add_theme_color_override("font_color", UiKit.SEA)
@@ -149,4 +157,4 @@ func _refresh() -> void:
 	else:
 		_header.text = "TRAVADO"
 		_header.add_theme_color_override("font_color", UiKit.BRASS)
-		_status.text = "Disco %d/3" % (_focus + 1)
+		_status.text = "Dígito %d de 3 selecionado" % (_focus + 1)

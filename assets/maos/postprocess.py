@@ -4,7 +4,8 @@ from PIL import Image
 import numpy as np
 D = os.path.dirname(os.path.abspath(__file__))
 FPS = {"idle": 8, "lanterna_idle": 8, "lanterna_ligar": 10, "lanterna_desligar": 10, "andar": 10, "correr": 12,
-       "pegar": 10, "segurar_lata": 8, "interagir": 8, "bombear": 10}
+       "pegar": 10, "segurar_lata": 8, "interagir": 8, "bombear": 10,
+       "andar_vazio": 10, "correr_vazio": 12, "andar_lata": 10, "correr_lata": 12}
 anims = sorted(d for d in os.listdir(os.path.join(D, "_raw")))
 frames = {a: [Image.open(f).convert("RGBA") for f in sorted(glob.glob(os.path.join(D, "_raw", a, "*.png")))] for a in anims}
 px = []
@@ -16,6 +17,13 @@ px = np.concatenate(px)
 side = int(np.ceil(np.sqrt(len(px))))
 buf = np.zeros(side * side * 3, np.uint8); buf[:len(px) * 3] = px.reshape(-1)
 pal = Image.fromarray(buf.reshape(side, side, 3)).quantize(colors=28, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+# render parcial (so animacoes novas): reaproveita a paleta de 28 cores ja usada nos quadros de _original/
+orig = sorted(glob.glob(os.path.join(D, "_original", "*.png")))
+if orig:
+    oc = np.concatenate([np.array(Image.open(f).convert("RGBA")).reshape(-1, 4) for f in orig])
+    oc = np.unique(oc[oc[:, 3] >= 128, :3], axis=0)
+    flat = list(oc.reshape(-1)) + list(oc[0]) * (256 - len(oc))
+    pal = Image.new("P", (1, 1)); pal.putpalette([int(v) for v in flat])
 for a, fr in frames.items():
     out = os.path.join(D, a); os.makedirs(out, exist_ok=True)
     res = []

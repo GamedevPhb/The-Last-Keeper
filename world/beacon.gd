@@ -22,6 +22,8 @@ const FLAME_MIN_PRESSURE := 25.0
 const SAFETY_PRESSURE := 90.0
 const SAFETY_DUMP_TO := 70.0
 const OIL_PER_CAN := 50.0
+## At or above this the tank refuses another can (it would spill most of it).
+const OIL_FULL := 90.0
 const FILL_TIME := 1.5
 const CLEAN_TIME := 3.0
 const WIND_HIT := 10.0
@@ -215,7 +217,18 @@ func status_text() -> String:
 
 
 func can_refuel() -> bool:
-	return GameState.oil_cans > 0
+	return GameState.oil_cans > 0 and not tank_full()
+
+
+func tank_full() -> bool:
+	return oil >= OIL_FULL
+
+
+## "restam 2 latas" / "resta 1 lata" / "nenhuma lata na mochila".
+static func cans_left_text(count: int) -> String:
+	if count <= 0:
+		return "nenhuma lata na mochila"
+	return "resta 1 lata" if count == 1 else "restam %d latas" % count
 
 
 func simulate(delta: float) -> void:
@@ -289,13 +302,22 @@ func _spin(delta: float) -> void:
 
 # ---- Actions (called by the console, or directly by tests)
 
-## Pours one can (+50). Without a can nothing happens but the warning.
+## Pours one can (+50, one can per fill). Without a can, or with the tank full, nothing
+## happens but the warning; every pour says how much went in and how many cans are left.
 func refuel() -> bool:
-	if not can_refuel():
-		GameState.say("Sem óleo. O tambor está no ilhéu, e só dá para chegar na maré baixa.")
+	if tank_full():
+		GameState.say("O tanque de óleo está cheio (%d%%). Guarde a lata para depois." % roundi(oil))
+		return false
+	if GameState.oil_cans <= 0:
+		if GameState.fuel_cans > 0:
+			GameState.say("Sem óleo. Combustível é do gerador; a lâmpada queima óleo (tambor no ilhéu, na maré baixa).")
+		else:
+			GameState.say("Sem óleo. O tambor está no ilhéu, e só dá para chegar na maré baixa.")
 		return false
 	GameState.oil_cans -= 1
+	var before := oil
 	oil = minf(oil + OIL_PER_CAN, 100.0)
+	GameState.say("Óleo +%d%% (tanque %d%%) · %s." % [roundi(oil - before), roundi(oil), cans_left_text(GameState.oil_cans)])
 	return true
 
 
@@ -414,6 +436,7 @@ func _on_interacted(by: Node) -> void:
 # ---- Physical feedback
 
 func _update_visuals() -> void:
+	_switch.prompt = "Console da lâmpada · óleo %d%%" % roundi(oil)
 	_head.visible = lit
 	_bulb.visible = lit
 	_glow.visible = lit

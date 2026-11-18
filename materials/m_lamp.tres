@@ -8,5 +8,5 @@ shader = ExtResource("1_shader")
 shader_parameter/albedo = Color(1, 0.8, 0.45, 1)
 shader_parameter/albedo_texture = ExtResource("2_noise")
 shader_parameter/uv_scale = Vector2(1, 1)
-shader_parameter/emission = Color(1, 0.7, 0.3, 1)
-shader_parameter/emission_energy = 1.6
+shader_parameter/emission = Color(1, 0.62, 0.25, 1)
+shader_parameter/emission_energy = 1.0

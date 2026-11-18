@@ -22,6 +22,8 @@ signal item_given(id: String)
 signal radio_requested
 ## The weapon in hand changed (or its magazine did): viewmodel and HUD redraw.
 signal weapon_changed
+## The selected hotbar slot changed (hands and HUD redraw).
+signal hotbar_changed
 ## Screen impact: a white flash and/or a camera shake (amplitude in meters of view offset).
 signal impact(flash: bool, shake: float)
 ## A loud action (a shot, a swing) at a point; `radius` is how far it carries (enemies listen).
@@ -67,6 +69,15 @@ const COLD_TIME := 60.0 ## real seconds of doubled hunger after a soaking
 const COLD_FROM := 26 * 60 ## 02:00: hunger x1.5 outdoors
 const HEAVY_CANS := 4 ## oil + fuel cans that stop sprinting
 
+# Stamina (GDD 4.10), per real second: sprinting is a resource.
+const STAMINA_DRAIN := 100.0 / 6.0 ## empty after ~6 s of sprinting
+const STAMINA_REGEN_WALK := 20.0 ## full in ~5 s walking
+const STAMINA_REGEN_REST := 100.0 / 3.5 ## full in ~3.5 s standing still
+const STAMINA_PAUSE := 1.0 ## seconds without spending before it starts to come back
+const STAMINA_JUMP := 10.0
+const STAMINA_RECOVER := 30.0 ## winded until it climbs back here
+const STAMINA_LOW_NEED := 25.0 ## thirst or hunger below this: drain x1.5, regen x0.6
+
 # Portable radio battery (GDD 4.8), per real second.
 const RADIO_OPEN_DRAIN := 0.5
 const RADIO_IDLE_DRAIN := 0.05
@@ -111,7 +122,9 @@ var flashlight_on := false
 ## True while a story scene plays: the night clock, status and radio wait for it.
 var scene_active := false
 ## Weapon in hand ("" = bare hands) and the rounds loaded in each firearm's magazine.
+## Derived from the selected hotbar slot (`inventory.selected`) unless the keeper holstered it.
 var equipped := ""
+var _holstered := false
 const EMERGE_RANGE := 45.0
 var _last_impact := -100.0
 var mags := {"pistol": 0, "shotgun": 0}
@@ -153,6 +166,10 @@ var death_cause := ""
 ## Set by the Player every physics frame.
 var player: Node3D
 var sprinting := false
+## 0-100. Hitting 0 leaves the keeper winded (no sprint) until STAMINA_RECOVER.
+var stamina := 100.0
+var winded := false
+var _stamina_pause := 0.0
 var in_water := false
 var cold_left := 0.0
 var _critical := {"thirst": false, "hunger": false, "health": false}
@@ -246,7 +263,9 @@ const FLASH_LOW := 20.0 ## below this the beam dims and flickers
 
 func _ready() -> void:
 	_load_keepers()
-	inventory.changed.connect(func() -> void: changed.emit())
+	inventory.changed.connect(func() -> void:
+		_sync_hand()
+		changed.emit())
 	ship_event.connect(_on_ship_event)
 
 
@@ -293,14 +312,17 @@ func reset() -> void:
 	_last_hour = -1
 	minutes = START_MINUTES
 	inventory.clear()
+	inventory.selected = 0
 	equipped = ""
-	mags = {"pistol": 0, "shotgun": 0}
+	_holstered = false
+	mags ={"pistol": 0, "shotgun": 0}
 	thirst = THIRST_START
 	hunger = HUNGER_START
 	health = 100.0
 	dead = false
 	death_cause = ""
 	sprinting = false
+	_reset_stamina()
 	flashlight_on = false
 	flashlight_battery = 100.0
 	lens_left = 0.0
@@ -348,26 +370,76 @@ func reset() -> void:
 
 # ---- Weapons
 
-## Puts a weapon in hand ("" = holster). False if it is not in the inventory.
+## Puts a weapon in hand ("" = holster): it moves into the hotbar if needed and gets selected.
+## False if it is not in the inventory.
 func equip(id: String) -> bool:
-	if id != "" and (not WEAPON_DEFS.is_weapon(id) or inventory.count(id) <= 0):
+	if id == "":
+		if equipped != "":
+			_holstered = true
+			_sync_hand()
+		return true
+	if not WEAPON_DEFS.is_weapon(id) or inventory.count(id) <= 0:
 		return false
 	if id == equipped:
 		return true
-	equipped = id
-	if id != "":
-		say("%s na mão." % INVENTORY.item_name(id))
-	weapon_changed.emit()
+	return hold(id)
+
+
+# ---- Hotbar (first inventory row): what the keeper holds
+
+## Id of the item in the selected hotbar slot ("" if empty).
+func held_item() -> String:
+	return inventory.selected_id()
+
+
+## Selects a hotbar slot (wraps). Selecting the slot already selected draws / holsters its weapon.
+func select_hotbar(index: int) -> void:
+	index = posmod(index, INVENTORY.HOTBAR)
+	if index == inventory.selected:
+		if WEAPON_DEFS.is_weapon(held_item()):
+			_holstered = not _holstered
+	else:
+		inventory.selected = index
+		_holstered = false
+	_sync_hand()
+	hotbar_changed.emit()
+
+
+func cycle_hotbar(step: int) -> void:
+	select_hotbar(inventory.selected + step)
+
+
+## Moves `id` into the hotbar (first free slot, else swapping with the selected one) and selects
+## it. False if it is not carried in a slot.
+func hold(id: String, quiet := false) -> bool:
+	var was_holstered := _holstered
+	_holstered = true # no hand change while the stack moves; settled below
+	var index: int = inventory.bring_to_hotbar(id)
+	if index < 0:
+		_holstered = was_holstered
+		return false
+	inventory.selected = index
+	_holstered = false
+	_sync_hand(quiet)
+	hotbar_changed.emit()
 	return true
 
 
-## Cycles bare hands -> axe -> pistol -> shotgun over what the keeper carries.
-func cycle_weapon() -> void:
-	var owned: Array[String] = [""]
-	for id: String in WEAPON_DEFS.ORDER:
-		if inventory.count(id) > 0:
-			owned.append(id)
-	equip(owned[(owned.find(equipped) + 1) % owned.size()])
+## The beam can shine: the flashlight is in hand, or in the off hand while a weapon is drawn (GDD 4.11).
+func flashlight_ready() -> bool:
+	return has_flashlight and (held_item() == "flashlight" or equipped != "")
+
+
+## `equipped` follows the selected slot: its weapon, unless holstered.
+func _sync_hand(quiet := false) -> void:
+	var id := held_item()
+	var want := id if WEAPON_DEFS.is_weapon(id) and not _holstered else ""
+	if want == equipped:
+		return
+	equipped = want
+	if want != "" and not quiet:
+		say("%s na mão." % INVENTORY.item_name(want))
+	weapon_changed.emit()
 
 
 ## Rounds of the equipped firearm's ammo still in the inventory (0 for the axe / bare hands).
@@ -618,7 +690,44 @@ func use_lens_cleaner() -> bool:
 
 
 func can_sprint() -> bool:
-	return thirst > 0.0 and hunger > 0.0 and oil_cans + fuel_cans < HEAVY_CANS
+	return thirst > 0.0 and hunger > 0.0 and oil_cans + fuel_cans < HEAVY_CANS and not winded and stamina > 0.0
+
+
+# ---- Stamina
+
+## Advances stamina by `delta` real seconds (called by the Player every physics frame).
+## Sprinting drains it; after STAMINA_PAUSE without spending it refills, faster standing still.
+func tick_stamina(delta: float, is_sprinting: bool, moving: bool) -> void:
+	var low_need := thirst < STAMINA_LOW_NEED or hunger < STAMINA_LOW_NEED
+	if is_sprinting:
+		_spend_stamina(STAMINA_DRAIN * (1.5 if low_need else 1.0) * delta)
+		return
+	if _stamina_pause > 0.0:
+		_stamina_pause = maxf(_stamina_pause - delta, 0.0)
+		return
+	var regen := STAMINA_REGEN_WALK if moving else STAMINA_REGEN_REST
+	stamina = minf(stamina + regen * (0.6 if low_need else 1.0) * delta, 100.0)
+	if winded and stamina >= STAMINA_RECOVER:
+		winded = false
+
+
+## A jump costs STAMINA_JUMP (it can leave the keeper winded).
+func stamina_jump() -> void:
+	_spend_stamina(STAMINA_JUMP)
+
+
+func _spend_stamina(amount: float) -> void:
+	stamina = maxf(stamina - amount, 0.0)
+	_stamina_pause = STAMINA_PAUSE
+	if stamina <= 0.0 and not winded:
+		winded = true
+		play("winded")
+
+
+func _reset_stamina() -> void:
+	stamina = 100.0
+	winded = false
+	_stamina_pause = 0.0
 
 
 # ---- Keeper status
@@ -813,8 +922,8 @@ func to_save() -> Dictionary:
 		"slots": inventory.slots.duplicate(true), "cursor": inventory.cursor.duplicate(),
 		"thirst": thirst, "hunger": hunger, "health": health, "dead": dead, "death_cause": death_cause,
 		"scenes_seen": scenes_seen.duplicate(), "flashlight_battery": flashlight_battery, "lens_left": lens_left,
-		"cold_left": cold_left, "radio_battery": radio_battery, "radio_docked": radio_docked,
-		"equipped": equipped, "mags": mags.duplicate(),
+		"cold_left": cold_left, "stamina": stamina, "winded": winded, "radio_battery": radio_battery, "radio_docked": radio_docked,
+		"equipped": equipped, "hotbar": inventory.selected, "mags": mags.duplicate(),
 		"invasion_active": invasion_active, "invasion_done": invasion_done, "invasion_wave": invasion_wave,
 		"invasion_kills": invasion_kills, "invasion_spent": invasion_spent, "invasion_crate": invasion_crate,
 		"fence_level": fence_level,
@@ -839,6 +948,8 @@ func from_save(data: Dictionary) -> void:
 	var saved_breakers: Dictionary = data.get("breakers", {})
 	for circuit: String in breakers:
 		breakers[circuit] = saved_breakers.get(circuit, false)
+	inventory.selected = clampi(int(data.get("hotbar", 0)), 0, INVENTORY.HOTBAR - 1)
+	_holstered = true # no "na mão" while the slots refill; the hand is settled below
 	inventory.load_slots(data.get("slots", []), data.get("cursor", {}))
 	var saved_mags: Dictionary = data.get("mags", {})
 	for firearm: String in mags:
@@ -859,9 +970,12 @@ func from_save(data: Dictionary) -> void:
 	portinho_hinted = saved_portinho.get("hinted", false)
 	_portinho_reach_said = false
 	invasion_left = 0
-	equipped = str(data.get("equipped", ""))
-	if equipped != "" and inventory.count(equipped) <= 0:
-		equipped = ""
+	var saved_weapon := str(data.get("equipped", ""))
+	_holstered = false
+	if saved_weapon == "" or not hold(saved_weapon, true):
+		# an empty hand over a weapon slot means it was holstered
+		_holstered = WEAPON_DEFS.is_weapon(held_item())
+		_sync_hand(true)
 	weapon_changed.emit()
 	thirst = data.get("thirst", THIRST_START)
 	hunger = data.get("hunger", HUNGER_START)
@@ -869,6 +983,9 @@ func from_save(data: Dictionary) -> void:
 	dead = data.get("dead", false)
 	death_cause = data.get("death_cause", "")
 	cold_left = data.get("cold_left", 0.0)
+	stamina = clampf(float(data.get("stamina", 100.0)), 0.0, 100.0)
+	winded = bool(data.get("winded", false)) and stamina < STAMINA_RECOVER
+	_stamina_pause = 0.0
 	scenes_seen = data.get("scenes_seen", {}).duplicate()
 	if lamp_lit_once:
 		scenes_seen["lamp"] = true # an old save: the lamp is already burning
@@ -960,6 +1077,7 @@ func advance_night() -> void:
 	health = 100.0
 	dead = false
 	death_cause = ""
+	_reset_stamina()
 	flashlight_on = false
 	flashlight_battery = 100.0
 	lens_left = 0.0
@@ -1091,15 +1209,15 @@ func _base_objective() -> String:
 	if not book_read:
 		return "Siga a trilha até a casa do vigia, a leste. Na mesa do rádio, leia o livro de registros (E)."
 	if not generator_started:
-		return "Ligue o gerador no galpão, a oeste: abasteça o tanque com combustível e abra as válvulas na ordem do livro."
+		return "Ligue o gerador no galpão, a oeste. A partida está escrita a giz na parede."
 	if not breakers.values().has(true):
-		return "Ligue os disjuntores na caixa de fusíveis, dentro da casa. O gerador aguenta só dois."
+		return "Ligue os disjuntores no quadro de força da casa. Leia a plaqueta embaixo dele."
 	if not lamp_lit_once:
 		if oil_cans == 0:
-			return "Sem óleo! O tambor fica no ilhéu a leste: cruze as pedras na maré baixa."
-		return "Suba o farol, ao norte, e use o console da lâmpada:\n1) abasteça o óleo; 2) segure AQUECER e bombeie até temperatura e pressão ficarem NO VERDE; 3) só então abra a válvula (frio afoga!); 4) dê corda no ritmo."
+			return "Sem óleo! O tambor fica no ilhéu a leste. A régua na praia mostra a maré."
+		return "Suba o farol, ao norte, e acenda a lâmpada. A placa ao lado do console ensina."
 	if tutorial() and ships_saved + ships_lost == 0:
-		return "Lâmpada acesa! Agora atenda o rádio na casa: sintonize, compare a carga com o livro (J) e autorize ou recuse."
+		return "Lâmpada acesa! Atenda o rádio na casa. O cartão na parede da mesa ensina."
 	var line := "Mantenha a luz acesa e atenda o rádio até as 06:00."
 	if oil_cans == 0:
 		line += "\nSem óleo na mochila: o tambor fica no ilhéu a leste, na maré baixa."

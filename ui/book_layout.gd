@@ -19,7 +19,7 @@ const PAPER := Color(0.76, 0.7, 0.55)
 const PAPER_EDGE := Color(0.4, 0.32, 0.2)
 const INK := Color(0.14, 0.09, 0.04)
 const INK_TITLE := Color(0.33, 0.14, 0.07)
-const INK_FAINT := Color(0.38, 0.3, 0.2)
+const INK_FAINT := Color(0.32, 0.23, 0.13)
 
 
 static func text_width() -> float:

@@ -46,7 +46,7 @@ const SCENES := {
 		{"t": 0.0, "len": 9.0, "from": Vector3(-16.5, 1.8, 18.5), "to": Vector3(-18.0, 1.6, 17.5),
 			"look_from": Vector3(-20.4, 0.9, 14.7), "look_to": Vector3(-20.4, 0.9, 14.7), "cue": "gust",
 			"lines": [[0.8, "— O gerador. Combustível no tanque, depois as válvulas, A até D."],
-				[0.4, "— Na ordem do livro de registros. Aperte J. O rádio também sabe."]]},
+				[0.4, "— A ordem está no giz da parede. Quem veio antes deixou escrito."]]},
 		{"t": 9.0, "len": 10.0, "from": Vector3(-18.0, 1.6, 17.5), "to": Vector3(-19.0, 1.5, 17.0),
 			"look_from": Vector3(-20.4, 1.0, 14.7), "look_to": Vector3(-20.4, 1.2, 14.7),
 			"lines": [[0.6, "— Ligado, vá ao quadro de força. Rádio, luz, motor da lanterna."],

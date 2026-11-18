@@ -62,11 +62,16 @@ func _process(delta: float) -> bool:
 	for index in generator.order:
 		generator.get_node("Valve%s" % generator.LABELS[index]).interact(null)
 	_check(not generator.running, "generator needs fuel even with the right order")
+	_check(generator._valves.all(func(v: Interactable) -> bool: return v.enabled), "valves come back after an empty-tank reset")
+	generator.get_node("Valve%s" % generator.LABELS[generator.order[0]]).interact(null)
+	_check(not generator._valves[generator.order[0]].enabled and generator._valves[generator.order[1]].enabled, "an opened valve is no longer offered")
+	generator._reset()
 	state.fuel_cans = 1
 	generator.get_node("FuelIn").interact(null)
 	for index in generator.order:
 		generator.get_node("Valve%s" % generator.LABELS[index]).interact(null)
 	_check(generator.running and state.generator_on, "generator starts with fuel and the right order")
+	_check(generator._valves.all(func(v: Interactable) -> bool: return not v.enabled), "valves are disabled while it runs")
 
 	# Breakers through their panel: capacity is two circuits.
 	var fuses := stations.get_node("Station_Fuses")
@@ -101,6 +106,7 @@ func _process(delta: float) -> bool:
 	lock.try_code(lock.digits())
 	_check(state.oil_cans == cans_before + 2, "cellar opens with the code")
 
+	_test_hints(state, main, generator)
 	_test_inventory(state, main)
 	_test_radio(state, main, stations)
 	_test_save(state, main)
@@ -256,7 +262,7 @@ func _test_lamp(state: Node, main: Node, beacon: Node) -> void:
 
 	# One Interactable, the console; the old invisible stations are gone.
 	var interactables := beacon.find_children("*", "Area3D", true, false)
-	_check(interactables.size() == 1 and interactables[0].prompt == "Console da lâmpada", "lamp has a single console interactable")
+	_check(interactables.size() == 1 and interactables[0].prompt.begins_with("Console da lâmpada"), "lamp has a single console interactable")
 	for old_name in ["OilTank", "Crank", "Lens"]:
 		_check(beacon.find_child(old_name, true, false) == null, "station %s removed" % old_name)
 
@@ -274,6 +280,10 @@ func _test_lamp(state: Node, main: Node, beacon: Node) -> void:
 	_check(beacon.oil == 0.0 and _last_toast.contains("Sem óleo"), "refuel without a can only says Sem óleo")
 	state.oil_cans = 2
 	_check(beacon.refuel() and is_equal_approx(beacon.oil, 50.0) and state.oil_cans == 1, "a can adds 50 oil")
+	_check(_last_toast.contains("+50%") and _last_toast.contains("resta 1 lata"), "pouring says how much went in and the cans left")
+	beacon.oil = 95.0
+	_check(not beacon.refuel() and state.oil_cans == 1 and _last_toast.contains("cheio"), "a full tank refuses the can and says so")
+	beacon.oil = 50.0
 
 	# Drown: pump to 60, heat only to 50, open.
 	_pump_to(beacon, 60.0)
@@ -659,6 +669,34 @@ func _test_status(state: Node, main: Node) -> void:
 	overlay._ending.visible = false
 	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://keepers_test.cfg"))
 	paused = false
+
+
+## Phase 3 feedback: every puzzle has a readable procedure hint within a few meters of it.
+func _test_hints(state: Node, main: Node, generator: Node) -> void:
+	var hints := main.get_node("Island/Details/Hints")
+	var near := {"GeneratorChalk": generator.global_position, "FuseTag": Vector3(28.5, 1.6, 5.1),
+		"RadioCard": Vector3(25.25, 0.9, 5.4), "CellarChalk": Vector3(31.5, 0.2, 10.5),
+		"TideBoard": Vector3(39.2, 0.0, -0.8), "LampPlate": Vector3(0.0, 16.4, -12.0)}
+	for hint_name: String in near:
+		var hint: Node3D = hints.get_node_or_null(hint_name)
+		_check(hint != null, "hint %s exists" % hint_name)
+		if hint == null:
+			continue
+		_check(hint.global_position.distance_to(near[hint_name]) < 3.0, "hint %s sits within 3 m of its puzzle" % hint_name)
+		var read: Interactable = hint.get_node("Read")
+		_check(read.collision_layer == Interactable.LAYER and read.enabled, "hint %s is readable on the interact layer" % hint_name)
+		_last_toast = ""
+		read.interact(null)
+		_check(_last_toast != "" and _last_toast == hint.current_text(), "reading %s says its text" % hint_name)
+		_check((hint.get_node("Text") as Label3D).text != "", "hint %s shows a visible line" % hint_name)
+	var chalk: Node = hints.get_node("GeneratorChalk")
+	_check(chalk.get_node("Text").text.contains(" · ".join(generator.order.map(func(i: int) -> String: return generator.LABELS[i]))),
+		"generator chalk shows this game's valve order")
+	_check(chalk.current_text().contains(generator.valve_order_text()), "generator chalk text gives the valve order")
+	_check(state.notes.any(func(n: String) -> bool: return n.contains("Primeiro disco")), "cellar chalk goes to the book notes")
+	var tide: Node = main.get_node("Island/Details/Causeway")
+	_check(hints.get_node("TideBoard").current_text().contains(" s."), "tide board says when the tide turns")
+	_check(tide.seconds_to_change() > 0.0, "tide reports the seconds to the next turn")
 
 
 func _step(beacon: Node, seconds: float) -> void:

@@ -1,6 +1,7 @@
 class_name InventoryPanel
 extends "res://ui/puzzle_console.gd"
-## The Tab / Triangle screen (GDD 4.9): an 8x4 grid of slots that works like Minecraft's,
+## The Tab / Triangle screen (GDD 4.9): an 8x4 grid of slots that works like Minecraft's
+## (the first row, set apart by a brass rule and numbered 1-8, is the hotbar shown on the HUD),
 ## the three status bars (GDD 4.10) on the right and the hovered item's description below.
 ## The night keeps running. State lives in `GameState.inventory`; this only draws and routes.
 ## Mouse: left picks up / places / merges / swaps, right takes half or places one,
@@ -14,6 +15,7 @@ const SLOT := 26
 const GAP := 2
 const COLUMNS := 8
 const ROWS := 4
+const HOTBAR_GAP := 4 ## extra pixels between the hotbar row and the backpack rows
 const HELP_KEYS := "Clique pega · Dir. divide · Shift usa · Q larga · Tab fecha"
 const SPLIT_HOLD := 0.45 ## seconds a finger stays on a slot to split it
 const HELP_PAD := "X pega · R1 divide · Quadrado usa · Círculo larga · Triângulo fecha"
@@ -289,7 +291,7 @@ func _build_body(body: VBoxContainer) -> void:
 	row.add_theme_constant_override("separation", 6)
 	_grid = Grid.new()
 	_grid.panel = self
-	_grid.custom_minimum_size = Vector2(COLUMNS * (SLOT + GAP) - GAP, ROWS * (SLOT + GAP) - GAP)
+	_grid.custom_minimum_size = Vector2(COLUMNS * (SLOT + GAP) - GAP, ROWS * (SLOT + GAP) - GAP + HOTBAR_GAP)
 	row.add_child(_grid)
 	_status = StatusColumn.new()
 	_status.custom_minimum_size = Vector2(64, _grid.custom_minimum_size.y)
@@ -438,6 +440,9 @@ func _refresh() -> void:
 	else:
 		var item: Dictionary = GameState.INVENTORY.ITEMS.get(slot.id, {})
 		_name.text = "%s  x%d" % [item.get("name", slot.id), slot.count]
+		var index := clampi(_active_slot(), 0, 31)
+		if index < GameState.INVENTORY.HOTBAR:
+			_name.text += "  · barra %d%s" % [index + 1, ", na mão" if index == GameState.inventory.selected else ""]
 		_desc.text = item.get("desc", "")
 	_bar.value = 0.0 if _using.is_empty() else 1.0 - _using.left / _using.total
 	_status.values = {"thirst": GameState.thirst, "hunger": GameState.hunger, "health": GameState.health}
@@ -544,7 +549,8 @@ func _on_off_grid(event: InputEvent) -> void:
 
 
 func slot_rect(index: int) -> Rect2:
-	return Rect2((index % COLUMNS) * (SLOT + GAP), floori(index / float(COLUMNS)) * (SLOT + GAP), SLOT, SLOT)
+	var row := floori(index / float(COLUMNS))
+	return Rect2((index % COLUMNS) * (SLOT + GAP), row * (SLOT + GAP) + (HOTBAR_GAP if row > 0 else 0), SLOT, SLOT)
 
 
 ## Draws a stack: icon centred in a slot-sized rect, count in the bottom-right corner.
@@ -613,7 +619,16 @@ class Grid extends Control:
 			draw_rect(Rect2(rect.position + Vector2(1, rect.size.y - 2), Vector2(rect.size.x - 2, 1)), UiKit.RUST.lightened(0.2))
 			if lit:
 				draw_rect(rect, UiKit.BRASS, false, 1.0)
+			if i < GameState.INVENTORY.HOTBAR:
+				# hotbar row: its key number, and a brass underline on the slot in hand
+				draw_string(get_theme_default_font(), rect.position + Vector2(SLOT - 7.0, 9.0), str(i + 1),
+					HORIZONTAL_ALIGNMENT_LEFT, -1, UiKit.FONT_SIZE, Color(UiKit.BRASS, 0.7))
+				if i == GameState.inventory.selected:
+					draw_rect(Rect2(rect.position + Vector2(2, SLOT - 4), Vector2(SLOT - 4, 2)), UiKit.BRASS)
 			panel.draw_stack(self, rect, slots[i])
+		# brass rule between the hotbar and the backpack
+		var y := SLOT + GAP + HOTBAR_GAP / 2.0 - 1.0
+		draw_line(Vector2(0, y), Vector2(size.x, y), Color(UiKit.BRASS, 0.6), 1.0)
 
 
 ## The held stack, drawn over everything: at the mouse, or over the focused slot on pad/keys.

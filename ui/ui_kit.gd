@@ -3,6 +3,9 @@ class_name UiKit
 ## `build_theme()` is baked into res://ui/theme.tres (project setting gui/theme/custom) by tests/make_theme.gd;
 ## the helpers below build common widgets.
 
+## Smallest text size anywhere (HUD, panels, book, drawn strings). At 320x240 without antialiasing,
+## DejaVu Serif Condensed Bold keeps every stroke from 9 px up; at 8 px it drops strokes ("f" turns
+## into "l", counters close). tests/ui_fit_test.gd fails on any visible text below it.
 const FONT_SIZE := 9
 const HEADING_SIZE := 14
 
@@ -12,6 +15,10 @@ const BRASS := Color(0.78, 0.64, 0.34)
 const RUST := Color(0.36, 0.2, 0.11)
 const BLOOD := Color(0.72, 0.12, 0.09)
 const INK := Color(0.03, 0.05, 0.05)
+## Bright cream for HUD text that must read over the scene (prompt, messages, objective).
+const CREAM := Color(1.0, 0.94, 0.78)
+## Secondary text (key help, hints): warm grey, opaque, still well above the dark plates.
+const MUTED := Color(0.76, 0.72, 0.6)
 
 static var _cache := {}
 
@@ -28,9 +35,10 @@ static func build_theme() -> Theme:
 	t.set_stylebox("panel", "Panel", slab())
 
 	t.set_color("font_color", "Label", BONE)
-	t.set_color("font_shadow_color", "Label", Color(0, 0, 0, 0.9))
+	t.set_color("font_shadow_color", "Label", Color(0, 0, 0, 1))
 	t.set_constant("shadow_offset_x", "Label", 1)
 	t.set_constant("shadow_offset_y", "Label", 1)
+	t.set_constant("line_spacing", "Label", 1) # default 3 spreads 9 px lines too far apart at 240 lines
 
 	for kind in ["Button", "CheckBox"]:
 		t.set_color("font_color", kind, BONE)
@@ -77,9 +85,19 @@ static func slab() -> StyleBoxTexture:
 	return _nine("slab", 20, 7, Color(0.045, 0.075, 0.07, 0.96), BRASS, RUST, true, 9)
 
 
-## Thin version of the slab for HUD strips.
+## Thin version of the slab for HUD strips: a near-black face so text reads over fog and lamplight.
 static func bar() -> StyleBoxTexture:
-	return _plate(Color(0.04, 0.07, 0.07, 0.9), Color(0.5, 0.4, 0.22), INK)
+	return _plate(Color(0.012, 0.018, 0.018, 0.84), Color(0.5, 0.4, 0.22), INK)
+
+
+## `bar()` with tight margins, as the "normal" stylebox of a one-line HUD Label (it hugs the text).
+static func tag() -> StyleBoxTexture:
+	var box := bar()
+	box.content_margin_left = 4
+	box.content_margin_right = 4
+	box.content_margin_top = 2
+	box.content_margin_bottom = 1
+	return box
 
 
 static func _plate(face: Color, hi: Color, lo: Color) -> StyleBoxTexture:

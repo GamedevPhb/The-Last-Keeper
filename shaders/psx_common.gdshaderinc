@@ -53,3 +53,50 @@ vec3 psx_flashlight_light(vec3 view_pos, vec3 view_normal) {
 	float ndl = max(dot(view_normal, -to_frag), 0.0) * 0.75 + 0.25; // wrap: big flat normals don't go black
 	return psx_flashlight_color.rgb * (psx_flashlight.x * cone * fall * ndl);
 }
+
+// Warm light pools (pier lantern, porch, lighthouse door, house and shed lamps when powered),
+// evaluated per pixel for the same reason as the flashlight: a vertex-lit OmniLight3D never shows
+// on a 14 m pier deck or a terrain triangle. world/day_night.gd picks the 4 world lamps nearest
+// the camera every frame. The OmniLight3D nodes stay as the vertex light on small props.
+//   psx_lamp_N       — xyz = world position, w = range (0 = slot unused)
+//   psx_lamp_color_N — rgb = colour * energy
+global uniform vec4 psx_lamp_0;
+global uniform vec4 psx_lamp_1;
+global uniform vec4 psx_lamp_2;
+global uniform vec4 psx_lamp_3;
+global uniform vec4 psx_lamp_color_0;
+global uniform vec4 psx_lamp_color_1;
+global uniform vec4 psx_lamp_color_2;
+global uniform vec4 psx_lamp_color_3;
+
+vec3 psx_one_lamp(vec4 lamp, vec4 color, vec3 world_pos, vec3 world_normal) {
+	if (lamp.w <= 0.0) {
+		return vec3(0.0);
+	}
+	vec3 to_lamp = lamp.xyz - world_pos;
+	float d = length(to_lamp);
+	if (d >= lamp.w) {
+		return vec3(0.0);
+	}
+	float r = d / lamp.w;
+	float fall = 1.0 - r * r;
+	fall *= fall;
+	// 4 hard bands: reads as a PS1 light pool, not a smooth modern falloff.
+	fall = ceil(fall * 4.0) * 0.25;
+	float ndl = max(dot(world_normal, to_lamp / max(d, 0.0001)), 0.0) * 0.7 + 0.3;
+	return color.rgb * (fall * ndl);
+}
+
+// Light from the active lamps reaching a fragment (view-space position / normal, as in fragment()).
+// Add as EMISSION += ALBEDO * this.
+vec3 psx_lamp_light(vec3 view_pos, vec3 view_normal, mat4 inv_view) {
+	if (psx_lamp_0.w <= 0.0) {
+		return vec3(0.0); // slots fill in order: empty first slot = no lamps nearby
+	}
+	vec3 wp = (inv_view * vec4(view_pos, 1.0)).xyz;
+	vec3 wn = normalize((inv_view * vec4(view_normal, 0.0)).xyz);
+	return psx_one_lamp(psx_lamp_0, psx_lamp_color_0, wp, wn)
+		+ psx_one_lamp(psx_lamp_1, psx_lamp_color_1, wp, wn)
+		+ psx_one_lamp(psx_lamp_2, psx_lamp_color_2, wp, wn)
+		+ psx_one_lamp(psx_lamp_3, psx_lamp_color_3, wp, wn);
+}

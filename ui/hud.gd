@@ -5,6 +5,8 @@ extends CanvasLayer
 ## inventory strip when it changes, messages fade on their own, the interaction prompt sits
 ## in the lower third, and the whole HUD hides while a puzzle panel is open
 ## (`GameState.panel_changed`), since panels show their own messages.
+## The hotbar (first inventory row, `Hotbar` below) sits at the bottom centre, always on while
+## playing, with the selected slot in brass and its name popping up for a moment on change.
 ## It also owns the touch controls (`ui/touch_controls.gd`), which show only on touch devices.
 
 const OBJECTIVE_TIME := 8.0
@@ -12,6 +14,7 @@ const STATUS_TIME := 5.0
 const HINTS_TIME := 8.0
 const FADE := 1.0
 const INVENTORY_PANEL := preload("res://ui/inventory_panel.gd")
+const HOTBAR_NAME_TIME := 2.0
 
 @export var player: Player
 
@@ -23,10 +26,6 @@ var _hints_left := HINTS_TIME
 var _last_objective := ""
 var _last_status := ""
 var _gamepad := false
-var _objective_frame: Panel
-var _toast_frame: Panel
-var _prompt_frame: Panel
-var _status_frame: Panel
 ## 8x8 critical-status icons, bottom-left, only while a status is critical (GDD 4.10).
 var _critical_icons := {}
 var _blink := 0.0
@@ -40,6 +39,16 @@ var _battery: Label
 var _ammo: Label
 ## "Onda 2/3 · restam 5", top-center, only while the invasion runs.
 var _wave: Label
+## Bottom-centre row of the 8 hotbar slots, and the selected item's name above it.
+var _hotbar: Hotbar
+var _hotbar_name: Label
+var _hotbar_name_left := 0.0
+## Stamina, bottom-left above the critical icons: a thin cream bar (brass while winded) shown only
+## while not full, fading out once it refills.
+var _stamina_box: Control
+var _stamina_fill: ColorRect
+var _stamina_mark: ColorRect
+var _stamina_left := 0.0
 
 @onready var _root: Control = $Root
 @onready var _prompt: Label = $Root/Prompt
@@ -63,7 +72,6 @@ func _ready() -> void:
 	_on_focus_changed(null)
 	_on_hold_progress_changed(0.0)
 	_toast.visible = false
-	_toast_frame.visible = false
 	_compass.visible = false # the heading now rides on the objective line
 	_refresh_status()
 	_update_hints()
@@ -74,40 +82,20 @@ func _ready() -> void:
 	add_child(touch)
 	get_viewport().size_changed.connect(_layout)
 	_layout()
-	_battery = UiKit.label("", 0, Color(UiKit.BRASS, 0.8))
-	_battery.anchor_left = 1.0
-	_battery.anchor_right = 1.0
-	_battery.anchor_top = 1.0
-	_battery.anchor_bottom = 1.0
-	_battery.offset_left = -80.0
-	_battery.offset_right = -4.0
-	_battery.offset_top = -12.0
-	_battery.offset_bottom = -1.0
-	_battery.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_battery = UiKit.label("", 0, UiKit.BRASS)
 	_battery.visible = false
 	_root.add_child(_battery)
-	_ammo = UiKit.label("", 0, Color(UiKit.BRASS, 0.8))
-	_ammo.anchor_left = 1.0
-	_ammo.anchor_right = 1.0
-	_ammo.anchor_top = 1.0
-	_ammo.anchor_bottom = 1.0
-	_ammo.offset_left = -110.0
-	_ammo.offset_right = -4.0
-	_ammo.offset_top = -23.0
-	_ammo.offset_bottom = -12.0
-	_ammo.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_tag(_battery, Vector2(1.0, 1.0), Vector2(-2.0, -1.0))
+	_ammo = UiKit.label("", 0, UiKit.BRASS)
 	_ammo.visible = false
 	_root.add_child(_ammo)
-	_wave = UiKit.label("", 0, Color(UiKit.BLOOD.lightened(0.3), 0.85))
-	_wave.anchor_left = 0.5
-	_wave.anchor_right = 0.5
-	_wave.offset_left = -70.0
-	_wave.offset_right = 70.0
-	_wave.offset_top = 14.0
-	_wave.offset_bottom = 25.0
-	_wave.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_tag(_ammo, Vector2(1.0, 1.0), Vector2(-2.0, -16.0))
+	_wave = UiKit.label("", 0, UiKit.BLOOD.lightened(0.4))
 	_wave.visible = false
 	_root.add_child(_wave)
+	_tag(_wave, Vector2(0.5, 0.0), Vector2(0.0, 18.0))
+	_build_hotbar()
+	_build_stamina()
 	var x := 4.0
 	for key: String in ["thirst", "hunger", "health"]:
 		var icon := TextureRect.new()
@@ -119,6 +107,72 @@ func _ready() -> void:
 		_root.add_child(icon)
 		_critical_icons[key] = icon
 		x += 10.0
+
+
+func _build_hotbar() -> void:
+	_hotbar = Hotbar.new()
+	_hotbar.name = "Hotbar"
+	_hotbar.size = Vector2(Hotbar.WIDTH, Hotbar.SLOT)
+	_root.add_child(_hotbar)
+	_hotbar_name = UiKit.label("", 0, UiKit.CREAM)
+	_hotbar_name.name = "HotbarName"
+	_hotbar_name.visible = false
+	_root.add_child(_hotbar_name)
+	_tag(_hotbar_name, Vector2(0.5, 1.0), Vector2(0.0, -(Hotbar.SLOT + 2.0)))
+	GameState.hotbar_changed.connect(_on_hotbar_changed)
+	GameState.changed.connect(_hotbar.queue_redraw)
+	GameState.weapon_changed.connect(_hotbar.queue_redraw)
+	_layout()
+
+
+func _build_stamina() -> void:
+	_stamina_box = Control.new()
+	_stamina_box.name = "Stamina"
+	_stamina_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_box.position = Vector2(4, 222)
+	_stamina_box.size = Vector2(40, 4)
+	_stamina_box.visible = false
+	_root.add_child(_stamina_box)
+	var back := ColorRect.new()
+	back.color = Color(UiKit.INK, 0.8)
+	back.size = _stamina_box.size
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_box.add_child(back)
+	_stamina_fill = ColorRect.new()
+	_stamina_fill.position = Vector2(1, 1)
+	_stamina_fill.size = Vector2(38, 2)
+	_stamina_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_box.add_child(_stamina_fill)
+	# where sprinting comes back after running out of breath
+	_stamina_mark = ColorRect.new()
+	_stamina_mark.color = UiKit.MUTED
+	_stamina_mark.position = Vector2(1.0 + roundf(38.0 * GameState.STAMINA_RECOVER / 100.0), 0)
+	_stamina_mark.size = Vector2(1, 4)
+	_stamina_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_box.add_child(_stamina_mark)
+
+
+func _update_stamina(delta: float) -> void:
+	var stamina: float = GameState.stamina
+	var playing: bool = GameState.in_game and not GameState.dead and not GameState.finished
+	if playing and stamina < 100.0:
+		_stamina_left = FADE
+	else:
+		_stamina_left -= delta
+	if not playing:
+		_stamina_left = 0.0
+	_fade(_stamina_left, [_stamina_box])
+	_stamina_fill.size.x = roundf(38.0 * clampf(stamina / 100.0, 0.0, 1.0))
+	_stamina_fill.color = UiKit.BRASS if GameState.winded else UiKit.CREAM
+	_stamina_mark.visible = GameState.winded
+
+
+func _on_hotbar_changed() -> void:
+	_hotbar.queue_redraw()
+	var id: String = GameState.held_item()
+	_hotbar_name.text = GameState.INVENTORY.item_name(id) if id != "" else "Mãos vazias"
+	_hotbar_name_left = HOTBAR_NAME_TIME
+	_hints_left = 0.0 # the name takes the hints' line
 
 
 func _build_phone() -> void:
@@ -174,54 +228,76 @@ func _update_phone() -> void:
 
 
 func _build_frames() -> void:
-	_status_frame = _frame(Rect2(2, 2, 150, 13), _status)
-	_objective_frame = _frame(Rect2(2, 17, 176, 36), _objective)
-	_toast_frame = _frame(Rect2(20, 202, 280, 26), _toast)
-	_prompt_frame = _frame(Rect2(100, 172, 120, 14), _prompt)
-	_status.position = Vector2(6, 3)
-	_status.size = Vector2(142, 11)
-	_objective.position = Vector2(7, 20)
-	_objective.size = Vector2(166, 60)
-	_toast.offset_left = 26.0
-	_toast.offset_right = -26.0
+	# Legibility (tester feedback): every HUD text sits on a near-black plate with a 1 px shadow,
+	# in cream/brass at UiKit.FONT_SIZE. Multi-line texts get a themed strip behind them; one-line
+	# ones carry the plate as their own stylebox (`_tag`), so it hugs the text.
+	# Objective (top-left, grows down) and toast (bottom, grows up above the hints) wrap at a fixed
+	# width and carry the strip as their own stylebox, so it always fits the line count.
+	for label: Label in [_objective, _toast]:
+		label.add_theme_stylebox_override("normal", _strip())
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_objective.anchor_right = 0.0
+	_objective.anchor_bottom = 0.0
+	_objective.offset_left = 2.0
+	_objective.offset_right = 178.0
+	_objective.offset_top = 18.0
+	_objective.offset_bottom = 18.0
 	_toast.offset_top = -37.0
-	_toast.offset_bottom = -13.0
+	_toast.offset_bottom = -37.0
+	_toast.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_toast.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	# Prompt and hold bar live in the lower third, clear of the crosshair.
-	_prompt.offset_top = 52.0
-	_prompt.offset_bottom = 66.0
-	_hold_bar.offset_top = 68.0
-	_hold_bar.offset_bottom = 70.0
-	_clock.anchor_left = 1.0
-	_clock.anchor_right = 1.0
-	_clock.offset_left = -40.0
-	_clock.offset_right = -4.0
-	_clock.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_clock.add_theme_color_override("font_color", Color(UiKit.BRASS, 0.85))
-	_hints.add_theme_color_override("font_color", Color(0.7, 0.75, 0.7, 0.55))
-	for label: Label in [_status, _objective, _toast, _prompt, _clock, _compass]:
+	# Prompt and hold bar sit below the crosshair, clear of it; toast, hints and the hotbar stack
+	# below them down to the bottom edge.
+	_tag(_status, Vector2.ZERO, Vector2(2.0, 2.0))
+	_tag(_clock, Vector2(1.0, 0.0), Vector2(-2.0, 2.0))
+	_tag(_prompt, Vector2(0.5, 0.5), Vector2(0.0, 28.0))
+	_tag(_hints, Vector2(0.5, 1.0), Vector2(0.0, -21.0))
+	_hold_bar.offset_top = 44.0
+	_hold_bar.offset_bottom = 46.0
+	_clock.add_theme_color_override("font_color", UiKit.BRASS)
+	_hints.add_theme_color_override("font_color", UiKit.MUTED)
+	for label: Label in [_objective, _toast, _compass]:
 		label.add_theme_constant_override("outline_size", 0)
+
+
+## Puts `label` on its own dark plate (`UiKit.tag()`) sized to its text. `anchor` is the point of
+## the screen it hangs from and `offset` its distance (in pixels) from it; the plate grows away from
+## the nearest edge (left/right/both ways, down from the top or up from the bottom).
+func _tag(label: Label, anchor: Vector2, offset: Vector2) -> void:
+	label.add_theme_stylebox_override("normal", UiKit.tag())
+	label.add_theme_constant_override("outline_size", 0)
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.anchor_left = anchor.x
+	label.anchor_right = anchor.x
+	label.anchor_top = anchor.y
+	label.anchor_bottom = anchor.y
+	label.offset_left = offset.x
+	label.offset_right = offset.x
+	label.offset_top = offset.y
+	label.offset_bottom = offset.y
+	label.grow_horizontal = Control.GROW_DIRECTION_END if anchor.x < 0.25 else (Control.GROW_DIRECTION_BEGIN if anchor.x > 0.75 else Control.GROW_DIRECTION_BOTH)
+	label.grow_vertical = Control.GROW_DIRECTION_BEGIN if anchor.y > 0.75 else Control.GROW_DIRECTION_END
 
 
 ## Centres the strips on wide screens (aspect "expand" on phones); 320 wide keeps the PC layout.
 func _layout() -> void:
 	var margin := (get_viewport().get_visible_rect().size.x - 280.0) / 2.0
-	_toast_frame.position.x = margin
-	_phone_box.position = Vector2(get_viewport().get_visible_rect().size.x - 20.0, 14.0)
-	_toast.offset_left = margin + 6.0
-	_toast.offset_right = -(margin + 6.0)
+	_phone_box.position = Vector2(get_viewport().get_visible_rect().size.x - 20.0, 18.0)
+	_toast.offset_left = margin
+	_toast.offset_right = -margin
+	if _hotbar:
+		var view := get_viewport().get_visible_rect().size
+		_hotbar.position = Vector2(floorf((view.x - Hotbar.WIDTH) / 2.0), view.y - Hotbar.SLOT - 1.0)
 
 
-## A themed strip placed just behind `label`.
-func _frame(rect: Rect2, label: Control) -> Panel:
-	var frame := Panel.new()
-	frame.position = rect.position
-	frame.size = rect.size
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_theme_stylebox_override("panel", UiKit.bar())
-	_root.add_child(frame)
-	_root.move_child(frame, label.get_index())
-	return frame
+## The HUD strip (`UiKit.bar()`) with roomier side margins, for the wrapped objective and toast.
+func _strip() -> StyleBox:
+	var box := UiKit.bar()
+	box.content_margin_left = 5
+	box.content_margin_right = 5
+	return box
 
 
 func _process(delta: float) -> void:
@@ -233,19 +309,22 @@ func _process(delta: float) -> void:
 	if _objective_left > 0.0:
 		_objective_left -= delta
 		_objective.text = objective + _target_line()
-		var lines := _objective.get_line_count()
-		_objective_frame.size.y = lines * (_objective.get_line_height() + 1) + 6
-	_fade(_objective_left, [_objective, _objective_frame])
+	_fade(_objective_left, [_objective])
 	_toast_left -= delta
-	_fade(_toast_left, [_toast, _toast_frame])
+	_fade(_toast_left, [_toast])
 	_status_left -= delta
-	_fade(_status_left, [_status, _status_frame])
+	_fade(_status_left, [_status])
 	_hints_left -= delta
 	_fade(0.0 if TouchControls.enabled else _hints_left, [_hints])
 	_blink += delta
 	_update_phone()
 	_update_battery()
 	_update_ammo()
+	_update_stamina(delta)
+	_hotbar.visible = GameState.in_game and not GameState.dead and not GameState.finished
+	_hotbar.mouse_filter = Control.MOUSE_FILTER_STOP if TouchControls.enabled else Control.MOUSE_FILTER_IGNORE
+	_hotbar_name_left -= delta
+	_fade(_hotbar_name_left if _hotbar.visible else 0.0, [_hotbar_name])
 	_wave.visible = GameState.invasion_active and GameState.invasion_wave > 0
 	if _wave.visible:
 		_wave.text = "Onda %d/3 · restam %d" % [GameState.invasion_wave, GameState.invasion_left]
@@ -257,9 +336,6 @@ func _process(delta: float) -> void:
 	# Prompts change while focused (e.g. a counter in the text), so poll them.
 	if _target:
 		_prompt.text = _target.prompt if TouchControls.enabled else "[%s] %s" % ["Quadrado" if _gamepad else "E", _target.prompt]
-		var width := _prompt.get_theme_font("font").get_string_size(_prompt.text, HORIZONTAL_ALIGNMENT_LEFT, -1, UiKit.FONT_SIZE).x + 14.0
-		_prompt_frame.size.x = width
-		_prompt_frame.position.x = get_viewport().get_visible_rect().size.x / 2.0 - width / 2.0
 
 
 ## "Pilha 80%" while the beam is on; blinks when low, "+" marks the lens boost.
@@ -268,7 +344,7 @@ func _update_battery() -> void:
 	_battery.visible = GameState.flashlight_on
 	_battery.text = "Pilha %d%%%s" % [ceili(charge), " +" if GameState.lens_left > 0.0 else ""]
 	var low := charge < GameState.FLASH_LOW
-	_battery.add_theme_color_override("font_color", UiKit.BLOOD.lightened(0.25) if low and fmod(_blink, 1.0) < 0.5 else Color(UiKit.BRASS, 0.8))
+	_battery.add_theme_color_override("font_color", UiKit.BLOOD.lightened(0.4) if low and fmod(_blink, 1.0) < 0.5 else UiKit.BRASS)
 
 
 ## "Pistola 6/12" (magazine / spare rounds), "recarregando" while reloading, just the name for the axe.
@@ -286,7 +362,7 @@ func _update_ammo() -> void:
 	var mag: int = GameState.mags[id]
 	_ammo.text = "%s %s" % [def.name, "recarregando..." if reloading else "%d/%d" % [mag, GameState.reserve_ammo(id)]]
 	var empty := mag <= 0 and not reloading
-	_ammo.add_theme_color_override("font_color", UiKit.BLOOD.lightened(0.25) if empty else Color(UiKit.BRASS, 0.8))
+	_ammo.add_theme_color_override("font_color", UiKit.BLOOD.lightened(0.4) if empty else UiKit.BRASS)
 
 
 ## Shows `items` while `left` > 0, fading out over the last second.
@@ -305,8 +381,6 @@ func _on_panel_changed(open: bool) -> void:
 func _on_focus_changed(target: Interactable) -> void:
 	_target = target
 	_prompt.visible = target != null
-	if _prompt_frame:
-		_prompt_frame.visible = _prompt.visible
 
 
 func _on_hold_progress_changed(ratio: float) -> void:
@@ -345,7 +419,8 @@ func _input(event: InputEvent) -> void:
 
 
 func _update_hints() -> void:
-	_hints.text = "[Triângulo] Inventário  [↑] Rádio  [L1] Livro  [R1] Lanterna  [Options] Pausa" if _gamepad else "[Tab] Inventário  [R] Rádio  [J] Livro  [F] Lanterna  [Esc] Pausa"
+	# One line that fits 320 px at UiKit.FONT_SIZE (Options needs no hint on the pad).
+	_hints.text = "[Triângulo] Inventário  [↑] Rádio  [L1] Livro  [R1] Lanterna" if _gamepad else "[Tab] Inventário  [R] Rádio  [J] Livro  [F] Lanterna  [Esc] Pausa"
 
 
 ## Distance and direction to the current objective, relative to where the player is looking.
@@ -359,3 +434,47 @@ func _target_line() -> String:
 	var bearing := rad_to_deg(atan2(to.x, -to.z)) - rad_to_deg(atan2(forward.x, -forward.z))
 	var side: String = ["à frente", "à frente, direita", "à direita", "atrás, direita", "atrás", "atrás, esquerda", "à esquerda", "à frente, esquerda"][posmod(roundi(bearing / 45.0), 8)]
 	return "\n%d m, %s · rumo %s" % [roundi(to.length()), side, _heading()]
+
+
+## The hotbar: the first inventory row as small slots (icon + count), the selected one in brass,
+## a pip on the drawn weapon. On touch screens a tap selects a slot.
+class Hotbar extends Control:
+	const SLOT := 18
+	const GAP := 1
+	const WIDTH := SLOT * 8 + GAP * 7
+
+	var _icons := {}
+
+	func _gui_input(event: InputEvent) -> void:
+		var click := event as InputEventMouseButton
+		if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
+			var index := floori(click.position.x / (SLOT + GAP))
+			if index >= 0 and index < GameState.INVENTORY.HOTBAR:
+				GameState.select_hotbar(index)
+			accept_event()
+
+	func _draw() -> void:
+		var inventory = GameState.inventory
+		var font := get_theme_default_font()
+		for i in GameState.INVENTORY.HOTBAR:
+			var rect := Rect2(i * (SLOT + GAP), 0, SLOT, SLOT)
+			var chosen: bool = i == inventory.selected
+			draw_rect(rect, Color(UiKit.INK, 0.75))
+			draw_rect(rect.grow(-1), Color(0.2, 0.26, 0.22, 0.8) if chosen else Color(0.1, 0.14, 0.12, 0.55))
+			if not chosen:
+				# slot number, faint, top-right (under the icon, so it never covers it)
+				draw_string(font, rect.position + Vector2(SLOT - 7.0, 9.0), str(i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, UiKit.FONT_SIZE, Color(UiKit.MUTED, 0.5))
+			var stack: Dictionary = inventory.slots[i]
+			if not stack.is_empty():
+				if not _icons.has(stack.id):
+					_icons[stack.id] = INVENTORY_PANEL.item_texture(stack.id)
+				draw_texture(_icons[stack.id], rect.position + Vector2(1, 1), Color(1, 1, 1, 1.0 if chosen else 0.7))
+				if stack.id == GameState.equipped:
+					draw_rect(Rect2(rect.position + Vector2(2, 2), Vector2(3, 3)), UiKit.BRASS)
+				if stack.count > 1:
+					var text := str(stack.count)
+					var at := rect.position + Vector2(SLOT - 2.0 - font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, UiKit.FONT_SIZE).x, SLOT - 1.0)
+					draw_string(font, at + Vector2.ONE, text, HORIZONTAL_ALIGNMENT_LEFT, -1, UiKit.FONT_SIZE, UiKit.INK)
+					draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, UiKit.FONT_SIZE, UiKit.CREAM)
+			if chosen:
+				draw_rect(rect, UiKit.BRASS, false, 1.0)

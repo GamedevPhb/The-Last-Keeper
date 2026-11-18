@@ -103,7 +103,7 @@ func _balance(state: Node) -> void:
 	state.book_read = true
 	state.generator_started = true
 	state.breakers["radio"] = true
-	_check(state.objective().contains("NO VERDE"), "lamp hint spells out the green zone")
+	_check(state.objective().contains("placa"), "lamp objective points at the plate beside the console")
 	state.lamp_lit_once = true
 	_check(state.objective().contains("rádio"), "tutorial points at the first call")
 	var radio := _radio()

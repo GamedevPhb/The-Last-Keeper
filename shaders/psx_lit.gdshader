@@ -28,6 +28,6 @@ void vertex() {
 void fragment() {
 	vec4 tex = texture(albedo_texture, psx_resolve_uv(UV * uv_scale, affine_uv));
 	ALBEDO = albedo.rgb * tex.rgb;
-	EMISSION = emission.rgb * emission_energy + ALBEDO * psx_flashlight_light(VERTEX, NORMAL);
+	EMISSION = emission.rgb * emission_energy + ALBEDO * (psx_flashlight_light(VERTEX, NORMAL) + psx_lamp_light(VERTEX, NORMAL, INV_VIEW_MATRIX));
 	ROUGHNESS = 1.0;
 }

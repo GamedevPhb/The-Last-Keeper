@@ -131,6 +131,7 @@ var _flash := 0.0
 var _hint: Label
 var _bar: ProgressBar
 var _gauges: Array[Gauge] = []
+var _readouts: Array[Label] = [] ## numbers under each gauge, so the oil level reads at a glance
 
 
 func _ready() -> void:
@@ -230,6 +231,10 @@ func _build_body(box: VBoxContainer) -> void:
 		var caption := UiKit.label(gauge_name)
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(caption)
+		var readout := UiKit.label("0%", 0, UiKit.BRASS)
+		readout.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		column.add_child(readout)
+		_readouts.append(readout)
 		dials.add_child(column)
 		_gauges.append(gauge)
 	box.add_child(dials)
@@ -269,6 +274,10 @@ func _refresh() -> void:
 	_gauges[3].setup(beacon.wound, Vector2(40, 100), [Vector2(0, 15)])
 	_gauges[4].setup(100.0 - beacon.dirt, Vector2(70, 100), [Vector2(0, Beacon.MIN_RANGE * 100.0)])
 	_gauges[3].flash = _flash
+	var values := [beacon.oil, beacon.temp, beacon.pressure, beacon.wound, 100.0 - beacon.dirt]
+	for i in _readouts.size():
+		_readouts[i].text = "%d%%" % roundi(values[i])
+		_readouts[i].add_theme_color_override("font_color", UiKit.BLOOD.lightened(0.25) if _gauges[i].in_red() else UiKit.BRASS)
 	_flash = maxf(_flash - get_process_delta_time() * 4.0, 0.0)
 	for i in _buttons.size():
 		var tint := Color.WHITE
@@ -282,13 +291,25 @@ func _refresh() -> void:
 			tint = Color(0.55, 0.55, 0.55)
 		_buttons[i].modulate = tint
 	var action: Dictionary = ACTIONS[_focus]
-	_hint.text = "[%d] %s · %s" % [_focus + 1, action.name, action.hint]
+	_hint.text = "[%d] %s · %s" % [_focus + 1, action.name, _hint_for(_focus)]
 	if _held >= 0 and ACTIONS[_held].kind == Kind.TIMED:
 		_bar.value = _hold_time / _hold_needed(_held)
 	elif _held == HEAT:
 		_bar.value = beacon.temp / 100.0
 	else:
 		_bar.value = 0.0
+
+
+## The FILL hint carries the cans in the pack and the tank state; the others are static.
+func _hint_for(index: int) -> String:
+	if index != FILL:
+		return ACTIONS[index].hint
+	if beacon.tank_full():
+		return "tanque cheio (%d%%) · guarde a lata" % roundi(beacon.oil)
+	var cans: int = GameState.oil_cans
+	if cans <= 0:
+		return "sem lata de óleo na mochila"
+	return "segure 1,5 s · +%d%% · %d na mochila" % [roundi(minf(Beacon.OIL_PER_CAN, 100.0 - beacon.oil)), cans]
 
 
 ## A vertical brass gauge with painted green and red zones and a bone needle.
@@ -305,6 +326,12 @@ class Gauge extends Control:
 		reds = new_reds
 		boost = new_boost
 		queue_redraw()
+
+	func in_red() -> bool:
+		for zone: Vector2 in reds:
+			if value >= zone.x and value <= zone.y:
+				return true
+		return false
 
 	func _y(v: float) -> float:
 		return 1.0 + (size.y - 2.0) * (1.0 - clampf(v, 0.0, 100.0) / 100.0)

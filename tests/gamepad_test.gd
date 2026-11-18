@@ -1,5 +1,5 @@
 extends SceneTree
-## Headless test of gamepad buttons: action mapping (A/B/X/Start) and the main menu being operable without a mouse.
+## Headless test of gamepad buttons: action mapping (A/B/X/Start, d-pad hotbar) and the main menu being operable without a mouse.
 ## Run: godot-4 --headless --path . --script res://tests/gamepad_test.gd
 
 var _frame := 0
@@ -44,6 +44,13 @@ func _process(_delta: float) -> bool:
 		_check(_motion(7, -1.0).is_action("ui_up"), "hat axis 7 -> ui_up")
 		_check(_motion(6, 1.0).is_action("ui_right"), "hat axis 6 -> ui_right")
 		_check(_button(12).is_action("ui_down"), "dpad down -> ui_down")
+		_check(_button(14).is_action("hotbar_next"), "dpad right -> hotbar_next")
+		_check(_button(13).is_action("hotbar_prev"), "dpad left -> hotbar_prev")
+		_check(_button(11).is_action("radio") and not _button(11).is_action("hotbar_next") and not _button(11).is_action("hotbar_prev"), "dpad up stays the radio")
+		for action: String in ["weapon_1", "weapon_cycle"]:
+			_check(not InputMap.has_action(action), "%s folded into the hotbar" % action)
+		for other: String in ["jump", "interact", "flashlight", "radio", "inventory", "journal", "pause", "sprint"]:
+			_check(not _button(13).is_action(other) and not _button(14).is_action(other), "dpad left/right free of " + other)
 		_menu = load("res://ui/main_menu.tscn").instantiate()
 		root.add_child(_menu)
 	elif _frame == 4:

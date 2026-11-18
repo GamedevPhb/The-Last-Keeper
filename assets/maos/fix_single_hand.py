@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Converte os frames de duas maos em uma mao so (direita) e troca a lanterna creme por uma preta.
 Le de _original/ (copia dos frames antigos, criada na primeira execucao) e grava em <anim>/NN.png.
-Uso: python3 assets/maos/fix_single_hand.py"""
-import math, os, shutil
+Uso: python3 assets/maos/fix_single_hand.py [anim ...]"""
+import math, os, shutil, sys
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -19,6 +19,11 @@ ANIMS = {
 	"segurar_lata": (6, 76, False, None),
 	"interagir": (7, 78, False, None),
 	"bombear": (8, 78, False, None),
+	# sem lanterna; renderizadas so com a mao direita (corte 0 = so limpa fragmentos)
+	"andar_vazio": (8, 0, False, None),
+	"correr_vazio": (8, 0, False, None),
+	"andar_lata": (8, 0, False, None),
+	"correr_lata": (8, 0, False, None),
 }
 EXTRA = {"andar_luz": "andar", "correr_luz": "correr"}  # variantes com a lente acesa
 
@@ -183,6 +188,13 @@ def main():
 				shutil.copy(f"{HERE}/{a}/{i:02d}.png", f"{ORIG}/{a}_{i:02d}.png")
 		open(f"{ORIG}/.gdignore", "w").close()
 	jobs = [(a, a) for a in ANIMS] + [(k, v) for k, v in EXTRA.items()]
+	only = sys.argv[1:]          # ex.: fix_single_hand.py andar_vazio correr_vazio (so essas)
+	if only:
+		jobs = [j for j in jobs if j[0] in only]
+	for dst, a in jobs:          # animacoes novas: copia a saida do postprocess para _original/
+		if not os.path.exists(f"{ORIG}/{a}_00.png"):
+			for i in range(ANIMS[a][0]):
+				shutil.copy(f"{HERE}/{a}/{i:02d}.png", f"{ORIG}/{a}_{i:02d}.png")
 	for dst, a in jobs:
 		n, cut, lantern, lit = ANIMS[a]
 		os.makedirs(f"{HERE}/{dst}", exist_ok=True)

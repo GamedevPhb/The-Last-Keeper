@@ -54,6 +54,7 @@ func show_sheet(sheet: Dictionary) -> void:
 func _line(color: Color) -> Label:
 	var item := UiKit.label("", 0, color)
 	item.add_theme_font_size_override("font_size", LAYOUT.FONT_SIZE)
+	item.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0)) # ink on paper: a shadow only smears it
 	item.clip_text = true
 	item.autowrap_mode = TextServer.AUTOWRAP_OFF
 	item.mouse_filter = Control.MOUSE_FILTER_IGNORE

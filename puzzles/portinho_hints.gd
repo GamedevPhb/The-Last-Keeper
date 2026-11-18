@@ -11,11 +11,11 @@ const HINTS := {
 	],
 	"generator": [
 		"Combustível no tanque, depois as válvulas. A, B, C, D.",
-		"A ordem está no livro de registros. Aperta J, que o papel não mente.",
+		"A ordem está no giz da parede do galpão. Giz não mente, só desbota.",
 		"Ouviu o motor pegar? Música enferrujada, a minha preferida.",
 	],
 	"fuses": [
-		"Dois circuitos, no máximo. O terceiro cobra juros.",
+		"Dois circuitos, no máximo. Tá na plaqueta, embaixo do quadro.",
 		"Rádio, luz ou lanterna: escolha dois. Escolher faz bem às juntas.",
 		"Quadro quente? Desliga um. Minhas dobradiças concordam.",
 	],

@@ -4,6 +4,7 @@ extends Marker3D
 
 const LABELS := ["A", "B", "C", "D"]
 const FUEL_BURN := 1.0 / 480.0 ## per second, times the night factor (night 1: about 14.5 real minutes per can)
+const TANK_FULL := 0.9 ## the tank refuses a can above this
 const BARRELS := [Vector3(-23.3, 0.9, 13.4), Vector3(-23.3, 0.9, 14.6), Vector3(-23.3, 0.9, 15.8)]
 
 var order: Array = [0, 1, 2, 3]
@@ -56,10 +57,20 @@ func load_state(data: Dictionary) -> void:
 	for mat in _lights:
 		mat.albedo_color = Color(0.2, 0.6, 0.2) if running else Color(0.6, 0.15, 0.1)
 	_progress = 0
+	_sync_valves()
 
 
 func valve_order_text() -> String:
 	return ", ".join(order.map(func(i: int) -> String: return LABELS[i]))
+
+
+## Chalk on the shed wall above the valves (`puzzles/hint_plate.gd`, source = this station).
+func hint_title() -> String:
+	return "PARTIDA\n1. TANQUE CHEIO\n2. VÁLVULAS %s" % " · ".join(order.map(func(i: int) -> String: return LABELS[i]))
+
+
+func hint_text() -> String:
+	return "Giz na parede, letra do vigia 9: \"Partida: combustível no tanque primeiro (barris atrás do galpão). Depois as válvulas, nesta ordem: %s. Errou uma, a pressão cai e recomeça da primeira.\"" % valve_order_text()
 
 
 func _add(node_name: String, pos: Vector3, prompt_text: String, hold: float, radius: float) -> Interactable:
@@ -105,11 +116,12 @@ func _on_valve(_by: Node, index: int) -> void:
 		_lights[index].albedo_color = Color(0.2, 0.6, 0.2)
 		GameState.play("switch", global_position)
 		_progress += 1
+		_sync_valves()
 		if _progress == order.size():
 			_start()
 	else:
 		GameState.play("jam", global_position)
-		GameState.say("A pressão cai. Recomece as válvulas.")
+		GameState.say("A pressão cai. Recomece as válvulas (a ordem está no giz da parede).")
 		_reset()
 
 
@@ -123,6 +135,7 @@ func _start() -> void:
 	GameState.generator_on = true
 	GameState.play("gen_start", global_position)
 	GameState.say("O gerador ronca e pega.")
+	_sync_valves()
 
 
 func _stop(reason: String) -> void:
@@ -136,15 +149,34 @@ func _reset() -> void:
 	_progress = 0
 	for mat in _lights:
 		mat.albedo_color = Color(0.6, 0.15, 0.1)
+	_sync_valves()
+
+
+## A valve already opened in the sequence (or all of them while the generator runs) is no
+## longer offered; a wrong valve, an empty tank or the generator stopping re-enables them all.
+func _sync_valves() -> void:
+	var opened: Array = order.slice(0, _progress)
+	for i in _valves.size():
+		_valves[i].enabled = not running and not opened.has(i)
 
 
 func _on_refuel(_by: Node) -> void:
+	if fuel >= TANK_FULL:
+		GameState.say("O tanque do gerador está cheio (%d%%). Guarde a lata." % roundi(fuel * 100.0))
+		return
 	if GameState.fuel_cans < 1:
-		GameState.say("Sem lata de combustível. Os barris ficam atrás do galpão.")
+		if GameState.oil_cans > 0:
+			GameState.say("Sem combustível. Óleo é da lâmpada; o gerador usa combustível (barris atrás do galpão).")
+		else:
+			GameState.say("Sem lata de combustível. Os barris ficam atrás do galpão.")
 		return
 	GameState.fuel_cans -= 1
+	var before := fuel
 	fuel = 1.0
 	GameState.play("clunk", global_position)
+	var left: int = GameState.fuel_cans
+	GameState.say("Combustível +%d%% (tanque 100%%) · %s." % [roundi((fuel - before) * 100.0),
+		"nenhuma lata na mochila" if left <= 0 else ("resta 1 lata" if left == 1 else "restam %d latas" % left)])
 
 
 func _on_barrel(_by: Node, barrel: Interactable) -> void:
@@ -153,4 +185,4 @@ func _on_barrel(_by: Node, barrel: Interactable) -> void:
 		return
 	barrel.enabled = false
 	GameState.play("clunk", barrel.global_position)
-	GameState.say("Você enche uma lata de combustível.")
+	GameState.say("Lata de combustível (%d na mochila). Vai no tanque do gerador." % GameState.fuel_cans)
