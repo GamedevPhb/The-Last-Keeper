@@ -103,7 +103,7 @@ func apply() -> void:
 			var level: float = values["master"] if bus == "Master" else values["music" if bus == "Music" else "sfx"]
 			AudioServer.set_bus_volume_db(index, linear_to_db(maxf(level, 0.0001)))
 	RenderingServer.global_shader_parameter_set("psx_brightness", values["brightness"])
-	RenderingServer.global_shader_parameter_set("psx_vertex_snap", ProjectSettings.get_setting("shader_globals/psx_vertex_snap", {"value": 2.0})["value"] if values["jitter"] else 0.0)
+	RenderingServer.global_shader_parameter_set("psx_vertex_snap", ProjectSettings.get_setting("shader_globals/psx_vertex_snap", {"value": 2.5})["value"] if values["jitter"] else 0.0)
 	RenderingServer.global_shader_parameter_set("psx_crt", values["crt"])
 	RenderingServer.global_shader_parameter_set("psx_grain", values["grain"])
 	Engine.max_fps = 0 if _headless else int(values["fps"])

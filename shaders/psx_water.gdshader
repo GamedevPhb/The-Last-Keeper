@@ -28,6 +28,6 @@ void fragment() {
 	vec2 uv = psx_resolve_uv(UV * uv_scale + vec2(TIME * 0.02, 0.0), affine_uv);
 	float n = texture(noise_texture, uv).r;
 	ALBEDO = mix(deep_color.rgb, crest_color.rgb, crest * n);
-	EMISSION = ALBEDO * psx_flashlight_light(VERTEX, NORMAL);
+	EMISSION = ALBEDO * (psx_flashlight_light(VERTEX, NORMAL) + psx_lamp_light(VERTEX, NORMAL, INV_VIEW_MATRIX));
 	ROUGHNESS = 1.0;
 }

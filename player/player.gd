@@ -106,13 +106,16 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= _gravity * delta
 	elif Input.is_action_just_pressed("jump") and not locked:
 		velocity.y = jump_velocity
+		GameState.stamina_jump()
 		jumped.emit()
 
 	var frozen := locked or GameState.dead
 	var input := Vector2.ZERO if frozen else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := (transform.basis * Vector3(input.x, 0.0, input.y)).normalized()
+	# Sprint (keyboard, pad or the touch stick at its rim) spends stamina; winded, it is just a walk.
 	var sprinting := Input.is_action_pressed("sprint") and input != Vector2.ZERO and GameState.can_sprint()
 	GameState.sprinting = sprinting
+	GameState.tick_stamina(delta, sprinting, input != Vector2.ZERO)
 	var speed := sprint_speed if sprinting else walk_speed
 	velocity.x = move_toward(velocity.x, direction.x * speed, acceleration * delta)
 	velocity.z = move_toward(velocity.z, direction.z * speed, acceleration * delta)

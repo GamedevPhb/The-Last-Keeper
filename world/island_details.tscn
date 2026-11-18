@@ -31,6 +31,7 @@
 [ext_resource type="Script" uid="uid://csla1rmerycma" path="res://world/supplies.gd" id="s_supplies"]
 [ext_resource type="Script" uid="uid://m1grha16i7ek" path="res://puzzles/tide.gd" id="s_tide"]
 [ext_resource type="Script" uid="uid://boltd7qtflogl" path="res://world/ship_traffic.gd" id="s_traffic"]
+[ext_resource type="Script" path="res://puzzles/hint_plate.gd" id="s_hint"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_0"]
 size = Vector3(1.6, 0.04, 18.6)
@@ -4079,3 +4080,84 @@ script = ExtResource("s_pcrate")
 
 [node name="PortinhoDoll" type="Node3D" parent="."]
 script = ExtResource("s_pdoll")
+
+[node name="Hints" type="Node3D" parent="."]
+
+[node name="GeneratorChalk" type="Node3D" parent="Hints"]
+position = Vector3(-21.43, 2.3, 14.7)
+rotation_degrees = Vector3(0, 90, 0)
+script = ExtResource("s_hint")
+prompt = "Ler o giz na parede"
+style = 1
+plate_size = Vector2(1.2, 0.4)
+font_size = 24
+source = NodePath("../../Stations/Station_Generator")
+
+[node name="FuseTag" type="Node3D" parent="Hints"]
+position = Vector3(28.5, 0.98, 4.93)
+rotation_degrees = Vector3(0, 0, 0)
+script = ExtResource("s_hint")
+title = "MÁX. 2 CIRCUITOS
+LIGUE O GERADOR ANTES"
+text = "Plaqueta do quadro: \"O gerador aguenta DOIS circuitos: rádio, luz da casa, motor da lanterna. O terceiro não entra; desligue um para trocar. Luz âmbar: circuito ligado, gerador parado.\""
+prompt = "Ler a plaqueta do quadro"
+style = 2
+plate_size = Vector2(0.56, 0.2)
+font_size = 18
+
+[node name="RadioCard" type="Node3D" parent="Hints"]
+position = Vector3(25.25, 1.5, 4.93)
+rotation_degrees = Vector3(0, 0, 0)
+script = ExtResource("s_hint")
+title = "CHAMADA
+1 SINTONIZE ATÉ LIMPAR
+2 OUÇA A CARGA
+3 CONFIRA NO LIVRO (J)
+IGUAL: AUTORIZE
+DIFERENTE: RECUSE"
+text = "Cartão da rotina, letra da vigia 3: \"Gire a sintonia até a voz limpar. Ouça a carga e confira no registro do livro. Igual, autorize. Diferente, recuse: nem toda voz diz a verdade. Farol apagado, ninguém atraca. Encalha.\""
+prompt = "Ler o cartão da rotina"
+style = 2
+plate_size = Vector2(0.86, 0.46)
+font_size = 18
+
+[node name="CellarChalk" type="Node3D" parent="Hints"]
+position = Vector3(29.7, 1.15, 9.71)
+rotation_degrees = Vector3(0, 0, 0)
+script = ExtResource("s_hint")
+title = "PORÃO · 3 DISCOS
+MORTOS · CAIS · TANQUE"
+text = "Giz na parede, letra do vigia 9: \"Porão. Primeiro disco: quantos vigias descansam no cemitério. Segundo: o lote do caixote no píer. Terceiro: quantas latas cabem no tanque de reserva, no pátio do galpão. A.Q.\""
+prompt = "Ler o giz na parede"
+style = 1
+plate_size = Vector2(0.9, 0.3)
+font_size = 22
+add_to_notes = true
+
+[node name="TideBoard" type="Node3D" parent="Hints"]
+position = Vector3(37.4, 0, 0.9)
+rotation_degrees = Vector3(0, -90, 0)
+script = ExtResource("s_hint")
+prompt = "Ler a régua de maré"
+style = 0
+plate_size = Vector2(0.6, 0.26)
+font_size = 24
+post_height = 1.3
+source = NodePath("../../Causeway")
+
+[node name="LampPlate" type="Node3D" parent="Hints"]
+position = Vector3(-1.25, 16, -13.55)
+rotation_degrees = Vector3(0, -30, 0)
+script = ExtResource("s_hint")
+title = "PARA ACENDER
+1 ABASTECER
+2 AQUECER E BOMBEAR
+   ATÉ O VERDE
+3 SÓ ENTÃO A VÁLVULA
+4 CORDA NO PULSO"
+text = "Placa da Companhia: \"Abasteça o óleo. Segure AQUECER e bombeie até temperatura e pressão no verde. Só então abra a VÁLVULA: aberta fria, afoga e trava. Acesa, dê CORDA quando a catraca bater. Lente suja, luz curta.\""
+prompt = "Ler a placa da lâmpada"
+style = 0
+plate_size = Vector2(0.88, 0.52)
+font_size = 18
+post_height = 1.25

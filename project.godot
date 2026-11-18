@@ -285,7 +285,7 @@ textures/default_filters/anisotropic_filtering_level=0
 
 psx_vertex_snap={
 "type": "float",
-"value": 2.0
+"value": 2.5
 }
 psx_brightness={
 "type": "float",
@@ -310,4 +310,36 @@ psx_flashlight={
 psx_flashlight_color={
 "type": "color",
 "value": Color(1, 0.95, 0.8, 1)
+}
+psx_lamp_0={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+psx_lamp_1={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+psx_lamp_2={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+psx_lamp_3={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+psx_lamp_color_0={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+psx_lamp_color_1={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+psx_lamp_color_2={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+psx_lamp_color_3={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
 }

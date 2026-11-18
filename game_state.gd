@@ -69,6 +69,15 @@ const COLD_TIME := 60.0 ## real seconds of doubled hunger after a soaking
 const COLD_FROM := 26 * 60 ## 02:00: hunger x1.5 outdoors
 const HEAVY_CANS := 4 ## oil + fuel cans that stop sprinting
 
+# Stamina (GDD 4.10), per real second: sprinting is a resource.
+const STAMINA_DRAIN := 100.0 / 6.0 ## empty after ~6 s of sprinting
+const STAMINA_REGEN_WALK := 20.0 ## full in ~5 s walking
+const STAMINA_REGEN_REST := 100.0 / 3.5 ## full in ~3.5 s standing still
+const STAMINA_PAUSE := 1.0 ## seconds without spending before it starts to come back
+const STAMINA_JUMP := 10.0
+const STAMINA_RECOVER := 30.0 ## winded until it climbs back here
+const STAMINA_LOW_NEED := 25.0 ## thirst or hunger below this: drain x1.5, regen x0.6
+
 # Portable radio battery (GDD 4.8), per real second.
 const RADIO_OPEN_DRAIN := 0.5
 const RADIO_IDLE_DRAIN := 0.05
@@ -157,6 +166,10 @@ var death_cause := ""
 ## Set by the Player every physics frame.
 var player: Node3D
 var sprinting := false
+## 0-100. Hitting 0 leaves the keeper winded (no sprint) until STAMINA_RECOVER.
+var stamina := 100.0
+var winded := false
+var _stamina_pause := 0.0
 var in_water := false
 var cold_left := 0.0
 var _critical := {"thirst": false, "hunger": false, "health": false}
@@ -309,6 +322,7 @@ func reset() -> void:
 	dead = false
 	death_cause = ""
 	sprinting = false
+	_reset_stamina()
 	flashlight_on = false
 	flashlight_battery = 100.0
 	lens_left = 0.0
@@ -676,7 +690,44 @@ func use_lens_cleaner() -> bool:
 
 
 func can_sprint() -> bool:
-	return thirst > 0.0 and hunger > 0.0 and oil_cans + fuel_cans < HEAVY_CANS
+	return thirst > 0.0 and hunger > 0.0 and oil_cans + fuel_cans < HEAVY_CANS and not winded and stamina > 0.0
+
+
+# ---- Stamina
+
+## Advances stamina by `delta` real seconds (called by the Player every physics frame).
+## Sprinting drains it; after STAMINA_PAUSE without spending it refills, faster standing still.
+func tick_stamina(delta: float, is_sprinting: bool, moving: bool) -> void:
+	var low_need := thirst < STAMINA_LOW_NEED or hunger < STAMINA_LOW_NEED
+	if is_sprinting:
+		_spend_stamina(STAMINA_DRAIN * (1.5 if low_need else 1.0) * delta)
+		return
+	if _stamina_pause > 0.0:
+		_stamina_pause = maxf(_stamina_pause - delta, 0.0)
+		return
+	var regen := STAMINA_REGEN_WALK if moving else STAMINA_REGEN_REST
+	stamina = minf(stamina + regen * (0.6 if low_need else 1.0) * delta, 100.0)
+	if winded and stamina >= STAMINA_RECOVER:
+		winded = false
+
+
+## A jump costs STAMINA_JUMP (it can leave the keeper winded).
+func stamina_jump() -> void:
+	_spend_stamina(STAMINA_JUMP)
+
+
+func _spend_stamina(amount: float) -> void:
+	stamina = maxf(stamina - amount, 0.0)
+	_stamina_pause = STAMINA_PAUSE
+	if stamina <= 0.0 and not winded:
+		winded = true
+		play("winded")
+
+
+func _reset_stamina() -> void:
+	stamina = 100.0
+	winded = false
+	_stamina_pause = 0.0
 
 
 # ---- Keeper status
@@ -871,7 +922,7 @@ func to_save() -> Dictionary:
 		"slots": inventory.slots.duplicate(true), "cursor": inventory.cursor.duplicate(),
 		"thirst": thirst, "hunger": hunger, "health": health, "dead": dead, "death_cause": death_cause,
 		"scenes_seen": scenes_seen.duplicate(), "flashlight_battery": flashlight_battery, "lens_left": lens_left,
-		"cold_left": cold_left, "radio_battery": radio_battery, "radio_docked": radio_docked,
+		"cold_left": cold_left, "stamina": stamina, "winded": winded, "radio_battery": radio_battery, "radio_docked": radio_docked,
 		"equipped": equipped, "hotbar": inventory.selected, "mags": mags.duplicate(),
 		"invasion_active": invasion_active, "invasion_done": invasion_done, "invasion_wave": invasion_wave,
 		"invasion_kills": invasion_kills, "invasion_spent": invasion_spent, "invasion_crate": invasion_crate,
@@ -932,6 +983,9 @@ func from_save(data: Dictionary) -> void:
 	dead = data.get("dead", false)
 	death_cause = data.get("death_cause", "")
 	cold_left = data.get("cold_left", 0.0)
+	stamina = clampf(float(data.get("stamina", 100.0)), 0.0, 100.0)
+	winded = bool(data.get("winded", false)) and stamina < STAMINA_RECOVER
+	_stamina_pause = 0.0
 	scenes_seen = data.get("scenes_seen", {}).duplicate()
 	if lamp_lit_once:
 		scenes_seen["lamp"] = true # an old save: the lamp is already burning
@@ -1023,6 +1077,7 @@ func advance_night() -> void:
 	health = 100.0
 	dead = false
 	death_cause = ""
+	_reset_stamina()
 	flashlight_on = false
 	flashlight_battery = 100.0
 	lens_left = 0.0
@@ -1154,15 +1209,15 @@ func _base_objective() -> String:
 	if not book_read:
 		return "Siga a trilha até a casa do vigia, a leste. Na mesa do rádio, leia o livro de registros (E)."
 	if not generator_started:
-		return "Ligue o gerador no galpão, a oeste: abasteça o tanque com combustível e abra as válvulas na ordem do livro."
+		return "Ligue o gerador no galpão, a oeste. A partida está escrita a giz na parede."
 	if not breakers.values().has(true):
-		return "Ligue os disjuntores na caixa de fusíveis, dentro da casa. O gerador aguenta só dois."
+		return "Ligue os disjuntores no quadro de força da casa. Leia a plaqueta embaixo dele."
 	if not lamp_lit_once:
 		if oil_cans == 0:
-			return "Sem óleo! O tambor fica no ilhéu a leste: cruze as pedras na maré baixa."
-		return "Suba o farol, ao norte, e use o console da lâmpada:\n1) abasteça o óleo; 2) segure AQUECER e bombeie até temperatura e pressão ficarem NO VERDE; 3) só então abra a válvula (frio afoga!); 4) dê corda no ritmo."
+			return "Sem óleo! O tambor fica no ilhéu a leste. A régua na praia mostra a maré."
+		return "Suba o farol, ao norte, e acenda a lâmpada. A placa ao lado do console ensina."
 	if tutorial() and ships_saved + ships_lost == 0:
-		return "Lâmpada acesa! Agora atenda o rádio na casa: sintonize, compare a carga com o livro (J) e autorize ou recuse."
+		return "Lâmpada acesa! Atenda o rádio na casa. O cartão na parede da mesa ensina."
 	var line := "Mantenha a luz acesa e atenda o rádio até as 06:00."
 	if oil_cans == 0:
 		line += "\nSem óleo na mochila: o tambor fica no ilhéu a leste, na maré baixa."

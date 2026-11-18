@@ -64,6 +64,15 @@ func valve_order_text() -> String:
 	return ", ".join(order.map(func(i: int) -> String: return LABELS[i]))
 
 
+## Chalk on the shed wall above the valves (`puzzles/hint_plate.gd`, source = this station).
+func hint_title() -> String:
+	return "PARTIDA\n1. TANQUE CHEIO\n2. VÁLVULAS %s" % " · ".join(order.map(func(i: int) -> String: return LABELS[i]))
+
+
+func hint_text() -> String:
+	return "Giz na parede, letra do vigia 9: \"Partida: combustível no tanque primeiro (barris atrás do galpão). Depois as válvulas, nesta ordem: %s. Errou uma, a pressão cai e recomeça da primeira.\"" % valve_order_text()
+
+
 func _add(node_name: String, pos: Vector3, prompt_text: String, hold: float, radius: float) -> Interactable:
 	var item := Interactable.create(prompt_text, hold, radius)
 	item.name = node_name
@@ -112,7 +121,7 @@ func _on_valve(_by: Node, index: int) -> void:
 			_start()
 	else:
 		GameState.play("jam", global_position)
-		GameState.say("A pressão cai. Recomece as válvulas.")
+		GameState.say("A pressão cai. Recomece as válvulas (a ordem está no giz da parede).")
 		_reset()
 
 

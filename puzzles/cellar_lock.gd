@@ -57,7 +57,7 @@ func set_digits(value: Array) -> void:
 
 
 func _on_interacted(by: Node) -> void:
-	GameState.add_note("Porão da casa: cadeado de 3 discos. Os números estão escritos pela ilha.")
+	GameState.add_note("Porão da casa: cadeado de 3 discos. Os números estão escritos pela ilha; o giz na parede da casa diz onde.")
 	if _console == null:
 		_console = LOCK_CONSOLE.new()
 		_console.lock = self

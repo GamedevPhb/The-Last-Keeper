@@ -43,6 +43,12 @@ var _wave: Label
 var _hotbar: Hotbar
 var _hotbar_name: Label
 var _hotbar_name_left := 0.0
+## Stamina, bottom-left above the critical icons: a thin cream bar (brass while winded) shown only
+## while not full, fading out once it refills.
+var _stamina_box: Control
+var _stamina_fill: ColorRect
+var _stamina_mark: ColorRect
+var _stamina_left := 0.0
 
 @onready var _root: Control = $Root
 @onready var _prompt: Label = $Root/Prompt
@@ -89,6 +95,7 @@ func _ready() -> void:
 	_root.add_child(_wave)
 	_tag(_wave, Vector2(0.5, 0.0), Vector2(0.0, 18.0))
 	_build_hotbar()
+	_build_stamina()
 	var x := 4.0
 	for key: String in ["thirst", "hunger", "health"]:
 		var icon := TextureRect.new()
@@ -116,6 +123,48 @@ func _build_hotbar() -> void:
 	GameState.changed.connect(_hotbar.queue_redraw)
 	GameState.weapon_changed.connect(_hotbar.queue_redraw)
 	_layout()
+
+
+func _build_stamina() -> void:
+	_stamina_box = Control.new()
+	_stamina_box.name = "Stamina"
+	_stamina_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_box.position = Vector2(4, 222)
+	_stamina_box.size = Vector2(40, 4)
+	_stamina_box.visible = false
+	_root.add_child(_stamina_box)
+	var back := ColorRect.new()
+	back.color = Color(UiKit.INK, 0.8)
+	back.size = _stamina_box.size
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_box.add_child(back)
+	_stamina_fill = ColorRect.new()
+	_stamina_fill.position = Vector2(1, 1)
+	_stamina_fill.size = Vector2(38, 2)
+	_stamina_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_box.add_child(_stamina_fill)
+	# where sprinting comes back after running out of breath
+	_stamina_mark = ColorRect.new()
+	_stamina_mark.color = UiKit.MUTED
+	_stamina_mark.position = Vector2(1.0 + roundf(38.0 * GameState.STAMINA_RECOVER / 100.0), 0)
+	_stamina_mark.size = Vector2(1, 4)
+	_stamina_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_box.add_child(_stamina_mark)
+
+
+func _update_stamina(delta: float) -> void:
+	var stamina: float = GameState.stamina
+	var playing: bool = GameState.in_game and not GameState.dead and not GameState.finished
+	if playing and stamina < 100.0:
+		_stamina_left = FADE
+	else:
+		_stamina_left -= delta
+	if not playing:
+		_stamina_left = 0.0
+	_fade(_stamina_left, [_stamina_box])
+	_stamina_fill.size.x = roundf(38.0 * clampf(stamina / 100.0, 0.0, 1.0))
+	_stamina_fill.color = UiKit.BRASS if GameState.winded else UiKit.CREAM
+	_stamina_mark.visible = GameState.winded
 
 
 func _on_hotbar_changed() -> void:
@@ -271,6 +320,7 @@ func _process(delta: float) -> void:
 	_update_phone()
 	_update_battery()
 	_update_ammo()
+	_update_stamina(delta)
 	_hotbar.visible = GameState.in_game and not GameState.dead and not GameState.finished
 	_hotbar.mouse_filter = Control.MOUSE_FILTER_STOP if TouchControls.enabled else Control.MOUSE_FILTER_IGNORE
 	_hotbar_name_left -= delta

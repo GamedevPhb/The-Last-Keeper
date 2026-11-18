@@ -206,6 +206,18 @@ Pressão de fundo, não uma segunda rotina: numa noite bem jogada, o jogador beb
 - **Regeneração:** +1/min de jogo até 70 se sede e fome estiverem ≥ 50. Acima de 70, só com curativo.
 - **Morte:** o som cai, ruído branco e fade; o resumo da noite mostra a causa ("A sede", "O mar", "Algo na escada") e oferece recomeçar a noite. Não há *jump scare*.
 - **HUD:** nada em nível normal. Só no crítico (sede ou fome ≤ 20, vida ≤ 30) aparece um ícone 8×8 no canto inferior esquerdo, piscando devagar, um por status e no máximo três. Cada um tem uma deixa sonora: garganta seca, estômago, coração. Some quando sai do crítico.
+- **Fôlego (stamina):** correr é um recurso, não um modo. `GameState.stamina` vai de 0 a 100 (salvo com o jogo, cheio a cada noite). Valores por segundo real:
+
+  | Situação | Efeito |
+  |---|---|
+  | Correndo | −16,7/s (zera em ~6 s) |
+  | Pulo | −10 por pulo |
+  | Pausa | 1,0 s sem gastar antes de recuperar |
+  | Andando | +20/s (cheio em ~5 s) |
+  | Parado | +28,6/s (cheio em ~3,5 s) |
+  | Sede ou fome < 25 | gasto ×1,5 e recuperação ×0,6 |
+
+  Em 0 o guardião fica **sem fôlego**: não corre até voltar a 30 e toca uma respiração ofegante curta (`winded`, procedural em `audio/synth.gd`). Não há efeito de tela. HUD: barra fina de 40×4 px no canto inferior esquerdo, logo acima dos ícones críticos, creme (latão enquanto sem fôlego, com um risco em 30); aparece só fora do cheio, some com fade ao encher e se esconde com os painéis. No toque, o anel do joystick só fica vermelho se a corrida estiver disponível. Teste: `tests/stamina_test.gd`.
 
 **Critérios de pronto:** (1) sem beber, a sede chega a 0 por volta das 03:30 e, correndo, mais cedo; (2) com a sede em 0 a vida cai 1 por minuto de jogo e a corrida é bloqueada; (3) a cisterna dá +35 infinitamente; a despensa só abre com 8-3-5; (4) uma queda de 8 m tira 60; (5) o ícone de HUD aparece só abaixo dos limiares e some acima; (6) com vida 0 o resumo mostra a causa; (7) um teste headless força os status e verifica taxas e limiares.
 
@@ -314,7 +326,7 @@ Custos: cerca nível 1 = 4 madeira, nível 2 (porta) = 6 (máximo 10, ~3 latas d
 | Menus: navegar (`ui_*`) | setas | direcional (botões 11-14, ou eixos 6/7 de hat em genéricos) ou analógico | |
 | Mover (`move_*`) | WASD | analógico esquerdo | joystick virtual |
 | Olhar (`look_*`) | mouse | analógico direito | arrastar o dedo na tela |
-| Correr (`sprint`) | Shift (bloqueado com sede ou fome em 0, ou 4+ latas) | L3 | sem botão (joystick virtual pressionado até o limite) |
+| Correr (`sprint`) | Shift (gasta fôlego; bloqueado sem fôlego, com sede ou fome em 0, ou 4+ latas) | L3 | sem botão (joystick virtual pressionado até o limite) |
 | Pular (`jump`) | Espaço | Círculo / B (índice 1) | botão pular |
 | Interagir / pegar item no chão (`interact`) | E (segurar nas ações contínuas) | X ou Quadrado / A (índices 0 e 2) | botão interagir (segurar nas ações contínuas) |
 | Lanterna (`flashlight`) | F | R1 | botão lanterna |

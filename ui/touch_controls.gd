@@ -367,7 +367,7 @@ func _available(action: String) -> bool:
 
 func _paint(canvas: Control) -> void:
 	var home := _stick_center if _stick_touch >= 0 else stick_home()
-	var sprint := _stick.length() >= SPRINT_AT
+	var sprint := _stick.length() >= SPRINT_AT and GameState.can_sprint() # brass while winded
 	canvas.draw_circle(home, STICK_RADIUS, Color(UiKit.INK, 0.45))
 	canvas.draw_arc(home, STICK_RADIUS, 0.0, TAU, 32, UiKit.BLOOD if sprint else UiKit.BRASS, 1.0)
 	canvas.draw_arc(home, STICK_RADIUS - 3.0, 0.0, TAU, 32, Color(UiKit.RUST, 0.8), 1.0)

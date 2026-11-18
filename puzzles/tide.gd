@@ -25,6 +25,23 @@ func is_low() -> bool:
 	return _low
 
 
+## Real seconds until the tide turns (low -> high or high -> low).
+func seconds_to_change() -> float:
+	var phase := fmod(_time, period)
+	return (period * low_fraction - phase) if _low else (period - phase)
+
+
+## Tide board on the beach (`puzzles/hint_plate.gd`, source = this node).
+func hint_title() -> String:
+	return "MARÉ BAIXA\nPASSE" if _low else "MARÉ ALTA\nESPERE"
+
+
+func hint_text() -> String:
+	var left := roundi(seconds_to_change())
+	var now := ("Maré baixa: as pedras seguram por mais uns %d s." % left) if _low else ("Maré alta: as pedras voltam em uns %d s." % left)
+	return "Régua de maré, marcada pelo vigia 4: \"Pedra seca, passe. Ouviu a água, volte. Ninguém espera no meio.\" %s" % now
+
+
 func _process(delta: float) -> void:
 	_time += delta
 	var phase := fmod(_time, period)

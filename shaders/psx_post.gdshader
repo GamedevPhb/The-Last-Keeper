@@ -17,10 +17,10 @@ uniform float black_floor = 0.03; // lifted blacks like a CRT, keeps dark areas 
 uniform float glitch_rate = 0.0025; // chance per row per tick of a shifted row
 uniform float glitch_px = 4.0; // max horizontal shift of a glitch row
 // Grade: murky green-teal cast, crushed shadows and a heavy vignette.
-uniform vec3 tint : source_color = vec3(0.78, 1.0, 0.82);
-uniform float saturation = 0.65;
-uniform float gamma = 1.15; // >1 darkens the midtones
-uniform float vignette = 0.6;
+uniform vec3 tint : source_color = vec3(0.9, 1.0, 0.88); // softer than the old 0.78/1/0.82: warm lamps stay amber, not lime
+uniform float saturation = 0.75;
+uniform float gamma = 1.1; // >1 darkens the midtones
+uniform float vignette = 0.5;
 
 // CRT tube. All effects scale with psx_crt; at 0 the whole block is skipped.
 uniform float crt_curve = 0.10; // barrel; image is shrunk so edge midpoints are never cropped
@@ -74,7 +74,10 @@ void fragment() {
 	}
 	float luma = dot(color, vec3(0.299, 0.587, 0.114));
 	color = mix(vec3(luma), color, saturation) * tint;
-	color = pow(color * psx_brightness, vec3(gamma));
+	// Brightness (Options) bends the curve instead of scaling it: a multiplier barely moved the
+	// near-black night (0.02 * 1.8 still lands in the first of 24 levels), the exponent lifts the
+	// shadows where the player needs to see and leaves the highlights almost where they were.
+	color = pow(max(color, vec3(0.0)), vec3(gamma / max(psx_brightness, 0.1)));
 	float edge = length((SCREEN_UV - 0.5) * vec2(1.0, 0.9));
 	color *= mix(1.0, smoothstep(0.85, 0.2, edge), vignette);
 	// Random dither: triangular noise per native pixel and tick breaks the banding without a grid.

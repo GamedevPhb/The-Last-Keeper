@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://world/expansion.tscn" id="13_expansion"]
 [ext_resource type="PackedScene" path="res://world/terrain.tscn" id="14_terrain"]
 [ext_resource type="Material" path="res://materials/m_lighthouse.tres" id="lh_mat"]
+[ext_resource type="Material" path="res://materials/m_lamp.tres" id="lamp_mat"]
 
 [sub_resource type="PlaneMesh" id="sea_mesh"]
 size = Vector2(300, 300)
@@ -26,6 +27,9 @@ bottom_radius = 4.6
 height = 17.0
 radial_segments = 12
 rings = 1
+
+[sub_resource type="BoxMesh" id="BoxMesh_lamp"]
+size = Vector3(0.2, 0.28, 0.2)
 
 [node name="Island" type="Node3D" unique_id=569083668]
 
@@ -289,3 +293,25 @@ material = ExtResource("9_wood")
 [node name="Details" parent="." unique_id=636149627 instance=ExtResource("11_details")]
 
 [node name="Expansion" parent="." unique_id=1970665054 instance=ExtResource("13_expansion")]
+
+[node name="PorchLight" type="OmniLight3D" parent="KeeperHouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2.3, 3)
+light_color = Color(1, 0.72, 0.4, 1)
+light_energy = 0.8
+omni_range = 7.0
+
+[node name="PorchLamp" type="MeshInstance3D" parent="KeeperHouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2.3, 2.65)
+mesh = SubResource("BoxMesh_lamp")
+surface_material_override/0 = ExtResource("lamp_mat")
+
+[node name="DoorLight" type="OmniLight3D" parent="Lighthouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7, 2.6, -1.55)
+light_color = Color(1, 0.72, 0.4, 1)
+light_energy = 0.7
+omni_range = 6.5
+
+[node name="DoorLamp" type="MeshInstance3D" parent="Lighthouse"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 2.6, -1.55)
+mesh = SubResource("BoxMesh_lamp")
+surface_material_override/0 = ExtResource("lamp_mat")

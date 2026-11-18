@@ -5,6 +5,7 @@ extends Node3D
 ## fit in the inventory stays on the ground.
 
 const INVENTORY := preload("res://items/inventory.gd")
+const PSX_LIT := preload("res://shaders/psx_lit.gdshader")
 const COLORS := {
 	"flashlight": Color(0.55, 0.5, 0.3),
 	"battery": Color(0.2, 0.55, 0.3),
@@ -43,9 +44,9 @@ func _ready() -> void:
 		box.size = Vector3(0.18, 0.2, 0.14) if item in ["oil", "fuel", "water"] else Vector3(0.2, 0.08, 0.14)
 		mesh.mesh = box
 		mesh.position.y = box.size.y / 2.0
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = COLORS.get(item, Color(0.5, 0.5, 0.5))
-		mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		var mat := ShaderMaterial.new() # psx_lit: the fallback box snaps and takes the lamp/flashlight light like the world
+		mat.shader = PSX_LIT
+		mat.set_shader_parameter("albedo", COLORS.get(item, Color(0.5, 0.5, 0.5)))
 		mesh.material_override = mat
 		add_child(mesh)
 	_switch = Interactable.create("", 0.0, 0.3)
